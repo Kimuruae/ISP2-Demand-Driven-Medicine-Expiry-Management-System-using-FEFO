@@ -1,6 +1,9 @@
+#ensures the listed files are not tracked
 # Virtual Environment
 venv/
 env/
+# Environment Variables
+.env
 
 # Python
 __pycache__/
@@ -11,9 +14,6 @@ __pycache__/
 *.log
 db.sqlite3
 db.sqlite3-journal
-
-# Environment Variables
-.env
 
 # IDE
 .vscode/

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medicines - Medicine Expiry Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f0f2f5; }
+        .header { background: #1a237e; color: white; padding: 16px 24px; }
+        .header h1 { margin: 0; font-size: 18px; }
+        .nav { margin-top: 12px; }
+        .nav a { color: white; text-decoration: none; margin-right: 20px; font-size: 13px; }
+        .container { padding: 24px; }
+        .actions { margin-bottom: 16px; }
+        .btn { padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 13px; }
+        .btn-primary { background: #1a237e; color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-edit { background: #00897b; color: white; }
+        .btn-delete { background: #f44336; color: white; }
+        table { width: 100%; background: white; border-collapse: collapse; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+        th { background: #f5f5f5; color: #212121; font-weight: bold; }
+        tr:hover { background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Medicine Expiry Management System</h1>
+        <div class="nav">
+            <a href="{% url 'core:dashboard' %}">Dashboard</a>
+            <a href="{% url 'core:medicine_list' %}">Medicines</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Medicines</h2>
+        <div class="actions">
+            <a href="{% url 'core:medicine_create' %}" class="btn btn-primary">+ Add Medicine</a>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Dosage Form</th>
+                    <th>Strength</th>
+                    <th>Category</th>
+                    <th>Reorder Level</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for medicine in medicines %}
+                <tr>
+                    <td>{{ medicine.medicine_name }}</td>
+                    <td>{{ medicine.dosage_form }}</td>
+                    <td>{{ medicine.strength }}</td>
+                    <td>{{ medicine.category }}</td>
+                    <td>{{ medicine.reorder_level }}</td>
+                    <td>
+                        <a href="{% url 'core:medicine_update' medicine.pk %}" class="btn btn-sm btn-edit">Edit</a>
+                        <a href="{% url 'core:medicine_delete' medicine.pk %}" class="btn btn-sm btn-delete">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align:center; padding: 40px; color: #757575;">
+                        No medicines registered yet. Click "Add Medicine" to begin.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
