@@ -1,10 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Dashboard</h1>
+
+    <div class="row">
+        <!-- Total Medicines -->
+        <div class="col-md-4">
+            <div class="card bg-primary text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">TOTAL MEDICINES</h5>
+                    <h2>{{ total_medicines }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Batches -->
+        <div class="col-md-4">
+            <div class="card bg-info text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">TOTAL BATCHES</h5>
+                    <h2>{{ total_batches }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expiring Soon -->
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">EXPIRING SOON (90 Days)</h5>
+                    <h2>{{ expiring_soon }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Message -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5>Welcome, {{ request.user.username }}</h5>
+            <p>You are logged in as: <strong>{{ user_role }}</strong></p>
+            <p>Unread alerts: {{ total_alerts }}</p>
+        </div>
+    </div>
+
+     <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h5>Near Expiry (90 days)</h5>
+                <h2>{{ near_expiry }}</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
