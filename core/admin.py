@@ -1,12 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import (User, Supplier, Medicine, MedicineBatch, DispensingTransaction,
+from .models import (Role, User, Supplier, Medicine, MedicineBatch, DispensingTransaction,
     ExpiryAlert, DemandForecast, ProcurementRecommendation, PurchaseOrder,
     SystemSetting, AuditLog,)
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'role', 'is_staff', 'is active')
+    list_display = ('username', 'email', 'role', 'is_staff', 'is_active')
     fieldsets = UserAdmin.fieldsets + (("Role", {"fields": ("role", "phone_number", "department")}),)
     list_filter = ("role", "is_active")
 
@@ -33,11 +33,6 @@ class MedicineBatchAdmin(admin.ModelAdmin):
     list_filter = ("status","expiry_date")
     search_fields = ("batch_number", "medicine__medicine_name")
     ordering = ("expiry_date",)
-
-    @admin.register(Supplier)
-    class SupplierAdmin(admin.ModelAdmin):
-        list_display = ('supplier_name', 'contact_person', 'phone', 'is_active')
-
 
 @admin.register(DispensingTransaction)
 class DispensingTransactionAdmin(admin.ModelAdmin):
