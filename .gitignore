@@ -2,6 +2,7 @@
 # Virtual Environment
 venv/
 env/
+NTUSER.DAT* #
 # Environment Variables
 .env
 

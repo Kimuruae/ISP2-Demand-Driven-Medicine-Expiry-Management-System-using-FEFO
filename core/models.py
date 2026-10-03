@@ -78,7 +78,7 @@ class DispensingTransaction(models.Model):
     notes = models.TextField(blank=True)
 
     def __str__(self):
-        return f"Transaction {self.id}"
+        return f"Transaction {self.id}(self.Batch,Medicine.name)"
 
 class ExpiryAlert(models.Model):
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE, null=True, blank=True)

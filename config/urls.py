@@ -6,4 +6,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')), #login/logout
     path('', include('core.urls')), # app URLs
+    path("", RedirectView.as_view(url="/dashboard/", permanent=False), name="dashboard"),
 ]

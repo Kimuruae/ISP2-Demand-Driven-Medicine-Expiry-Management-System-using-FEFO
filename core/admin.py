@@ -1,19 +1,13 @@
-"""core/admin.py — register models so you can verify data via /admin/ before any UI exists."""
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-
-from .models import (
-    User, Supplier, Medicine, MedicineBatch, DispensingTransaction,
+from .models import (User, Supplier, Medicine, MedicineBatch, DispensingTransaction,
     ExpiryAlert, DemandForecast, ProcurementRecommendation, PurchaseOrder,
-    SystemSetting, AuditLog,
-)
+    SystemSetting, AuditLog,)
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    fieldsets = UserAdmin.fieldsets + (
-        ("Role", {"fields": ("role", "phone_number", "department")}),
-    )
-    list_display = ("username", "email", "role", "is_active")
+    list_display = ('username', 'email', 'role', 'is_staff', 'is active')
+    fieldsets = UserAdmin.fieldsets + (("Role", {"fields": ("role", "phone_number", "department")}),)
     list_filter = ("role", "is_active")
 
 
@@ -22,10 +16,13 @@ class SupplierAdmin(admin.ModelAdmin):
     list_display = ("supplier_name", "contact_person", "phone", "is_active")
     search_fields = ("supplier_name",)
 
+@admin.register(Role)
+class RoleAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
 
 @admin.register(Medicine)
 class MedicineAdmin(admin.ModelAdmin):
-    list_display = ("medicine_name", "category", "reorder_level", "safety_stock_days", "is_active")
+    list_display = ("medicine_name", "category",'dosage_form', "reorder_level", "safety_stock_days", "is_active")
     search_fields = ("medicine_name", "generic_name")
     list_filter = ("category", "is_active")
 
@@ -33,15 +30,19 @@ class MedicineAdmin(admin.ModelAdmin):
 @admin.register(MedicineBatch)
 class MedicineBatchAdmin(admin.ModelAdmin):
     list_display = ("medicine", "batch_number", "quantity_available", "expiry_date", "status")
-    list_filter = ("status",)
+    list_filter = ("status","expiry_date")
     search_fields = ("batch_number", "medicine__medicine_name")
     ordering = ("expiry_date",)
+
+    @admin.register(Supplier)
+    class SupplierAdmin(admin.ModelAdmin):
+        list_display = ('supplier_name', 'contact_person', 'phone', 'is_active')
 
 
 @admin.register(DispensingTransaction)
 class DispensingTransactionAdmin(admin.ModelAdmin):
     list_display = ("medicine", "batch", "quantity_dispensed", "dispensed_by", "is_override", "dispensed_at")
-    list_filter = ("is_override",)
+    list_filter = ("is_override","dispensed_at")
 
 
 @admin.register(ExpiryAlert)
