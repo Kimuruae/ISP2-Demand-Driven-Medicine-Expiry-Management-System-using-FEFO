@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Predictive Demands Analytics{% endblock %}
+{% block nav_reports %}active{% endblock %}
+{% block header_title %}Predictive Consumption Metrics & Forecasting Analytics{% endblock %}
+
+{% block content %}
+<div class="grid" style="grid-template-columns: 1fr 1fr; gap: 30px;">
+
+    <!-- Demand Forecast Data Analytics Frame -->
+    <div class="table-container">
+        <h2>Seasonal Algorithmic Consumption Forecasts</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Target Entity</th>
+                    <th>Predicted Units Demand</th>
+                    <th>Confidence Interval Range</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for forecast in forecasts %}
+                <tr>
+                    <td><strong>{{ forecast.medicine.name }}</strong></td>
+                    <td>{{ forecast.forecasted_demand_quantity }} Units</td>
+                    <td><span class="badge success">{{ forecast.confidence_score }}% Match</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #777; padding: 30px;">No mathematical forecasting sweeps registered yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Procurement Requirements Matrix Frame -->
+    <div class="table-container">
+        <h2>Procurement Procurement Recommendations Matrix</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Medicine Target</th>
+                    <th>Suggested Restock Vol</th>
+                    <th>Urgency Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in recommendations %}
+                <tr>
+                    <td><strong>{{ rec.medicine.name }}</strong></td>
+                    <td>+{{ rec.recommended_quantity }} Units</td>
+                    <td><span class="badge danger">{{ rec.urgency_level }}</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #777; padding: 30px;">No predictive replenishment alerts triggered.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

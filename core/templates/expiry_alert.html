@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Expiry Alerts Center{% endblock %}
+{% block nav_alerts %}active{% endblock %}
+{% block header_title %}Active Expiry Alerts Management Center{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <h2>System Triggered Alerts Matrix</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Batch Identifier</th>
+                <th>Alert Condition</th>
+                <th>Remaining Lifecycle Space</th>
+                <th>Risk Metrics</th>
+                <th>Resolution Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+            <tr>
+                <td><strong>{{ alert.batch.medicine.name }}</strong> (Batch: `{{ alert.batch.batch_number }}`)</td>
+                <td>
+                    <span class="badge {% if alert.alert_type == 'EXPIRED' %}danger{% else %}warning{% endif %}">
+                        {{ alert.get_alert_type_display }}
+                    </span>
+                </td>
+                <td>{{ alert.days_to_expiry }} Days Remaining</td>
+                <td><span class="badge danger">{{ alert.severity }}</span></td>
+                <td>
+                    {% if alert.is_resolved %}
+                    <span class="badge success">Resolved</span>
+                    {% else %}
+                    <span class="badge warning">Pending Action</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #777; padding: 40px;">🎉 System clean. No active medicine expiry flags tracked.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

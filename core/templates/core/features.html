@@ -1,0 +1,119 @@
+{# core/templates/index.html — public landing page (no login required) #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demand-Driven Medicine Expiry Management System</title>
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: Arial, Helvetica, sans-serif; margin: 0; color: #111; background: #fff; line-height: 1.55; }
+    a { color: inherit; }
+
+    /* ---------- Header ---------- */
+    header { border-bottom: 1px solid #000; position: sticky; top: 0; background: #fff; z-index: 10; }
+    .header-inner { max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+    .brand { font-size: 15px; font-weight: bold; letter-spacing: 0.03em; text-decoration: none; }
+    nav { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+    nav a { font-size: 13px; text-decoration: none; padding-bottom: 2px; border-bottom: 1px solid transparent; }
+    nav a:hover { border-bottom-color: #000; }
+    nav a.login { border: 1px solid #000; padding: 6px 16px; border-radius: 2px; background: #000; color: #fff; }
+    nav a.login:hover { background: #fff; color: #000; }
+
+    /* ---------- Hero (the big box in the sketch) ---------- */
+    .hero { border-bottom: 1px solid #000; }
+    .hero-inner { max-width: 1100px; margin: 0 auto; padding: 5rem 1.5rem; text-align: center; }
+    .hero h1 { font-size: 40px; line-height: 1.2; margin: 0 0 1rem; }
+    .hero p { font-size: 17px; color: #333; max-width: 680px; margin: 0 auto 2rem; }
+    .btn { display: inline-block; padding: 12px 28px; border: 1px solid #000; border-radius: 2px; font-size: 14px; text-decoration: none; margin: 0 6px; }
+    .btn-primary { background: #000; color: #fff; }
+    .btn-primary:hover { background: #fff; color: #000; }
+    .btn-secondary:hover { background: #000; color: #fff; }
+
+    /* ---------- Sections ---------- */
+    section { max-width: 1100px; margin: 0 auto; padding: 3.5rem 1.5rem; }
+    section h2 { font-size: 22px; margin: 0 0 1.25rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+    .card { border: 1px solid #000; border-radius: 4px; padding: 1.25rem; }
+    .card h3 { font-size: 15px; margin: 0 0 0.5rem; }
+    .card p { font-size: 13px; color: #333; margin: 0; }
+    .stat { font-size: 28px; font-weight: bold; }
+    .stat-label { font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: 0.03em; }
+    .divider { border: 0; border-top: 1px solid #ddd; margin: 0; }
+
+    /* ---------- Footer (three boxes in the sketch) ---------- */
+    footer { border-top: 1px solid #000; background: #fafafa; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .footer-box { border: 1px solid #000; border-radius: 4px; padding: 1.25rem; background: #fff; }
+    .footer-box h4 { margin: 0 0 0.75rem; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .footer-box ul { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+    .footer-box li { margin-bottom: 6px; }
+    .footer-box a { text-decoration: underline; }
+    .copyright { text-align: center; font-size: 12px; color: #555; padding: 1rem; border-top: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <a href="{% url 'index' %}" class="brand">ISP2 &middot; FEFO DEMAND-DRIVEN MEDICINE EXPIRY MS</a>
+      <nav>
+        <a href="#home">Home</a>
+        <a href="#about">About Us</a>
+        <a href="#features">Features</a>
+        <a href="#contact">Contact Us</a>
+        {% if request.user.is_authenticated %}
+          <a href="{% url 'dashboard' %}" class="login">Dashboard</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="login">Login</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <h2>What the system does</h2>
+    <div class="grid">
+      <div class="card"><h3>FEFO dispensing</h3><p>Automatically recommends the earliest-expiring batch. Any override requires a logged justification.</p></div>
+      <div class="card"><h3>Expiry alerts</h3><p>Daily scans flag batches approaching expiry at 90, 60, and 30 days.</p></div>
+      <div class="card"><h3>Demand forecasting</h3><p>A 3-month moving average of dispensing history, calculated per medicine.</p></div>
+      <div class="card"><h3>Procurement recommendations</h3><p>Triggered when projected stock falls below a 30-day safety threshold, with a two-step approval flow.</p></div>
+      <div class="card"><h3>Role-based access</h3><p>Pharmacists, store managers, procurement officers, and admins each see what they need.</p></div>
+      <div class="card"><h3>Audit trail</h3><p>Every dispensing action, override, and configuration change is recorded.</p></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- FOOTER: Socials | Documentation | (third box) -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-box">
+        <h4>Socials</h4>
+        <ul>
+          <li><a href="https://github.com/Kimuruae" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="#" target="_blank" rel="noopener">LinkedIn</a></li>
+        </ul>
+      </div>
+      <div class="footer-box">
+        <h4>Documentation</h4>
+        <ul>
+          <li><a href="https://github.com/Kimuruae/ISP2-Demand-Driven-Medicine-Expiry-Management-System-using-FEFO#readme" target="_blank" rel="noopener">README &amp; setup guide</a></li>
+          <li><a href="#">Project proposal</a></li>
+          <li><a href="#">System design (Chapter 4)</a></li>
+        </ul>
+      </div>
+      <div class="footer-box">
+        <h4>Project</h4>
+        <ul>
+          <li>Strathmore University</li>
+          <li>BBIT 4C &middot; 2026</li>
+          <li>Supervisor: Dr. Mary Njeri Ngaruiya</li>
+        </ul>
+      </div>
+    </div>
+    <div class="copyright">&copy; 2026 Strathmore University &bull; Built for Kenyan Level-4 public healthcare facilities.</div>
+  </footer>
+</body>
+</html>

@@ -1,19 +1,16 @@
 from django.contrib.auth.models import AbstractUser
+from datetime import date
 from django.db import models
 
 class Role(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True)
-
-    def __str__(self):
-        return self.name
+    def __str__(self): return self.name
 
 class User(AbstractUser):
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
     phone_number = models.CharField(max_length=15, blank=True)
-
-    def __str__(self):
-        return f"{self.username} - {self.role.name if self.role else 'No Role'}"
+    def __str__(self): return f"{self.username} - {self.role.name if self.role else 'No Role'}"
 
 class Medicine(models.Model):
     name = models.CharField(max_length=255)
@@ -27,11 +24,19 @@ class Medicine(models.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.name and not self.medicine_name:
-            self.medicine_name = self.name
+        if self.name and not self.medicine_name: self.medicine_name = self.name
+        def __str__(self):
+            return self.name
 
-    def __str__(self):
-        return self.name
+        def get_fefo_batches(self):
+            """Core FEFO implementation helper method. Returns available inventory
+            sorted by the earliest expiry date first. Unusable or expired items are filtered out."""
+            return MedicineBatch.objects.filter(
+                medicine=self,
+                quantity_available__gt=0,
+                expiry_date__gt=date.today(),
+                status="Active"
+            ).order_by('expiry_date')
 
 class MedicineBatch(models.Model):
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
@@ -43,8 +48,11 @@ class MedicineBatch(models.Model):
     storage_location = models.CharField(max_length=100, blank=True)
     status = models.CharField(max_length=50, default="Active")
 
-    def __str__(self):
-        return f"{self.medicine.name} - {self.batch_number}"
+    class Meta: #
+        ordering = ['expiry_date']
+        verbose_name_plural = "Medicine Batches"
+
+def __str__(self): return f"{self.medicine.name}  (Batch: {self.batch_number})- Exp: {self.expiry_date}"
 
 class Supplier(models.Model):
     supplier_name = models.CharField(max_length=255, unique=True)
@@ -58,13 +66,10 @@ class Supplier(models.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.supplier_name and not self.name:
-            self.name = self.supplier_name
-        if self.phone_number and not self.phone:
-            self.phone = self.phone_number
+        if self.supplier_name and not self.name: self.name = self.supplier_name
+        if self.phone_number and not self.phone: self.phone = self.phone_number
 
-    def __str__(self):
-        return self.supplier_name
+    def __str__(self): return self.supplier_name
 
 class DispensingTransaction(models.Model):
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE, null=True, blank=True)
@@ -77,8 +82,7 @@ class DispensingTransaction(models.Model):
     patient_identifier = models.CharField(max_length=100, blank=True)
     notes = models.TextField(blank=True)
 
-    def __str__(self):
-        return f"Transaction {self.id}(self.Batch,Medicine.name)"
+    def __str__(self): return f"Transaction {self.id}(self.Batch,Medicine.name)"
 
 class ExpiryAlert(models.Model):
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE, null=True, blank=True)
@@ -91,8 +95,7 @@ class ExpiryAlert(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     generated_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"Alert for {self.batch.batch_number}"
+    def __str__(self):return f"Alert ({self.alert_type}) - Batch {self.batch.batch_number}"
 
 Alert = ExpiryAlert
 
@@ -107,8 +110,7 @@ class DemandForecast(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     generated_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"Forecast - {self.medicine.name}"
+    def __str__(self): return f"Forecast - {self.medicine.name}"
 
 class ProcurementRecommendation(models.Model):
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
@@ -121,8 +123,7 @@ class ProcurementRecommendation(models.Model):
     generated_at = models.DateTimeField(auto_now_add=True)
     reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
-    def __str__(self):
-        return f"Recommendation - {self.medicine.name}"
+    def __str__(self): return f"Recommendation - {self.medicine.name}"
 
 class PurchaseOrder(models.Model):
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE, null=True, blank=True)
@@ -133,8 +134,7 @@ class PurchaseOrder(models.Model):
     status = models.CharField(max_length=20, default='PENDING')
     total_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
-    def __str__(self):
-        return f"PO-{self.id}"
+    def __str__(self): return f"PO-{self.id}"
 
 class SystemSetting(models.Model):
     key = models.CharField(max_length=100, unique=True)
@@ -146,22 +146,17 @@ class SystemSetting(models.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.key and not self.setting_key:
-            self.setting_key = self.key
-        if self.value and not self.setting_value:
-            self.setting_value = self.value
+        if self.key and not self.setting_key: self.setting_key = self.key
+        if self.value and not self.setting_value: self.setting_value = self.value
 
-    def __str__(self):
-        return self.key
+    def __str__(self):  return self.key
 
 class AuditLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     action = models.CharField(max_length=255)
     entity_type = models.CharField(max_length=100, blank=True, default="System")
-    timestamp = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     details = models.TextField(blank=True)
 
-    def __str__(self):
-        return f"AuditLog {self.id}"
+    def __str__(self): return f"AuditLog {self.id}"
