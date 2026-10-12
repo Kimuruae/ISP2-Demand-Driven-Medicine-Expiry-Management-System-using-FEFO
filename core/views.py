@@ -264,12 +264,6 @@ def reports_view(request):
     return render(request, "reports.html", context)
 
 @login_required
-@user_passes_test(is_store_manager, login_url='login', redirect_field_name=None)
-def inventory_view(request):
-    available_batches = MedicineBatch.objects.filter(quantity_available__gt=0).select_related('medicine').order_by('expiry_date')
-    return render(request, 'inventory.html', {'Available_batches': available_batches})
-
-@login_required
 @user_passes_test(is_pharmacist, login_url='login', redirect_field_name=None)
 def pharmacist_reports_view(request):
     transactions = DispensingTransaction.objects.all().select_related('medicine', 'batch', 'dispensed_by').order_by('-dispensed_at')
@@ -280,6 +274,91 @@ def pharmacist_reports_view(request):
 def pharmacist_alerts_view(request):
     alerts = ExpiryAlert.objects.filter(is_resolved=False).select_related('batch__medicine').order_by('batch__expiry_date')
     return render(request, "expiry_alert.html", {"alerts": alerts})
+
+@login_required
+@user_passes_test(is_store_manager, login_url='login', redirect_field_name=None)
+def inventory_view(request):
+    available_batches = MedicineBatch.objects.filter(quantity_available__gt=0).select_related('medicine').order_by('expiry_date')
+    return render(request, 'inventory.html', {'Available_batches': available_batches})
+
+@login_required
+@user_passes_test(is_store_manager, login_url='login', redirect_field_name=None)
+def store_manager_inventory_view(request):
+    if request.method == 'POST':
+        medicine_id = request.POST.get('medicine_id')
+        batch_num = request.POST.get('batch_number', '').strip()
+        quantity = int(request.POST.get('quantity', 0))
+        mfg_date = request.POST.get('manufacturing_date')
+        exp_date = request.POST.get('expiry_date')
+
+        try:
+            medicine = Medicine.objects.get(id=medicine_id)
+            # Creating new stock batch
+            MedicineBatch.objects.create(
+                medicine=medicine,
+                batch_number=batch_num,
+                quantity_initially_received=quantity,
+                quantity_available=quantity,
+                manufacturing_date=mfg_date,
+                expiry_date=exp_date,
+                status="Active"
+            )
+            messages.success(request,f"Batch {batch_num} for {medicine.name} registered successfully into shelf space.")
+            return redirect('inventory')
+
+        except Exception as e:
+            messages.error(request, f"Stock intake operation failed: {str(e)}")
+            return redirect('inventory')
+
+    # GET Request Handler
+    medicines = Medicine.objects.filter(is_active=True).order_by('name')
+    active_batches = MedicineBatch.objects.filter(
+        quantity_available__gt=0,
+        expiry_date__gt=timezone.now().date()
+    ).select_related('medicine').order_by('expiry_date')
+    return render(request, "inventory.html", {"medicines": medicines, "active_batches": active_batches})
+
+@login_required
+@user_passes_test(is_store_manager, login_url='login', redirect_field_name=None)
+def store_manager_reports_view(request):
+    all_batches = MedicineBatch.objects.all().select_related('medicine').order_by('-date_received')
+    return render(request, "inventory_reports.html", {"all_batches": all_batches})
+
+@login_required
+@user_passes_test(is_store_manager, login_url='login', redirect_field_name=None)
+def store_manager_alerts_view(request):
+    alerts = ExpiryAlert.objects.filter(is_resolved=False).select_related('batch__medicine').order_by('batch__expiry_date')
+    return render(request, "inventory_alerts.html", {"alerts": alerts})
+
+@login_required
+@user_passes_test(is_store_manager, login_url='login', redirect_field_name=None)
+def store_manager_recommendations_view(request):
+    if request.method == 'POST':
+        medicine_id = request.POST.get('medicine_id')
+        qty = int(request.POST.get('recommended_quantity', 0))
+        urgency = request.POST.get('urgency_level')
+        justification = request.POST.get('justification', '').strip()
+
+        try:
+            medicine = Medicine.objects.get(id=medicine_id)
+            ProcurementRecommendation.objects.create(
+                medicine=medicine,
+                recommended_quantity=qty,
+                urgency_level=urgency,
+                justification=justification,
+                raised_by=request.user,
+                status="Pending Review"
+            )
+            messages.success(request, f"Procurement advice card for {medicine.name} successfully pushed downstream.")
+            return redirect('inventory_recommendations')
+        except Exception as e:
+            messages.error(request, f"Failed to submit recommendation profile: {str(e)}")
+            return redirect('inventory_recommendations')
+
+    # GET Request Handler
+    medicines = Medicine.objects.filter(is_active=True).order_by('name')
+    recommendations = ProcurementRecommendation.objects.all().select_related('medicine', 'raised_by').order_by('-created_at')
+    return render(request, "inventory_recommendations.html",{"medicines": medicines, "recommendations": recommendations})
 
 #PUBLIC PUBLIC-FACING LANDING ROUTING ENDPOINTS
 def index(request):

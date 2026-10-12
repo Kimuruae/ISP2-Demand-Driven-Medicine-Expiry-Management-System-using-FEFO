@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 1300px; margin: 2rem auto; padding: 0 1.5rem; font-family: Arial, sans-serif; color: #000000;">
+
+    <div style="border-bottom: 2px solid #000000; padding-bottom: 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555555; letter-spacing: 0.08em; display: block;">Logistics & Storage Workstation</span>
+            <h1 style="font-size: 26px; font-weight: 900; margin: 0; text-transform: uppercase;">Procurement Recommendations Advice</h1>
+        </div>
+        <div style="font-size: 13px; font-weight: bold;">OPERATOR: {{ request.user.username }}</div>
+    </div>
+
+    <div class="workspace-layout-shell">
+        <!-- SIDEBAR -->
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="border: 1px solid #000000; padding: 1rem; background-color: #fafafa; text-align: center;">
+                <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #444444;">Storage Engine</span>
+            </div>
+            <a href="{% url 'inventory' %}" class="sidebar-action-link">📦 Register New Batch</a>
+            <a href="{% url 'inventory_reports' %}" class="sidebar-action-link">📋 View Stock Reports</a>
+            <a href="{% url 'inventory_alerts' %}" class="sidebar-action-link">🚨 Inventory Alerts</a>
+            <a href="{% url 'inventory_recommendations' %}" class="sidebar-action-link active-node">✍️ Raise Procurement Advice</a>
+        </div>
+
+        <!-- MAIN LAYOUT MATRIX: LEFT INPUT FORM, RIGHT VIEW LIST -->
+        <style>
+            .inner-layout-matrix { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+            @media (min-width: 1100px) { .inner-layout-matrix { grid-template-columns: 1.2fr 1.5fr !important; } }
+        </style>
+        <div class="inner-layout-matrix" style="display: grid; gap: 2rem; width: 100%;">
+
+            <!-- FORM CONTROLLER -->
+            <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
+                <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem;">
+                    Generate Supply Order Recommendation
+                </h3>
+
+                <form method="POST" action="{% url 'inventory_recommendations' %}" style="display: flex; flex-direction: column; gap: 1.2rem;">
+                    {% csrf_token %}
+
+                    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                        <label for="med_choice" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Medicine Target Profile</label>
+                        <select id="med_choice" name="medicine_id" required style="border: 1px solid #000000; padding: 0.75rem; font-size: 14px; background-color: #ffffff;">
+                            <option value="" disabled selected>-- Select Target Drug --</option>
+                            {% for med in medicines %}
+                                <option value="{{ med.id }}">{{ med.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label for="rec_qty" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Recommended Qty</label>
+                            <input type="number" id="rec_qty" name="recommended_quantity" min="1" required style="border: 1px solid #000000; padding: 0.75rem; font-size: 14px;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label for="urgency" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Urgency Context</label>
+                            <select id="urgency" name="urgency_level" required style="border: 1px solid #000000; padding: 0.75rem; font-size: 14px; background-color: #ffffff;">
+                                <option value="Low">Low Priority</option>
+                                <option value="Medium" selected>Medium Horizon</option>
+                                <option value="High">Critical Stockout</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                        <label for="notes" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Justification / Demand Notes</label>
+                        <textarea id="notes" name="justification" rows="4" required placeholder="Provide clinical demand data or FEFO burn rate insights to support procurement approval..." style="border: 1px solid #000000; padding: 0.75rem; font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
+                    </div>
+
+                    <button type="submit" style="width: 100%; background-color: #000000; color: #ffffff; border: 1px solid #000000; padding: 1rem; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer;">
+                        Dispatch Advice to Procurement Desk →
+                    </button>
+                </form>
+            </div>
+
+            <!-- HISTORICAL DISPATCH VIEW LIST -->
+            <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
+                <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem;">
+                    Active Recommendations Tracking Ledger
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 480px; overflow-y: auto;">
+                    {% for rec in recommendations %}
+                        <div style="border: 1px solid #000000; padding: 1rem; font-size: 13px; background-color: #fafafa;">
+                            <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 0.4rem;">
+                                <span style="text-transform: uppercase; font-size: 14px;">{{ rec.medicine.name }}</span>
+                                <span style="padding: 0.1rem 0.4rem; background-color: #000000; color: #ffffff; font-size: 10px;">{{ rec.urgency_level }}</span>
+                            </div>
+                            <div>Requested Vol: <strong>{{ rec.recommended_quantity }} units</strong></div>
+                            <p style="margin: 0.4rem 0; font-size: 12px; color: #555555; font-style: italic;">
+                                Manager Note: "{{ rec.justification }}"
+                            </p>
+                            <div style="border-top: 1px dashed #ccc; padding-top: 0.4rem; margin-top: 0.4rem; display: flex; justify-content: space-between; font-size: 11px; color: #666666;">
+                                <span>Desk: {{ rec.raised_by.username }}</span>
+                                <span>Status: <strong>{{ rec.status }}</strong></span>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div style="text-align: center; padding: 2rem; border: 1px dashed #000000; font-style: italic; color: #666666;">
+                            No active procurement recommendations dispatched yet.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
