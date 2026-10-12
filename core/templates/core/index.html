@@ -57,7 +57,7 @@
 <header style="border-bottom: 1px solid #000; position: sticky; top: 0; background: #fff; z-index: 10;">
     <div style="max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
       <a href="{% url 'index' %}" style="font-size: 15px; font-weight: bold; text-decoration: none;">
-        ISP2 &middot; MEDICINE EXPIRY MANAGEMENT SYSTEM
+        DEMAND-DRIVEN MEDICINE EXPIRY MANAGEMENT SYSTEM USING FEFO ALGORITHM
       </a>
 
       <!-- EXPLICIT ROUTING NAMING HOOKS: Resolves your navigation issue -->
@@ -66,19 +66,8 @@
         <a href="{% url 'about' %}" style="font-size: 13px; text-decoration: none;">About Us</a>
         <a href="{% url 'features' %}" style="font-size: 13px; text-decoration: none;">Features</a>
         <a href="{% url 'contact' %}" style="font-size: 13px; text-decoration: none;">Contact Us</a>
-
-        <!-- AUTOMATED MULTI-USER ROLE REDIRECTION HOOKS -->
-        {% if request.user.is_authenticated %}
-          {% if request.user.role.name == 'Pharmacist' or request.user.is_superuser %}
-            <a href="{% url 'dispense' %}" style="border: 1px solid #000; padding: 6px 16px; background: #000; color: #fff; text-decoration: none; font-size: 13px;">⚡ Dispensing Portal</a>
-          {% elif request.user.role.name == 'Store Manager' %}
-            <a href="{% url 'inventory' %}" style="border: 1px solid #000; padding: 6px 16px; background: #000; color: #fff; text-decoration: none; font-size: 13px;">📦 Store Ledger</a>
-          {% else %}
-            <a href="{% url 'dashboard' %}" style="border: 1px solid #000; padding: 6px 16px; background: #000; color: #fff; text-decoration: none; font-size: 13px;">Dashboard Matrix</a>
-          {% endif %}
-        {% else %}
-          <a href="{% url 'login' %}" style="border: 1px solid #000; padding: 6px 16px; background: #000; color: #fff; text-decoration: none; font-size: 13px;">Login</a>
-        {% endif %}
+        <a href="{% url 'login' %}" style="font-size: 13px; text-decoration: none;">Login</a>
+        <a href="{% url 'register' %}" style="font-size: 13px; text-decoration: none;">Register</a>
       </nav>
     </div>
   </header>
@@ -124,7 +113,7 @@
         <ul>
           <li>Strathmore University</li>
           <li>BBIT 4C &middot; 2026</li>
-          <li>Supervisor: Dr. Mary Njeri Ngaruiya</li>
+          <li>Information Systems Project 2</li>
         </ul>
       </div>
     </div>

@@ -54,20 +54,20 @@
   </style>
 </head>
 <body>
+<header style="border-bottom: 1px solid #000; position: sticky; top: 0; background: #fff; z-index: 10;">
+    <div style="max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+      <a href="{% url 'index' %}" style="font-size: 15px; font-weight: bold; text-decoration: none;">
+        DEMAND-DRIVEN MEDICINE EXPIRY MANAGEMENT SYSTEM USING FEFO ALGORITHM
+      </a>
 
-  <header>
-    <div class="header-inner">
-      <a href="{% url 'index' %}" class="brand">ISP2 &middot; FEFO DEMAND-DRIVEN MEDICINE EXPIRY MS</a>
-      <nav>
-        <a href="#home">Home</a>
-        <a href="#about">About Us</a>
-        <a href="#features">Features</a>
-        <a href="#contact">Contact Us</a>
-        {% if request.user.is_authenticated %}
-          <a href="{% url 'dashboard' %}" class="login">Dashboard</a>
-        {% else %}
-          <a href="{% url 'login' %}" class="login">Login</a>
-        {% endif %}
+      <!-- EXPLICIT ROUTING NAMING HOOKS: Resolves your navigation issue -->
+      <nav style="display: flex; gap: 1.5rem; align-items: center;">
+        <a href="{% url 'index' %}" style="font-size: 13px; text-decoration: none;">Home</a>
+        <a href="{% url 'about' %}" style="font-size: 13px; text-decoration: none;">About Us</a>
+        <a href="{% url 'features' %}" style="font-size: 13px; text-decoration: none;">Features</a>
+        <a href="{% url 'contact' %}" style="font-size: 13px; text-decoration: none;">Contact Us</a>
+        <a href="{% url 'login' %}" style="font-size: 13px; text-decoration: none;">Login</a>
+        <a href="{% url 'register' %}" style="font-size: 13px; text-decoration: none;">Register</a>
       </nav>
     </div>
   </header>
