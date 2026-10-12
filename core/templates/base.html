@@ -324,28 +324,33 @@
     </style>
 </head>
 <body>
-
     <!-- PUBLIC WEBSITE HEADER -->
     <header class="site-header">
         <div class="header-inner">
-            <a href="{% url 'index' %}" class="brand">ISP2 &middot; MEDICINE EXPIRY MANAGEMENT SYSTEM</a>
+            <a href="{% url 'index' %}" class="brand">DEMAND-DRIVEN MEDICINE EXPIRY MANAGEMENT SYSTEM USING FEFO ALGORITHM</a>
             <nav class="navigation" aria-label="Main navigation">
-                <a href="{% url 'index' %}" {% if request.resolver_match.url_name =='index' %}aria-current="page"{% endif %}>Home</a>
-                <a href="{% url 'about' %}" {% if request.resolver_match.url_name =='about' %}aria-current="page"{% endif %}>About Us</a>
-                <a href="{% url 'features' %}" {% if request.resolver_match.url_name =='features' %}aria-current="page"{% endif %}>Features</a>
-                <a href="{% url 'contact' %}" {% if request.resolver_match.url_name =='contact' %}aria-current="page"{% endif %}>Contact Us</a>
+                <!-- 1. Permanent Public Links (FIXED: Added mandatory balancing spaces around the == operator) -->
+                <a href="{% url 'index' %}" {% if request.resolver_match.url_name == 'index' %}aria-current="page"{% endif %}>Home</a>
+                <a href="{% url 'about' %}" {% if request.resolver_match.url_name == 'about' %}aria-current="page"{% endif %}>About Us</a>
+                <a href="{% url 'features' %}" {% if request.resolver_match.url_name == 'features' %}aria-current="page"{% endif %}>Features</a>
+                <a href="{% url 'contact' %}" {% if request.resolver_match.url_name == 'contact' %}aria-current="page"{% endif %}>Contact Us</a>
+
+                <!-- 2. Dynamic Workspace Portals (Hides secure routes completely if unauthenticated) -->
                 {% if request.user.is_authenticated %}
                     {% if request.user.is_superuser %}
-                        <a href="{% url 'dashboard' %}" class="login-button">Dashboard</a>
+                        <a href="{% url 'dashboard' %}" class="login-button">Console Dashboard</a>
                     {% elif request.user.role.name == 'Pharmacist' %}
                         <a href="{% url 'dispense' %}" class="login-button">Dispensing Portal</a>
                     {% elif request.user.role.name == 'Store Manager' %}
                         <a href="{% url 'inventory' %}" class="login-button">Store Ledger</a>
                     {% else %}
-                        <a href="{% url 'dashboard' %}" class="login-button">Dashboard</a>
+                        <a href="{% url 'dashboard' %}" class="login-button">Console Dashboard</a>
                     {% endif %}
+                    <a href="{% url 'logout' %}" style="margin-left: 12px; color: #ff3b30; font-weight: bold; text-decoration: none;">Logout</a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="login-button">Login</a>
+                    <!-- Authentication Links-->
+                    <a href="{% url 'login' %}" {% if request.resolver_match.url_name == 'login' %}aria-current="page"{% endif %} class="login-button">Login</a>
+                    <a href="{% url 'register' %}" {% if request.resolver_match.url_name == 'register' %}aria-current="page"{% endif %} class="login-button" style="margin-left: 8px;">Register</a>
                 {% endif %}
             </nav>
         </div>
@@ -369,7 +374,6 @@
     <!-- PUBLIC WEBSITE FOOTER -->
     <footer class="site-footer">
         <div class="footer-inner">
-
             <div class="footer-box">
                 <h3>Medicine Expiry Management System</h3>
                 <p>
@@ -377,7 +381,6 @@
                     expiry monitoring and demand-driven procurement.
                 </p>
             </div>
-
             <div class="footer-box">
                 <h3>Explore</h3>
                 <ul>
@@ -387,7 +390,6 @@
                     <li><a href="{% url 'contact' %}">Contact Us</a></li>
                 </ul>
             </div>
-
             <div class="footer-box">
                 <h3>Project</h3>
                 <ul>
@@ -398,8 +400,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            &copy; {% now "Y" %} Medicine Expiry Management System.
-            Academic project.
+            &copy; {% now "Y" %} Demand-Driven Medicine Expiry Management System using FEFO Algorithm.
         </div>
     </footer>
     {% block extra_js %}{% endblock %}

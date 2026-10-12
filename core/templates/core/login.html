@@ -1,0 +1,224 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Medicine Expiry Management System</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .site-header {
+            width: 100%;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color:000000;
+            border-bottom: 1px solid #000000;
+        }
+        /* Central Login Shell Container */
+        .login-container {
+            width: 100%;
+            max-width: 480px;
+            padding: 2rem;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .system-heading-group {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .system-main-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .system-sub-title {
+            font-size: 14px;
+            color: #555555;
+            margin: 0;
+        }
+
+        /* High-Contrast Hand-Drawn Box Box */
+        .schematic-box {
+            width: 100%;
+            border: 1px solid #000000;
+            background-color: #ffffff;
+            padding: 2.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .box-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 0.25rem 0;
+        }
+
+        /* Notification Errors Layer */
+        .error-banner {
+            border: 1px solid #000000;
+            background-color: #fafafa;
+            padding: 0.75rem;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Input Layouts Fields */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .field-label {
+            font-size: 14px;
+            font-weight: normal;
+        }
+
+        .text-input {
+            width: 100%;
+            border: 1px solid #000000;
+            background-color: #ffffff;
+            padding: 0.75rem 1rem;
+            font-size: 16px;
+            font-family: inherit;
+            color: #000000;
+            outline: none;
+        }
+
+        /* Custom Hand-Drawn Square Box Element Box */
+        .checkbox-wrapper-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            user-select: none;
+            margin: 0.25rem 0;
+        }
+
+        .square-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 1px solid #000000;
+            background-color: #ffffff;
+            appearance: none;
+            -webkit-appearance: none;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+        }
+
+        .square-checkbox:checked::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            background-color: #000000;
+        }
+
+        .checkbox-label {font-size: 14px;}
+
+        /* Solid Black Submit Component Button Button */
+        .black-submit-button {
+            width: 100%;
+            background-color: #000000;
+            color: #ffffff;
+            border: 1px solid #000000;
+            padding: 1rem;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: background-color 0.1s ease, color 0.1s ease;
+            margin-top: 0.5rem;
+        }
+
+        .black-submit-button:hover {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        /* Bottom Footer Strip */
+        .site-footer {
+            width: 100%;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            padding: 1.5rem 1rem;
+            font-size: 11px;
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Upper Environment Tracking Banner Block -->
+    <header class="site-header">
+         <div class="system-heading-group">
+            <h2 class="system-main-title">Demand-Driven Medicine Expiry Management System using FEFO Algorithm</h2>
+            <p class="system-sub-title">Kenyan Level-4 hospital inventory and FEFO management</p>
+        </div>
+    </header>
+    <main class="login-container">
+        <!-- Wireframe Box Replica Framework Outer Shell -->
+        <div class="schematic-box">
+            <h2 class="box-title">User login</h2>
+
+            <!-- System Flash Feedback Messages Layer -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="error-banner">
+                        ⚠️ {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Secure Authentication Submission Engine Route -->
+            <form method="POST" action="{% url 'login' %}" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% csrf_token %}
+                <div class="input-group">
+                    <label for="username" class="field-label">Username</label>
+                    <input type="text" id="username" name="username" required autocomplete="username" class="text-input">
+                </div>
+                <div class="input-group">
+                    <label for="password" class="field-label">Password</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password" class="text-input">
+                </div>
+                <label class="checkbox-wrapper-row">
+                    <input type="checkbox" id="remember_me" name="remember_me" class="square-checkbox">
+                    <span class="checkbox-label">Remember me</span>
+                </label>
+                <button type="submit" class="black-submit-button">LOGIN</button>
+            </form>
+            <div class="shortcut-link">Don't have an account? <a href="{% url 'register' %}">Register</a></div>
+        </div>
+    </main>
+    <!-- Base Academic Metadata Tracking Layer Footer Strip -->
+    <footer class="site-footer">
+        BBIT 4C IS Project II Prototype &bull; Investigator: Kimuruae Edwin Sururu (166317)
+    </footer>
+</body>
+</html>

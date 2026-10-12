@@ -1,12 +1,60 @@
 from django.shortcuts import render, redirect
+from urllib import request
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction
 from datetime import timedelta
-from .models import ( Medicine,MedicineBatch,ExpiryAlert,DemandForecast,ProcurementRecommendation,DispensingTransaction)
+from django.contrib.auth import get_user_model
+from .models import ( Role,Medicine,MedicineBatch,ExpiryAlert,DemandForecast,ProcurementRecommendation,DispensingTransaction)
 
+#CRUDE operations pipeline
+def register_view(request):
+    User = get_user_model()
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        role_id = request.POST.get('role')
+        password = request.POST.get('password', '')
+        password_confirm = request.POST.get('password_confirm', '')
+
+    # Validation
+        if password != password_confirm:
+            messages.error(request, "Password validation failed. Values do not match.")
+            return render(request, 'core/register.html', {'roles': Role.objects.all()})
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "A user account with that username already exists.")
+            return render(request, 'core/register.html', {'roles': Role.objects.all()})
+
+        try:
+            #Fetch linked structural Role object
+            selected_role = Role.objects.get(id=role_id)
+
+            #user database entry but suspend immediate save tracking
+            user = User(
+                username=username,
+                email=email,
+                role=selected_role
+            )
+
+            # 3. Hash password using Django PBKDF2 cryptography functions
+            user.set_password(password)
+            user.save()
+
+            messages.success(request, f"Account profile {username} created successfully.")
+            return redirect('core/login')
+
+        except Role.DoesNotExist:
+            messages.error(request, "Selected operational title is invalid.")
+        except Exception as e:
+            messages.error(request, f"Database transaction failed: {str(e)}")
+
+    #GET Handler: Extracts role vectors to feed the dropdown layout
+    roles = Role.objects.all()
+    return render(request, 'core/register.html', {'roles': roles})
 def route_user_by_role(user):
     if user.is_superuser: return redirect('dashboard')
     # Dynamic Role Evaluation Strategy per TAM onboarding specifications
@@ -19,19 +67,38 @@ def route_user_by_role(user):
     return redirect('index')
 
 #Authentication and routing
+@csrf_protect
 def login_view(request):
     if request.user.is_authenticated:
         return route_user_by_role(request.user)
 
     if request.method == 'POST':
-        username = request.POST('username','').strip()
-        password = request.POST('password','')
+        username = request.POST.get('username','').strip()
+        password = request.POST.get('password','')
         user = authenticate(request, username=username, password=password)
 
         if user is not None: login(request, user)
         messages.success(request, f"Welcome, {user.username}. Session initialized.")
-        return route_user_by_role(user)
+        request.session.set_expiry(0)  # Session cookie drops instantly on browser close
 
+        if user.is_superuser:
+            messages.success(request, f"Welcome Administrator {user.username}.")
+            return redirect('dashboard')
+        elif user.role and user.role.name == 'Pharmacist':
+         messages.success(request, f"Welcome Pharmacist {user.username}.")
+         return redirect('dispense')
+        elif user.role and user.role.name == 'Store Manager':
+         messages.success(request, f"Welcome Store Manager {user.username}.")
+         return redirect('inventory')
+        elif user.Role and user.Role.name == 'Procurement Officer':
+         messages.success(request, f"Welcome Procurement Officer {user.username}. Procurement console active.")
+         return redirect('procurement')
+        elif user.Role and user.Role.name == 'Hospital Admin':
+         messages.success(request, f"Welcome Hospital Admin {user.username}. Hospital Admin console active.")
+         return redirect('hospital_admin')
+        else:
+            messages.warning(request, f"Welcome {user.username}. Profile has no assigned role.")
+            return redirect('index')
     else: messages.error(request, "Invalid credentials.")
     return render(request, 'core/login.html')
 
@@ -44,12 +111,22 @@ def home_redirect(request):
     if request.user.is_authenticated: return route_user_by_role(request.user)
     return redirect('login')
 
-def is_pharmacist(user):
+def is_pharmacist_or_admin(user):
     if user.is_superuser: return True
-    return user.is_authenticated and user.role is not None and user.role.name == "Pharmacist"
+    return bool(user.is_authenticated and user.role is not None and user.role.name == "Pharmacist")
 
+def is_pharmacist(user):
+    if user.is_superuser:
+        return True
+    return bool(user.is_authenticated and user.role and user.role.name == 'Pharmacist')
+
+def is_store_manager(user):
+    if user.is_superuser:
+        return True
+    return bool(user.is_authenticated and user.role and user.role.name == 'Store Manager')
 #FEFO algorithmic dispensing
-@user_passes_test(is_pharmacist, login_url='dispense.html')
+@login_required
+@user_passes_test(is_pharmacist, login_url='login', redirect_field_name=None)
 def dispense_view(request):
  if request.method == "POST":
         medicine_id = request.POST.get('medicine')
@@ -65,7 +142,7 @@ def dispense_view(request):
         try:
             with transaction.atomic(): medicine = Medicine.objects.get(id=medicine_id)
 
-            #Fetch valid stock pools prioritized by earliest expiration date first
+            #Fetch valid stock pools prioritized by earliest expiration date first(FEFO)
             available_batches = MedicineBatch.objects.filter(
                 medicine=medicine,
                 quantity_available__gt=0,
@@ -79,6 +156,11 @@ def dispense_view(request):
 
             optimal_batch = available_batches.first()
             remaining_qty = qty_to_dispense
+
+            #Verification that the cumulative stock can fulfil the order else the pharmacist should request for procurement
+            total_available = sum(b.quantity_available for b in available_batches)
+            if total_available < qty_to_dispense:
+                raise ValueError(f"Insufficient stock available for {medicine.name}. Request:{qty_to_dispense}, Total Hand: {total_available}")
 
             # Track if a manual override occurred
             is_override = False
@@ -112,18 +194,17 @@ def dispense_view(request):
 
             if remaining_qty > 0:raise ValueError(f"Insufficient stock. Could not fulfill remaining {remaining_qty} units.")
             messages.success(request, f"Successfully dispensed {qty_to_dispense} units of {medicine.name}.")
-            return redirect('core/templates/dashboard'if request.user.is_superuser else 'core/templates/dispense')
+            return redirect('dashboard'if request.user.is_superuser else 'dispense')
 
         except Exception as e:
             messages.error(request, f"Transaction aborted: {str(e)}")
             return redirect('dispense')
 
- #GET request handler
+ #GET request handler-fetches the context to feed the interface
  medicines = Medicine.objects.filter(is_active=True)
  batches = MedicineBatch.objects.filter(quantity_available__gt=0,status="Active").select_related('medicine').order_by('expiry_date')
- return render(request,"core/templates/dispense.html",{ "medicines": medicines, "batches": batches})
+ return render(request,"dispense.html",{ "medicines": medicines, "batches": batches})
 
-#Dashboard metrics
 @login_required
 def dashboard(request):
     today = timezone.now().date()
@@ -162,17 +243,17 @@ def dashboard(request):
         'user_role': user_role,
         'total_alerts': active_alerts_count,
     }
-    return render(request, 'core/templates/dashboard.html', context)
+    return render(request, 'dashboard.html', context)
 
 #MANAGEMENT LEDGERS & ANALYTICS REPORTS
 def batch_list_view(request):
     batches = MedicineBatch.objects.all().select_related('medicine').order_by('expiry_date')
-    return render(request, "core/templates/batch_list.html", {"batches": batches})
+    return render(request, "batch_list.html", {"batches": batches})
 
 @login_required
 def alerts_view(request):
     alerts = ExpiryAlert.objects.filter(is_resolved=False).select_related('batch__medicine').order_by('-created_at')
-    return render(request, "core/templates/expiry_alerts.html", {"alerts": alerts})
+    return render(request, "expiry_alerts.html", {"alerts": alerts})
 
 @login_required
 def reports_view(request):
@@ -180,12 +261,25 @@ def reports_view(request):
     recommendations = ProcurementRecommendation.objects.all().select_related('medicine')
     transactions = DispensingTransaction.objects.all().select_related('medicine', 'dispensed_by').order_by('-dispensed_at')[:10]
     context = {'forecasts': forecasts,'recommendations': recommendations,'transactions': transactions}
-    return render(request, "core/templates/reports.html", context)
+    return render(request, "reports.html", context)
 
 @login_required
+@user_passes_test(is_store_manager, login_url='login', redirect_field_name=None)
 def inventory_view(request):
     available_batches = MedicineBatch.objects.filter(quantity_available__gt=0).select_related('medicine').order_by('expiry_date')
-    return render(request, 'core/templates/inventory.html', {'Available_batches': available_batches})
+    return render(request, 'inventory.html', {'Available_batches': available_batches})
+
+@login_required
+@user_passes_test(is_pharmacist, login_url='login', redirect_field_name=None)
+def pharmacist_reports_view(request):
+    transactions = DispensingTransaction.objects.all().select_related('medicine', 'batch', 'dispensed_by').order_by('-dispensed_at')
+    return render(request, "reports.html", {"transactions": transactions})
+
+@login_required
+@user_passes_test(is_pharmacist, login_url='login', redirect_field_name=None)
+def pharmacist_alerts_view(request):
+    alerts = ExpiryAlert.objects.filter(is_resolved=False).select_related('batch__medicine').order_by('batch__expiry_date')
+    return render(request, "expiry_alert.html", {"alerts": alerts})
 
 #PUBLIC PUBLIC-FACING LANDING ROUTING ENDPOINTS
 def index(request):

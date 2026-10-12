@@ -1,63 +1,112 @@
 {% extends 'base.html' %}
-{% block title %}Predictive Demands Analytics{% endblock %}
-{% block nav_reports %}active{% endblock %}
-{% block header_title %}Predictive Consumption Metrics & Forecasting Analytics{% endblock %}
-
+{% load static %}
 {% block content %}
-<div class="grid" style="grid-template-columns: 1fr 1fr; gap: 30px;">
+<div style="max-width: 1300px; margin: 2rem auto; padding: 0 1.5rem; font-family: Arial, sans-serif; color: #000000;">
 
-    <!-- Demand Forecast Data Analytics Frame -->
-    <div class="table-container">
-        <h2>Seasonal Algorithmic Consumption Forecasts</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Target Entity</th>
-                    <th>Predicted Units Demand</th>
-                    <th>Confidence Interval Range</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for forecast in forecasts %}
-                <tr>
-                    <td><strong>{{ forecast.medicine.name }}</strong></td>
-                    <td>{{ forecast.forecasted_demand_quantity }} Units</td>
-                    <td><span class="badge success">{{ forecast.confidence_score }}% Match</span></td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" style="text-align: center; color: #777; padding: 30px;">No mathematical forecasting sweeps registered yet.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Global Station Identification Header -->
+    <div style="border-bottom: 2px solid #000000; padding-bottom: 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555555; letter-spacing: 0.08em; display: block;">Clinical Workstation Terminal</span>
+            <h1 style="font-size: 26px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: -0.01em;">Medicine Expiry Management System</h1>
+        </div>
+        <div style="text-align: right; font-size: 13px; font-weight: bold; background-color: #f9f9f9; padding: 0.5rem 1rem; border: 1px solid #000000;">
+            STATION OPERATOR: <span style="text-decoration: underline; text-transform: uppercase;">{{ request.user.username }}</span> &bull;
+            <span style="color: #555555;">ROLE: PHARMACIST</span>
+        </div>
     </div>
 
-    <!-- Procurement Requirements Matrix Frame -->
-    <div class="table-container">
-        <h2>Procurement Procurement Recommendations Matrix</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Medicine Target</th>
-                    <th>Suggested Restock Vol</th>
-                    <th>Urgency Level</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for rec in recommendations %}
-                <tr>
-                    <td><strong>{{ rec.medicine.name }}</strong></td>
-                    <td>+{{ rec.recommended_quantity }} Units</td>
-                    <td><span class="badge danger">{{ rec.urgency_level }}</span></td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" style="text-align: center; color: #777; padding: 30px;">No predictive replenishment alerts triggered.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Layout Grid Wrapper Shell -->
+    <div class="workspace-layout-shell">
+        <style>
+            .workspace-layout-shell {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                align-items: start;
+            }
+            @media (min-width: 992px) {
+                .workspace-layout-shell {
+                    grid-template-columns: 280px 1fr !important;
+                }
+            }
+            .sidebar-action-link {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 1rem;
+                border: 1px solid #000000;
+                background-color: #ffffff;
+                color: #000000;
+                text-decoration: none;
+                font-size: 13px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+                transition: background-color 0.1s ease, color 0.1s ease;
+            }
+            .sidebar-action-link:hover {
+                background-color: #000000;
+                color: #ffffff;
+            }
+            .sidebar-action-link.active-node {
+                background-color: #000000;
+                color: #ffffff;
+            }
+        </style>
+
+        <!-- COLUMN 1: PHARMACIST OPERATIONS CONTROL HUB SIDEBAR -->
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="border: 1px solid #000000; padding: 1rem; background-color: #fafafa; text-align: center;">
+                <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #444444;">Operations Engine</span>
+            </div>
+            <a href="{% url 'dispense' %}" class="sidebar-action-link">⚡ Dispense Medication</a>
+            <a href="{% url 'dispense_reports' %}" class="sidebar-action-link active-node">📈 View Dispensing Report</a>
+            <a href="{% url 'dispense_alerts' %}" class="sidebar-action-link">🔔 Dispensing Alerts</a>
+        </div>
+
+        <!-- COLUMN 2: DISPENSING HISTORY REPORT CONTENT VIEW -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
+                <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem; letter-spacing: 0.02em;">
+                    System Core Transaction Ledger Overview
+                </h3>
+                <ul style="padding-left: 1.25rem; margin: 0; font-size: 13px; line-height: 1.6; color: #333333;">
+                    <li>This comprehensive ledger details past clinical operations executed by the FEFO transaction engine.</li>
+                    <li>All entries show chronological tracking values alongside dispensing operator credentials for strict chain of custody.</li>
+                </ul>
+            </div>
+
+            <div style="border: 1px solid #000000; background-color: #ffffff; padding: 1.5rem;">
+                <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem;">
+                    Chronological Dispensing Transactions Log
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    {% for tx in transactions %}
+                        <div style="border-left: 4px solid #000000; border-top: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0; padding: 1rem; font-size: 13px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+                            <div>
+                                <span style="font-weight: bold; font-size: 14px; text-transform: uppercase;">{{ tx.medicine.name }}</span>
+                                <span style="margin-left: 10px; padding: 0.2rem 0.5rem; background-color: #f0f0f0; font-size: 11px; font-weight: bold; border: 1px solid #000000;">
+                                    QTY: {{ tx.quantity_dispensed }}
+                                </span>
+                                <div style="color: #555555; margin-top: 0.25rem;">
+                                    Patient Identifier: <strong>{{ tx.patient_identifier }}</strong> | Batch Serial: <code>{{ tx.batch.batch_number }}</code>
+                                </div>
+                            </div>
+                            <div style="text-align: right; min-width: 200px;">
+                                <div>Dispensed At: <strong>{{ tx.dispensed_at|date:"Y-m-d H:i" }}</strong></div>
+                                <div style="color: #666666; font-size: 12px; margin-top: 0.25rem;">Clinician: {{ tx.dispensed_by.username }}</div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div style="text-align: center; padding: 3rem; border: 1px dashed #000000; font-style: italic; font-size: 13px; color: #666666;">
+                            No verified dispensing transactions compiled across active shifts yet.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

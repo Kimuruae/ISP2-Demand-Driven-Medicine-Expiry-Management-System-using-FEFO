@@ -2,18 +2,22 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# 1. Define BASE_DIR
+#Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 2. Load the environment variables - Protected Local Database Configurations
+#Load the environment variables - Protected Local Database Configurations
 load_dotenv(BASE_DIR / ".env")
 
-# 3. Security Configurations
+#Security Configurations
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True #cookies expire when the user closes browser window
+SESSION_COOKIE_AGE = 0
+SESSION_SAVE_EVERY_REQUEST = True #ensures db session drops engine record reference on logout
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-change-before-deployment")
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
-# 4. Application Definition Matrix
+#Application Definition Matrix
 INSTALLED_APPS = [
     # Core Django built-in apps (Required)
     "django.contrib.admin",

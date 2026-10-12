@@ -1,40 +1,161 @@
 {% extends 'base.html' %}
-{% block title %}Process Dispensing Operations{% endblock %}
-{% block nav_dispense %}active{% endblock %}
-{% block header_title %}Patient Dispensing & Stock Drawdown Processing{% endblock %}
+{% load static %}
 
 {% block content %}
-<div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border);">
-    <h2 style="margin-top: 0; color: var(--primary); font-size: 18px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; margin-bottom: 20px;">Issue Stock Tracking Parameters</h2>
+<div style="max-width: 1300px; margin: 2rem auto; padding: 0 1.5rem; font-family: Arial, sans-serif; color: #000000;">
+    <!-- Global Station Identification Header -->
+    <div style="border-bottom: 2px solid #000000; padding-bottom: 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555555; letter-spacing: 0.08em; block;">Clinical Workstation Terminal</span>
+            <h1 style="font-size: 26px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: -0.01em;">Medicine Expiry Management System</h1>
+        </div>
+        <div style="text-align: right; font-size: 13px; font-weight: bold; background-color: #f9f9f9; padding: 0.5rem 1rem; border: 1px solid #000000;">
+            STATION OPERATOR: <span style="text-decoration: underline; text-transform: uppercase;">{{ request.user.username }}</span> &bull;
+            <span style="color: #555555;">ROLE: PHARMACIST</span>
+        </div>
+    </div>
 
-    <form method="post" action=".">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="batch_select">Select FEFO Inventory Target Batch:</label>
-            <select id="batch_select" name="batch" class="form-control" required>
-                <option value="">-- Choose Batch (Sorted via Earliest Expiry Line) --</option>
-                {% for batch in batches %}
-                <option value="{{ batch.id }}">{{ batch.medicine.name }} - Batch: {{ batch.batch_number }} (Avail: {{ batch.quantity_available }} | Exp: {{ batch.expiry_date|date:"Y-m-d" }})</option>
-                {% endfor %}
-            </select>
+    <!-- Feedback Message Status Banner Stack -->
+    {% if messages %}
+        {% for message in messages %}
+            <div style="border: 1px solid #000000; background-color: #ffffff; padding: 1rem 1.25rem; font-size: 14px; font-weight: bold; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                <span>{% if message.tags == 'error' %}⚠️ [ERROR]{% else %}✓ [SUCCESS]{% endif %}</span>
+                <p style="margin: 0;">{{ message }}</p>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Three-Column Integrated Operational Matrix Workspace Shell -->
+    <div class="workspace-layout-shell">
+        <style>
+            .workspace-layout-shell {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                align-items: start;
+            }
+            @media (min-width: 992px) {
+                .workspace-layout-shell {
+                    grid-template-columns: 280px 2fr 1.5fr !important;
+                }
+            }
+            .sidebar-action-link {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 1rem;
+                border: 1px solid #000000;
+                background-color: #ffffff;
+                color: #000000;
+                text-decoration: none;
+                font-size: 13px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+                transition: background-color 0.1s ease, color 0.1s ease;
+            }
+            .sidebar-action-link:hover {
+                background-color: #000000;
+                color: #ffffff;
+            }
+            .sidebar-action-link.active-node {
+                background-color: #000000;
+                color: #ffffff;
+            }
+        </style>
+
+        <!-- COLUMN 1: PHARMACIST OPERATIONS CONTROL HUB (The New Control Panel) -->
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="border: 1px solid #000000; padding: 1rem; background-color: #fafafa; text-align: center;">
+                <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #444444;">Operations Engine</span>
+            </div>
+
+            <!-- Link 1: Active Workspace -->
+            <a href="{% url 'dispense' %}" class="sidebar-action-link active-node">
+                ⚡ Dispense Medication
+            </a>
+
+            <!-- Link 2: Transaction Ledger Workspace Link -->
+            <a href="{% url 'dispense_reports' %}" class="sidebar-action-link">
+                📈 View Dispensing Report
+            </a>
+
+            <!-- Link 3: Real-Time Early-Warning Horizon Dashboard Link -->
+            <a href="{% url 'dispense_alerts' %}" class="sidebar-action-link" style="border-color: #000000;">
+                🔔 Dispensing Alerts
+            </a>
         </div>
 
-        <div class="form-group">
-            <label for="qty_dispense">Dispensation Unit Count Quantity:</label>
-            <input type="number" id="qty_dispense" name="quantity_dispensed" class="form-control" min="1" placeholder="Enter target units count" required>
+        <!-- COLUMN 2: ATOMIC DISPENSING ACTION CONTROLLER FORM -->
+        <div style="border: 1px solid #000000; padding: 2rem; background-color: #ffffff;">
+            <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem; letter-spacing: 0.02em;">
+                Issue Prescription Formulation
+            </h3>
+
+            <form method="POST" action="{% url 'dispense' %}" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% csrf_token %}
+
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label for="medicine_select" style="font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em;">Select Medicine Formulation</label>
+                    <select id="medicine_select" name="medicine_id" required style="width: 100%; border: 1px solid #000000; padding: 0.85rem; font-size: 14px; font-family: inherit; border-radius: 0; background-color: #ffffff;">
+                        <option value="" disabled selected>-- Select Active Drug Formulation --</option>
+                        {% for med in medicines %}
+                            <option value="{{ med.id }}">{{ med.name }} (Code: {{ med.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label for="qty_input" style="font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em;">Dispense Count Units</label>
+                    <input type="number" id="qty_input" name="quantity" min="1" required style="width: 100%; border: 1px solid #000000; padding: 0.85rem; font-size: 14px; font-family: inherit; border-radius: 0;">
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label for="patient_id" style="font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em;">Patient Identifier / File Reference</label>
+                    <input type="text" id="patient_id" name="patient_identifier" required placeholder="e.g., LEVEL4-2026-885" style="width: 100%; border: 1px solid #000000; padding: 0.85rem; font-size: 14px; font-family: inherit; border-radius: 0;">
+                </div>
+
+                <button type="submit" style="width: 100%; background-color: #000000; color: #ffffff; border: 1px solid #000000; padding: 1.1rem; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; transition: background-color 0.1s ease, color 0.1s ease;">
+                    Execute FEFO Allocation Transaction →
+                </button>
+            </form>
         </div>
 
-        <div class="form-group">
-            <label for="patient_id">Patient File Reference Number / Identifier:</label>
-            <input type="text" id="patient_id" name="patient_identifier" class="form-control" placeholder="e.g., KNH-2026-09874" required>
+        <!-- COLUMN 3: LIVE BATCH EXPIRATION LEDGER MATRIX -->
+        <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
+            <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem; letter-spacing: 0.02em;">
+                Stock Allocation Hierarchy
+            </h3>
+
+            <p style="font-size: 12px; color: #555555; margin: 0 0 1rem 0; line-height: 1.5;">
+                Batches are automatically sorted below by earliest expiration date. The FEFO engine will consume inventory from the top item down.
+            </p>
+
+            <div style="max-height: 480px; overflow-y: auto; padding-right: 0.25rem;">
+                <ul style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
+                    {% for batch in batches %}
+                        <li style="border: 1px solid #000000; padding: 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                            <div>
+                                <strong style="font-size: 14px; text-transform: uppercase; display: block;">{{ batch.medicine.name }}</strong>
+                                <span style="color: #666666; font-size: 11px; block; margin-top: 0.2rem;">
+                                    Batch: <code>{{ batch.batch_number }}</code> &bull; Vol: <strong>{{ batch.quantity_available }}</strong>
+                                </span>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="font-weight: bold; color: {% if batch.is_near_expiry %}#ff3b30{% else %}#000000{% endif %};">
+                                    {{ batch.expiry_date|date:"Y-m-d" }}
+                                </span>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li style="text-align: center; padding: 2rem; border: 1px dashed #000000; font-style: italic; font-size: 13px; color: #666666;">
+                            No active medicine batches loaded on facility shelves.
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="notes">Clinical Dispensing Notes:</label>
-            <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="Enter special tracking administration metrics if any..."></textarea>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Execute Controlled Stock Drawdown</button>
-    </form>
+    </div>
 </div>
 {% endblock %}
