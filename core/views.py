@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from urllib import request
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -7,8 +7,10 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction
 from datetime import timedelta
+from django.db.models import Sum, Avg
 from django.contrib.auth import get_user_model
-from .models import ( Role,Medicine,MedicineBatch,ExpiryAlert,DemandForecast,ProcurementRecommendation,DispensingTransaction)
+from .models import ( Role,Medicine,MedicineBatch,ExpiryAlert,DemandForecast,ProcurementRecommendation,
+DispensingTransaction, PurchaseOrder)
 
 #CRUDE operations pipeline
 def register_view(request):
@@ -359,6 +361,87 @@ def store_manager_recommendations_view(request):
     medicines = Medicine.objects.filter(is_active=True).order_by('name')
     recommendations = ProcurementRecommendation.objects.all().select_related('medicine', 'raised_by').order_by('-created_at')
     return render(request, "inventory_recommendations.html",{"medicines": medicines, "recommendations": recommendations})
+
+def is_procurement_officer(user):
+    if user.is_superuser:return True
+    return bool(user.is_authenticated and user.role and user.role.name == 'Procurement Officer')
+
+
+@login_required
+@user_passes_test(is_procurement_officer, login_url='login', redirect_field_name=None)
+def procurement_dashboard_view(request):
+    if request.method == 'POST':
+        medicine_id = request.POST.get('medicine_id')
+        quantity = int(request.POST.get('quantity', 0))
+        supplier_name = request.POST.get('supplier_name', '').strip()
+        rec_id = request.POST.get('recommendation_id')
+
+        try:
+            medicine = Medicine.objects.get(id=medicine_id)
+
+            # Formulate the new Purchase Order record in a Pending Admin review state
+            po = PurchaseOrder.objects.create(
+                medicine=medicine,
+                quantity=quantity,
+                supplier_name=supplier_name,
+                raised_by=request.user,
+                status="Pending Admin Review"
+            )
+
+            # Update the source manager recommendation state if provided
+            if rec_id:
+                ProcurementRecommendation.objects.filter(id=rec_id).update(status="Converted to PO")
+
+            messages.success(request, f"Purchase order for {medicine.name} forwarded to Hospital Administration.")
+            return redirect('procurement')
+        except Exception as e:
+            messages.error(request, f"Failed to record draft purchase order: {str(e)}")
+            return redirect('procurement')
+
+    # GET REQUEST: GENERATE THE 3-MONTH MOVING AVERAGE FORECAST
+    medicines = Medicine.objects.filter(is_active=True).order_by('name')
+    recommendations = ProcurementRecommendation.objects.filter(status="Pending Review").select_related('medicine',
+                                                                                                       'raised_by')
+    forecasts = []
+    three_months_ago = timezone.now().date() - timedelta(days=90)
+
+    for med in medicines:
+        # Sum total volume dispensed over the past 90 days
+        total_dispensed = DispensingTransaction.objects.filter(
+            medicine=med,
+            dispensed_at__date__gte=three_months_ago
+        ).aggregate(total=Sum('quantity_dispensed'))['total'] or 0
+
+        # Compute monthly average velocity
+        avg_monthly = total_dispensed / 3.0
+
+        # Pull total inventory footprint sitting across shelves
+        current_stock = med.batches.filter(quantity_available__gt=0, expiry_date__gt=timezone.now().date()).aggregate(
+            total=Sum('quantity_available'))['total'] or 0
+
+        # Simple forecasting step: project demand requirements for next cycle
+        forecasted_demand = max(0, int(round(avg_monthly * 1.2)) - current_stock)
+        forecasts.append({"medicine_name": med.name,"current_stock": current_stock,"avg_monthly_dispensed": avg_monthly,
+            "forecasted_demand": forecasted_demand if forecasted_demand > 0 else int(round(avg_monthly)) })
+
+    context = {"medicines": medicines,"recommendations": recommendations,"forecasts": forecasts}
+    return render(request, "core/procurement.html", context)
+
+@login_required
+@user_passes_test(is_procurement_officer, login_url='login', redirect_field_name=None)
+def procurement_reports_view(request):
+    purchase_orders = PurchaseOrder.objects.all().select_related('medicine', 'raised_by').order_by('-created_at')
+    return render(request, "core/procurement_reports.html", {"purchase_orders": purchase_orders})
+
+@login_required
+@user_passes_test(is_procurement_officer, login_url='login', redirect_field_name=None)
+def place_supplier_order_view(request, po_id):
+    if request.method == 'POST':
+        po = get_object_or_404(PurchaseOrder, id=po_id, status="Approved")
+        po.status = "Placed with Supplier"
+        po.save()
+        messages.success(request, f"Purchase Order # {po.id} successfully dispatched to {po.supplier_name}.")
+    return redirect('procurement_reports')
 
 #PUBLIC PUBLIC-FACING LANDING ROUTING ENDPOINTS
 def index(request):

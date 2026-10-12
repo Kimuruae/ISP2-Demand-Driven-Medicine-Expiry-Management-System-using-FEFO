@@ -1,10 +1,131 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static %}
 
-</body>
-</html>
+{% block content %}
+<div style="max-width: 1300px; margin: 2rem auto; padding: 0 1.5rem; font-family: Arial, sans-serif; color: #000000;">
+
+    <!-- Station Header Strip -->
+    <div style="border-bottom: 2px solid #000000; padding-bottom: 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555555; letter-spacing: 0.08em; display: block;">Supply Chain & Resource Planning Terminal</span>
+            <h1 style="font-size: 26px; font-weight: 900; margin: 0; text-transform: uppercase;">Procurement Operations Desk</h1>
+        </div>
+        <div style="text-align: right; font-size: 13px; font-weight: bold; background-color: #f9f9f9; padding: 0.5rem 1rem; border: 1px solid #000000;">
+            STATION OPERATOR: <span style="text-decoration: underline; text-transform: uppercase;">{{ request.user.username }}</span> &bull;
+            <span style="color: #555555;">ROLE: PROCUREMENT OFFICER</span>
+        </div>
+    </div>
+
+    <!-- System Feedback Alerts -->
+    {% if messages %}
+        {% for message in messages %}
+            <div style="border: 1px solid #000000; background-color: #ffffff; padding: 1rem 1.25rem; font-size: 14px; font-weight: bold; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                <span>✓</span> <p style="margin: 0;">{{ message }}</p>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Three-Column Layout Shell Matrix -->
+    <div class="workspace-layout-shell">
+        <style>
+            .workspace-layout-shell { display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: start; }
+            @media (min-width: 1024px) { .workspace-layout-shell { grid-template-columns: 260px 1.8fr 1.6fr !important; } }
+            .sidebar-action-link { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; border: 1px solid #000000; background-color: #ffffff; color: #000000; text-decoration: none; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em; }
+            .sidebar-action-link:hover, .sidebar-action-link.active-node { background-color: #000000; color: #ffffff; }
+            .action-badge { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 0.2rem 0.5rem; border: 1px solid #000000; }
+        </style>
+
+        <!-- COLUMN 1: SIDEBAR CONTROLS -->
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="border: 1px solid #000000; padding: 1rem; background-color: #fafafa; text-align: center;">
+                <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #444444;">Procurement Engine</span>
+            </div>
+            <a href="{% url 'procurement' %}" class="sidebar-action-link active-node">📋 Review Advice & Forecasts</a>
+            <a href="{% url 'procurement_reports' %}" class="sidebar-action-link">📈 Purchase Order Log</a>
+        </div>
+
+        <!-- COLUMN 2: REVIEW RECS & PLACE PURCHASE ORDER (PO) FORM -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+
+            <!-- Active Recommendations Stream -->
+            <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
+                <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem;">
+                    Store Manager Replenishment Requests
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 320px; overflow-y: auto;">
+                    {% for rec in recommendations %}
+                        <div style="border: 1px solid #000000; padding: 1rem; background-color: #fafafa; font-size: 13px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <strong style="font-size: 14px; text-transform: uppercase;">{{ rec.medicine.name }}</strong>
+                                <span class="action-badge" style="background-color: {% if rec.urgency_level == 'High' %}#ff3b30{% else %}#ffffff{% endif %}; color: {% if rec.urgency_level == 'High' %}#ffffff{% else %}#000000{% endif %};">
+                                    {{ rec.urgency_level }}
+                                </span>
+                            </div>
+                            <div>Suggested Quantity: <strong>{{ rec.recommended_quantity }} units</strong></div>
+                            <p style="margin: 0.4rem 0; font-size: 12px; color: #555555; font-style: italic;">
+                                Manager Note: "{{ rec.justification }}"
+                            </p>
+                            <div style="border-top: 1px dashed #ccc; padding-top: 0.4rem; margin-top: 0.4rem; font-size: 11px; color: #666666; display: flex; justify-content: space-between;">
+                                <span>Dispatched by: {{ rec.raised_by.username }}</span>
+                                <span>ID Ref: <code>#{{ rec.id }}</code></span>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div style="text-align: center; padding: 2rem; border: 1px dashed #000000; font-style: italic; font-size: 13px; color: #666666;">
+                            No active store room recommendations pending evaluation.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Purchase Order Generation Form Component -->
+            <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
+                <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem;">
+                    Draft Fresh Purchase Order Card
+                </h3>
+                <form method="POST" action="{% url 'procurement' %}" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    {% csrf_token %}
+
+                    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                        <label for="med_select" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Target Medicine Profile</label>
+                        <select id="med_select" name="medicine_id" required style="border: 1px solid #000000; padding: 0.75rem; font-size: 14px; background-color: #ffffff;">
+                            <option value="" disabled selected>-- Select Formulated Compound --</option>
+                            {% for med in medicines %}
+                                <option value="{{ med.id }}">{{ med.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label for="po_qty" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Order Volume Count</label>
+                            <input type="number" id="po_qty" name="quantity" min="1" required style="border: 1px solid #000000; padding: 0.75rem; font-size: 14px;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label for="supplier" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Target Supplier / Vendor</label>
+                            <input type="text" id="supplier" name="supplier_name" placeholder="e.g., Mission For Essential Drugs" required style="border: 1px solid #000000; padding: 0.75rem; font-size: 14px;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                        <label for="rec_ref" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Link Manager Request ID <span style="color: #666666; font-weight: normal;">(Optional)</span></label>
+                        <input type="number" id="rec_ref" name="recommendation_id" placeholder="e.g., 4" style="border: 1px solid #000000; padding: 0.75rem; font-size: 14px;">
+                    </div>
+
+                    <button type="submit" style="width: 100%; background-color: #000000; color: #ffffff; border: 1px solid #000000; padding: 1rem; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer;">
+                        Dispatch Draft to Hospital Admin for Review →
+                    </button>
+                </form>
+            </div>
+        </div>
+        <!-- COLUMN 3: REAL-TIME DEMAND FORECAST HORIZON MATRIX -->
+        <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
+            <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem;">
+                3-Month Moving Average Demand Forecast
+            </h3>
+            <p style="font-size: 12px; color: #555555; margin-bottom: 1.25rem; line-height: 1.5;">
+                Derived programmatically by analyzing clinical dispensing logs over the past 90 days. Stock up if available units drop beneath predicted monthly velocity.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.85rem; max-height: 520px; overflow-y: auto;"<
+    </div>
+    {% for item in forecasts %}

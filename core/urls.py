@@ -29,4 +29,8 @@ urlpatterns = [
     path('inventory/alerts/', views.store_manager_alerts_view, name='inventory_alerts'),
     path('inventory/reports/', views.store_manager_reports_view, name='inventory_reports'),
     path('inventory/recommendations/', views.store_manager_recommendations_view, name='inventory_recommendations'),
+#procurement operations
+    path('procurement/', views.procurement_dashboard_view, name='procurement'),
+    path('procurement/reports/', views.procurement_reports_view, name='procurement_reports'),
+    path('procurement/order/<int:po_id>/place/', views.place_supplier_order_view, name='place_supplier_order'),
 ]
