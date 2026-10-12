@@ -26,4 +26,5 @@ Thumbs.db
 
 # Static/Media
 staticfiles/
-media/
+media/__pycache__/
+*.pyc

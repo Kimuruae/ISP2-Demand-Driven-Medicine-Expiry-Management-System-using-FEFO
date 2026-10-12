@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Process Dispensing Operations{% endblock %}
+{% block nav_dispense %}active{% endblock %}
+{% block header_title %}Patient Dispensing & Stock Drawdown Processing{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border);">
+    <h2 style="margin-top: 0; color: var(--primary); font-size: 18px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; margin-bottom: 20px;">Issue Stock Tracking Parameters</h2>
+
+    <form method="post" action=".">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="batch_select">Select FEFO Inventory Target Batch:</label>
+            <select id="batch_select" name="batch" class="form-control" required>
+                <option value="">-- Choose Batch (Sorted via Earliest Expiry Line) --</option>
+                {% for batch in batches %}
+                <option value="{{ batch.id }}">{{ batch.medicine.name }} - Batch: {{ batch.batch_number }} (Avail: {{ batch.quantity_available }} | Exp: {{ batch.expiry_date|date:"Y-m-d" }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="qty_dispense">Dispensation Unit Count Quantity:</label>
+            <input type="number" id="qty_dispense" name="quantity_dispensed" class="form-control" min="1" placeholder="Enter target units count" required>
+        </div>
+
+        <div class="form-group">
+            <label for="patient_id">Patient File Reference Number / Identifier:</label>
+            <input type="text" id="patient_id" name="patient_identifier" class="form-control" placeholder="e.g., KNH-2026-09874" required>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Clinical Dispensing Notes:</label>
+            <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="Enter special tracking administration metrics if any..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Execute Controlled Stock Drawdown</button>
+    </form>
+</div>
+{% endblock %}

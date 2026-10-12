@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Stock Batches Ledger{% endblock %}
+{% block nav_batches %}active{% endblock %}
+{% block header_title %}Pharmaceutical Batches Tracking Ledger{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <h2>Comprehensive Active Hospital Batches Inventory</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Medicine Name</th>
+                <th>Batch Number</th>
+                <th>Initial Received</th>
+                <th>Remaining Quantity</th>
+                <th>Received Date</th>
+                <th>Expiry Date</th>
+                <th>Storage Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for batch in batches %}
+            <tr>
+                <td><strong>{{ batch.medicine.name }}</strong> <small style="color: #666;">({{ batch.medicine.dosage_form }})</small></td>
+                <td><code>{{ batch.batch_number }}</code></td>
+                <td>{{ batch.quantity_received }}</td>
+                <td><strong>{{ batch.quantity_available }}</strong></td>
+                <td>{{ batch.received_date|date:"Y-m-d" }}</td>
+                <td>{{ batch.expiry_date|date:"Y-m-d" }}</td>
+                <td><span style="color: #555;">📍 {{ batch.storage_location|default:"Main Store" }}</span></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center; color: #777; padding: 40px;">No medicine batches found in ledger.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
