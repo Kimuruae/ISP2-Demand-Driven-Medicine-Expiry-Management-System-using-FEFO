@@ -4,18 +4,26 @@ from dotenv import load_dotenv
 
 #Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 #Load the environment variables - Protected Local Database Configurations
 load_dotenv(BASE_DIR / ".env")
 
 #Security Configurations
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True #cookies expire when the user closes browser window
-SESSION_COOKIE_AGE = 0
+SESSION_COOKIE_AGE = 1209600
 SESSION_SAVE_EVERY_REQUEST = True #ensures db session drops engine record reference on logout
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-change-before-deployment")
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+
+# FIXED: Authorized explicit origins grid to pass secure cross-site request headers
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000',]
+CSRF_COOKIE_SECURE = False       # Set to True ONLY in production when using HTTPS
+SESSION_COOKIE_SECURE = False    # Set to True ONLY in production when using HTTPS
+CSRF_COOKIE_HTTPONLY = True      # Prevents client-side scripts from reading the token
+SESSION_COOKIE_HTTPONLY = True   # Prevents client-side scripts from reading the session
+CSRF_COOKIE_SAMESITE = 'Lax'     # Allows cookie transmission on top-level cross-site navigations
+SESSION_COOKIE_SAMESITE = 'Lax'  # Aligns session data validation across page transitions
 
 #Application Definition Matrix
 INSTALLED_APPS = [
@@ -89,9 +97,7 @@ USE_TZ = True
 
 # 8. Static Files Asset Layout Matrices
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+STATICFILES_DIRS = [BASE_DIR / "static",]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # 9. Global Architecture Primary Key Configuration
@@ -100,5 +106,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # 10. Granular Identity Access Governance & Multi-User Routing Contracts
 AUTH_USER_MODEL = "core.User"
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "index"
-LOGOUT_REDIRECT_URL = "login"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; font-family: Arial, sans-serif; color: #000000;">
+
+    <!-- Admin Station Header -->
+    <div style="border-bottom: 2px solid #000000; padding-bottom: 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555555; letter-spacing: 0.08em; display: block;">Executive Control & Strategy Center</span>
+            <h1 style="font-size: 26px; font-weight: 900; margin: 0; text-transform: uppercase;">Hospital Administrator Workspace</h1>
+        </div>
+        <div style="text-align: right; font-size: 13px; font-weight: bold; background-color: #f9f9f9; padding: 0.5rem 1rem; border: 1px solid #000000;">
+            STATION OPERATOR: <span style="text-decoration: underline; text-transform: uppercase;">{{ request.user.username }}</span> &bull;
+            <span style="color: #ff3b30;">ROLE: HOSPITAL ADMIN</span>
+        </div>
+    </div>
+
+    <!-- Status Alert Stack -->
+    {% if messages %}
+        {% for message in messages %}
+            <div style="border: 1px solid #000000; background-color: #ffffff; padding: 1rem 1.25rem; font-size: 14px; font-weight: bold; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                <span>⚡ [SYSTEM ALERT]</span> <p style="margin: 0;">{{ message }}</p>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- ANALYTICS DASHBOARD KPI SUMMARY MATRIX -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+        <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
+            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #666666;">Total Active Stock Layers</span>
+            <h2 style="font-size: 32px; font-weight: 900; margin: 0.5rem 0 0 0;">{{ total_batches }} <span style="font-size: 14px; font-weight: normal;">Batches</span></h2>
+        </div>
+        <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff; border-left: 5px solid #ff3b30;">
+            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #ff3b30;">Unresolved Expiry Alerts</span>
+            <h2 style="font-size: 32px; font-weight: 900; margin: 0.5rem 0 0 0; color: #ff3b30;">{{ active_alerts_count }} <span style="font-size: 14px; font-weight: normal;">Threats</span></h2>
+        </div>
+        <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
+            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #666666;">Total Clinical Dispatches</span>
+            <h2 style="font-size: 32px; font-weight: 900; margin: 0.5rem 0 0 0;">{{ total_dispenses }} <span style="font-size: 14px; font-weight: normal;">TX Logs</span></h2>
+        </div>
+        <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff; border-left: 5px solid #007aff;">
+            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #007aff;">PO Pipeline Review Queue</span>
+            <h2 style="font-size: 32px; font-weight: 900; margin: 0.5rem 0 0 0; color: #007aff;">{{ pending_pos.count }} <span style="font-size: 14px; font-weight: normal;">Pending</span></h2>
+        </div>
+    </div>
+
+    <!-- MAIN TWO-COLUMN MANAGEMENT GRID -->
+    <div class="admin-grid-matrix">
+        <style>
+            .admin-grid-matrix { display: grid; grid-template-columns: 1fr; gap: 2.5rem; align-items: start; }
+            @media (min-width: 1024px) { .admin-grid-matrix { grid-template-columns: 1.5fr 1fr !important; } }
+            .action-btn { font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 0.5rem 1rem; cursor: pointer; border: 1px solid #000000; background-color: #ffffff; }
+            .approve-btn:hover { background-color: #e2f0d9; }
+            .reject-btn:hover { background-color: #fce4d6; color: #ff3b30; }
+        </style>
+
+        <!-- COLUMN 1: PURCHASE ORDER CAPITAL APPROVAL WORKBENCH -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <div style="border: 1px solid #000000; padding: 2rem; background-color: #ffffff;">
+                <h3 style="font-size: 16px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 2px solid #000000; padding-bottom: 0.5rem;">
+                    Capital Expenditure Authorization Workbench
+                </h3>
+                <p style="font-size: 13px; color: #555555; margin-bottom: 1.5rem; line-height: 1.5;">
+                    Review incoming supply order requests drafted by the Procurement Desk based on automated 3-Month Moving Average velocity indicators.
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    {% for po in pending_pos %}
+                        <div style="border: 1px solid #000000; padding: 1.25rem; background-color: #fafafa;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                                <div>
+                                    <span style="font-size: 11px; font-weight: bold; color: #666666; display: block;">PURCHASE REQUISITION ID: `PO-2026-{{ po.id }}`</span>
+                                    <h4 style="margin: 0.2rem 0; font-size: 18px; text-transform: uppercase; font-weight: 800;">{{ po.medicine.name }}</h4>
+                                </div>
+                                <span style="background-color: #e3f2fd; border: 1px solid #007aff; padding: 0.2rem 0.5rem; font-size: 10px; font-weight: bold; text-transform: uppercase;">Awaiting Approval</span>
+                            </div>
+
+                            <div style="font-size: 13px; color: #333333; margin-bottom: 1rem;">
+                                <div>Requested Volume: <strong>{{ po.quantity }} units</strong></div>
+                                <div>Intended Supplier: <strong>{{ po.supplier_name }}</strong></div>
+                                <div style="font-size: 11px; color: #666666; margin-top: 0.25rem;">Drafted by Procurement Officer: {{ po.raised_by.username }}</div>
+                            </div>
+
+                            <!-- Dual Decision Vectors Form Group -->
+                            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px dashed #ccc; padding-top: 1rem;">
+                                <!-- Approve Route -->
+                                <form method="POST" action="{% url 'admin_process_po' po.id 'Approve' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-btn approve-btn">✓ Authorize Procurement</button>
+                                </form>
+                                <!-- Reject Route -->
+                                <form method="POST" action="{% url 'admin_process_po' po.id 'Reject' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-btn reject-btn">⚠️ Decline Request</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div style="text-align: center; padding: 4rem; border: 1px dashed #000000; background-color: #ffffff; font-style: italic; font-size: 13px; color: #666666;">
+                            Clear Desk: No pending purchase requisitions awaiting administrative signature.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- CONSOLIDATED CONSOLIDATED GENERAL REPORT LEDGER -->
+            <div style="border: 1px solid #000000; padding: 2rem; background-color: #ffffff;">
+                <h3 style="font-size: 16px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 2px solid #000000; padding-bottom: 0.5rem;">
+                    Consolidated Cross-Departmental General Ledger
+                </h3>
+                <p style="font-size: 13px; color: #555555; margin-bottom: 1rem;">
+                    Real-time transaction stream tracking clinical FEFO extractions executed by on-duty pharmacy operators.
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 0.85rem; max-height: 400px; overflow-y: auto;">
+                    {% for tx in global_transactions %}
+                        <div style="border: 1px solid #e0e0e0; padding: 1rem; font-size: 13px; display: flex; justify-content: space-between; align-items: center; background-color: #fafafa;">
+                            <div>
+                                <span style="font-weight: bold; text-transform: uppercase;">{{ tx.medicine.name }}</span>
+                                <div style="color: #666666; font-size: 11px; margin-top: 0.2rem;">
+                                    Patient: <code>{{ tx.patient_identifier }}</code> | Batch: <code>{{ tx.batch.batch_number }}</code>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="font-weight: bold; background-color: #000; color: #fff; padding: 0.1rem 0.4rem; font-size: 11px;">QTY: {{ tx.quantity_dispensed }}</span>
+                                <div style="font-size: 11px; color: #666666; margin-top: 0.2rem;">By: {{ tx.dispensed_by.username }}</div>
+                            </div>
+                        </div>

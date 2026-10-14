@@ -1,17 +1,16 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block content %}
 <div style="max-width: 1300px; margin: 2rem auto; padding: 0 1.5rem; font-family: Arial, sans-serif; color: #000000;">
     <!-- Global Station Identification Header -->
     <div style="border-bottom: 2px solid #000000; padding-bottom: 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
         <div>
-            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555555; letter-spacing: 0.08em; block;">Clinical Workstation Terminal</span>
+            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555555; letter-spacing: 0.08em; display: block;">Clinical Workstation Terminal</span>
             <h1 style="font-size: 26px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: -0.01em;">Medicine Expiry Management System</h1>
         </div>
         <div style="text-align: right; font-size: 13px; font-weight: bold; background-color: #f9f9f9; padding: 0.5rem 1rem; border: 1px solid #000000;">
             STATION OPERATOR: <span style="text-decoration: underline; text-transform: uppercase;">{{ request.user.username }}</span> &bull;
-            <span style="color: #555555;">ROLE: PHARMACIST</span>
+            <span style="color: #ff3b30;">ROLE: PHARMACIST</span>
         </div>
     </div>
 
@@ -64,26 +63,13 @@
             }
         </style>
 
-        <!-- COLUMN 1: PHARMACIST OPERATIONS CONTROL HUB (The New Control Panel) -->
+        <!-- COLUMN 1: PHARMACIST OPERATIONS CONTROL HUB -->
         <div style="display: flex; flex-direction: column; gap: 1rem;">
             <div style="border: 1px solid #000000; padding: 1rem; background-color: #fafafa; text-align: center;">
                 <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #444444;">Operations Engine</span>
             </div>
-
-            <!-- Link 1: Active Workspace -->
-            <a href="{% url 'dispense' %}" class="sidebar-action-link active-node">
-                ⚡ Dispense Medication
-            </a>
-
-            <!-- Link 2: Transaction Ledger Workspace Link -->
-            <a href="{% url 'dispense_reports' %}" class="sidebar-action-link">
-                📈 View Dispensing Report
-            </a>
-
-            <!-- Link 3: Real-Time Early-Warning Horizon Dashboard Link -->
-            <a href="{% url 'dispense_alerts' %}" class="sidebar-action-link" style="border-color: #000000;">
-                🔔 Dispensing Alerts
-            </a>
+            <a href="{% url 'dispense' %}" class="sidebar-action-link active-node">⚡ Dispense Medication</a>
+            <a href="{% url 'index' %}" class="sidebar-action-link">📈 General Dashboard</a>
         </div>
 
         <!-- COLUMN 2: ATOMIC DISPENSING ACTION CONTROLLER FORM -->
@@ -97,10 +83,10 @@
 
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="medicine_select" style="font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em;">Select Medicine Formulation</label>
-                    <select id="medicine_select" name="medicine_id" required style="width: 100%; border: 1px solid #000000; padding: 0.85rem; font-size: 14px; font-family: inherit; border-radius: 0; background-color: #ffffff;">
+                    <select id="medicine_select" name="medicine" required style="width: 100%; border: 1px solid #000000; padding: 0.85rem; font-size: 14px; font-family: inherit; border-radius: 0; background-color: #ffffff;">
                         <option value="" disabled selected>-- Select Active Drug Formulation --</option>
                         {% for med in medicines %}
-                            <option value="{{ med.id }}">{{ med.name }} (Code: {{ med.code }})</option>
+                            <option value="{{ med.id }}">{{ med.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -115,12 +101,11 @@
                     <input type="text" id="patient_id" name="patient_identifier" required placeholder="e.g., LEVEL4-2026-885" style="width: 100%; border: 1px solid #000000; padding: 0.85rem; font-size: 14px; font-family: inherit; border-radius: 0;">
                 </div>
 
-                <button type="submit" style="width: 100%; background-color: #000000; color: #ffffff; border: 1px solid #000000; padding: 1.1rem; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; transition: background-color 0.1s ease, color 0.1s ease;">
+                <button type="submit" style="width: 100%; background-color: #000000; color: #ffffff; border: 1px solid #000000; padding: 1.1rem; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer;">
                     Execute FEFO Allocation Transaction →
                 </button>
             </form>
         </div>
-
         <!-- COLUMN 3: LIVE BATCH EXPIRATION LEDGER MATRIX -->
         <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
             <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem; letter-spacing: 0.02em;">
@@ -128,34 +113,32 @@
             </h3>
 
             <p style="font-size: 12px; color: #555555; margin: 0 0 1rem 0; line-height: 1.5;">
-                Batches are automatically sorted below by earliest expiration date. The FEFO engine will consume inventory from the top item down.
+                Batches are automatically sorted below by earliest expiration date. The FEFO engine consumes inventory from the top item down.
             </p>
 
             <div style="max-height: 480px; overflow-y: auto; padding-right: 0.25rem;">
                 <ul style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
                     {% for batch in batches %}
-                        <li style="border: 1px solid #000000; padding: 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                        <li style="border: 1px solid #000000; padding: 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 13px; background-color: #ffffff;">
                             <div>
-                                <strong style="font-size: 14px; text-transform: uppercase; display: block;">{{ batch.medicine.name }}</strong>
-                                <span style="color: #666666; font-size: 11px; block; margin-top: 0.2rem;">
-                                    Batch: <code>{{ batch.batch_number }}</code> &bull; Vol: <strong>{{ batch.quantity_available }}</strong>
-                                </span>
+                                <span style="font-weight: bold; display: block; text-transform: uppercase;">{{ batch.medicine.name }}</span>
+                                <div style="font-size: 11px; color: #555555; margin-top: 0.2rem;">
+                                    Batch ID: <code>{{ batch.batch_number }}</code> | Exp: <strong style="color: #ff3b30;">{{ batch.expiry_date }}</strong>
+                                </div>
                             </div>
                             <div style="text-align: right;">
-                                <span style="font-weight: bold; color: {% if batch.is_near_expiry %}#ff3b30{% else %}#000000{% endif %};">
-                                    {{ batch.expiry_date|date:"Y-m-d" }}
-                                </span>
+                                <span style="font-size: 11px; font-weight: bold; color: #666666; display: block; text-transform: uppercase;">Available</span>
+                                <strong style="font-size: 16px;">{{ batch.quantity_available }}</strong> units
                             </div>
                         </li>
                     {% empty %}
-                        <li style="text-align: center; padding: 2rem; border: 1px dashed #000000; font-style: italic; font-size: 13px; color: #666666;">
-                            No active medicine batches loaded on facility shelves.
+                        <li style="border: 1px dashed #666666; padding: 2rem; text-align: center; color: #666666; font-size: 13px;">
+                            No active batches currently loaded in inventory storage.
                         </li>
                     {% endfor %}
                 </ul>
             </div>
         </div>
-
     </div>
 </div>
 {% endblock %}

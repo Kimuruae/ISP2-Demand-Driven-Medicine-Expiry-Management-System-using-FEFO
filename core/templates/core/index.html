@@ -1,123 +1,24 @@
-{# core/templates/index.html — public landing page (no login required) #}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Demand-Driven Medicine Expiry Management System</title>
-  <style>
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { font-family: Arial, Helvetica, sans-serif; margin: 0; color: #111; background: #fff; line-height: 1.55; }
-    a { color: inherit; }
+{% extends 'base.html' %}
+{% load static %}
 
-    /* ---------- Header ---------- */
-    header { border-bottom: 1px solid #000; position: sticky; top: 0; background: #fff; z-index: 10; }
-    .header-inner { max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
-    .brand { font-size: 15px; font-weight: bold; letter-spacing: 0.03em; text-decoration: none; }
-    nav { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
-    nav a { font-size: 13px; text-decoration: none; padding-bottom: 2px; border-bottom: 1px solid transparent; }
-    nav a:hover { border-bottom-color: #000; }
-    nav a.login { border: 1px solid #000; padding: 6px 16px; border-radius: 2px; background: #000; color: #fff; }
-    nav a.login:hover { background: #fff; color: #000; }
+{% block title %}Home | Medicine Expiry Management System{% endblock %}
 
-    /* ---------- Hero (the big box in the sketch) ---------- */
-    .hero { border-bottom: 1px solid #000; }
-    .hero-inner { max-width: 1100px; margin: 0 auto; padding: 5rem 1.5rem; text-align: center; }
-    .hero h1 { font-size: 40px; line-height: 1.2; margin: 0 0 1rem; }
-    .hero p { font-size: 17px; color: #333; max-width: 680px; margin: 0 auto 2rem; }
-    .btn { display: inline-block; padding: 12px 28px; border: 1px solid #000; border-radius: 2px; font-size: 14px; text-decoration: none; margin: 0 6px; }
-    .btn-primary { background: #000; color: #fff; }
-    .btn-primary:hover { background: #fff; color: #000; }
-    .btn-secondary:hover { background: #000; color: #fff; }
+{% block content %}
+<div style="max-width: 1200px; margin: 3rem auto; padding: 0 1.5rem; text-align: center; font-family: Arial, sans-serif;">
+    <h2 style="font-size: 32px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.02em; margin-bottom: 1rem;">
+        Demand-Driven Medicine Expiry Management System
+    </h2>
+    <p style="font-size: 16px; color: #555555; max-width: 700px; margin: 0 auto 2.5rem auto; line-height: 1.6;">
+        Optimizing Kenyan Level-4 hospital pharmaceutical supply chains using real-time FEFO allocation models to eliminate inventory expiration losses.
+    </p>
 
-    /* ---------- Sections ---------- */
-    section { max-width: 1100px; margin: 0 auto; padding: 3.5rem 1.5rem; }
-    section h2 { font-size: 22px; margin: 0 0 1.25rem; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-    .card { border: 1px solid #000; border-radius: 4px; padding: 1.25rem; }
-    .card h3 { font-size: 15px; margin: 0 0 0.5rem; }
-    .card p { font-size: 13px; color: #333; margin: 0; }
-    .stat { font-size: 28px; font-weight: bold; }
-    .stat-label { font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: 0.03em; }
-    .divider { border: 0; border-top: 1px solid #ddd; margin: 0; }
-
-    /* ---------- Footer (three boxes in the sketch) ---------- */
-    footer { border-top: 1px solid #000; background: #fafafa; }
-    .footer-inner { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-    .footer-box { border: 1px solid #000; border-radius: 4px; padding: 1.25rem; background: #fff; }
-    .footer-box h4 { margin: 0 0 0.75rem; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .footer-box ul { list-style: none; margin: 0; padding: 0; font-size: 13px; }
-    .footer-box li { margin-bottom: 6px; }
-    .footer-box a { text-decoration: underline; }
-    .copyright { text-align: center; font-size: 12px; color: #555; padding: 1rem; border-top: 1px solid #ddd; }
-  </style>
-</head>
-<body>
-<header style="border-bottom: 1px solid #000; position: sticky; top: 0; background: #fff; z-index: 10;">
-    <div style="max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-      <a href="{% url 'index' %}" style="font-size: 15px; font-weight: bold; text-decoration: none;">
-        DEMAND-DRIVEN MEDICINE EXPIRY MANAGEMENT SYSTEM USING FEFO ALGORITHM
-      </a>
-
-      <!-- EXPLICIT ROUTING NAMING HOOKS: Resolves your navigation issue -->
-      <nav style="display: flex; gap: 1.5rem; align-items: center;">
-        <a href="{% url 'index' %}" style="font-size: 13px; text-decoration: none;">Home</a>
-        <a href="{% url 'about' %}" style="font-size: 13px; text-decoration: none;">About Us</a>
-        <a href="{% url 'features' %}" style="font-size: 13px; text-decoration: none;">Features</a>
-        <a href="{% url 'contact' %}" style="font-size: 13px; text-decoration: none;">Contact Us</a>
-        <a href="{% url 'login' %}" style="font-size: 13px; text-decoration: none;">Login</a>
-        <a href="{% url 'register' %}" style="font-size: 13px; text-decoration: none;">Register</a>
-      </nav>
+    <div style="display: flex; justify-content: center; gap: 1rem;">
+        <a href="{% url 'login' %}" style="background-color: #000000; color: #ffffff; padding: 1rem 2rem; font-size: 14px; font-weight: bold; text-decoration: none; text-transform: uppercase; border: 1px solid #000000;">
+            Access Operator Terminal
+        </a>
+        <a href="{% url 'register' %}" style="background-color: #ffffff; color: #000000; padding: 1rem 2rem; font-size: 14px; font-weight: bold; text-decoration: none; text-transform: uppercase; border: 1px solid #000000;">
+            Create Station Profile
+        </a>
     </div>
-  </header>
-
-  <!-- HERO -->
-  <div class="hero" id="home">
-    <div class="hero-inner">
-      <h1>Stop medicine expiry before it happens.</h1>
-      <p>
-        A web-based inventory system for Kenyan Level-4 hospitals that combines
-        FEFO dispensing, automated expiry alerts, and demand forecasting
-        to reduce pharmaceutical waste.
-      </p>
-      {% if request.user.is_authenticated %}
-        <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard</a>
-      {% else %}
-        <a href="{% url 'login' %}" class="btn btn-primary">Login to System</a>
-      {% endif %}
-      <a href="#features" class="btn btn-secondary">See How It Works</a>
-    </div>
-  </div>
-
-  <!-- FOOTER: Socials | Documentation | (third box) -->
-  <footer>
-    <div class="footer-inner">
-      <div class="footer-box">
-        <h4>Socials</h4>
-        <ul>
-          <li><a href="https://github.com/Kimuruae" target="_blank" rel="noopener">GitHub</a></li>
-          <li><a href="#" target="_blank" rel="noopener">LinkedIn</a></li>
-        </ul>
-      </div>
-      <div class="footer-box">
-        <h4>Documentation</h4>
-        <ul>
-          <li><a href="https://github.com/Kimuruae/ISP2-Demand-Driven-Medicine-Expiry-Management-System-using-FEFO#readme" target="_blank" rel="noopener">README &amp; setup guide</a></li>
-          <li><a href="#">Project proposal</a></li>
-          <li><a href="#">System design (Chapter 4)</a></li>
-        </ul>
-      </div>
-      <div class="footer-box">
-        <h4>Project</h4>
-        <ul>
-          <li>Strathmore University</li>
-          <li>BBIT 4C &middot; 2026</li>
-          <li>Information Systems Project 2</li>
-        </ul>
-      </div>
-    </div>
-    <div class="copyright">&copy; 2026 Strathmore University &bull; Built for Kenyan Level-4 public healthcare facilities.</div>
-  </footer>
-</body>
-</html>
+</div>
+{% endblock %}

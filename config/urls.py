@@ -1,32 +1,32 @@
 from django.contrib import admin
-from django.urls import path, include
-from core import views  # Pulls functional template views from your core application package
+from django.urls import path
+from core import views
 
 urlpatterns = [
-    # 1. Django Administrative Native Site Panel
-    path("admin/", admin.site.urls),
-    path("", include('core.urls')),
-    path("accounts/", include('django.contrib.auth.urls')),
+    # Master System Core Admin Panel
+    path('admin/', admin.site.urls),
 
-    # 2. Public Facing Marketing / Research Domain Sub-Pages
-    path("", views.index, name="index"),
-    path("about/", views.about, name="about"),
-    path("features/", views.features, name="features"),
-    path("contact/", views.contact, name="contact"),
+    # Core Public & Onboarding Content Views
+    path('', views.home_redirect, name='index'),
+    path('about/', views.about, name='about'),
+    path('features/', views.features, name='features'),
+    path('contact/', views.contact, name='contact'),
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('logout/', views.logout_view, name='logout'),
 
-    # 3. Secure Session Access Control Management Gateway Handlers
-    path("login/", views.login_view, name='login'),
-    path("logout/", views.logout_view, name='logout'),
+    # Hospital Admin Desk Portals Map
+    path('dashboard/', views.hospital_admin_dashboard_view, name='admin_dashboard'),
+    path('dashboard/po/<int:po_id>/<str:action>/', views.hospital_admin_process_po_view, name='admin_process_po'),
 
-    # 4. Interactive Analytical Framework Workspace Dashboards
-    path("dashboard/", views.dashboard, name='dashboard'),
+    # Clinical Pharmacist Workstations
+    path('dispense/', views.dispense_view, name='dispense'),
 
-    # 5. Real-Time Clinical Transaction & Active Warehouse Stock Flow Modules
-    path("inventory/", views.inventory_view, name='inventory'),
-    path("batches/", views.batch_list_view, name='batch_list'),
-    path("dispense/", views.dispense_view, name='dispense'),
+    # Warehouse Logistics Store Manager Lanes
+    path('inventory/', views.store_manager_inventory_view, name='inventory'),
+    path('inventory/recommendations/', views.store_manager_recommendations_view, name='inventory_recommendations'),
 
-    # 6. Proactive Decision Support Alerts & Automated 3-Month Forecasting Reports
-    path("alerts/", views.alerts_view, name='expiry_alerts'),
-    path("reports/", views.reports_view, name='reports'),
+    # Supply Chain Procurement Console Lanes
+    path('procurement/', views.procurement_dashboard_view, name='procurement'),
+    path('procurement/po/<int:po_id>/place/', views.place_supplier_order_view, name='place_supplier_order'),
 ]
