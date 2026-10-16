@@ -20,6 +20,8 @@ urlpatterns = [
 
     # Warehouse Logistics Store Manager Lanes
     path('inventory/', views.store_manager_inventory_view, name='inventory'),
+    path('inventory/reports/', views.inventory_reports_view, name='inventory_reports'),
+    path('inventory/alerts/', views.inventory_alerts_view, name='inventory_alerts'),
     path('inventory/recommendations/', views.store_manager_recommendations_view, name='inventory_recommendations'),
 
     # Supply Chain Procurement Console Lanes

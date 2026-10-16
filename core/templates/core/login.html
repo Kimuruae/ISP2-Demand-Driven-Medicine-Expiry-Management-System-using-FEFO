@@ -1,40 +1,31 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block title %}Login | Operator Terminal{% endblock %}
-
 {% block content %}
 <div style="max-width: 450px; margin: 4rem auto; padding: 2.5rem; border: 2px solid #000000; background-color: #ffffff; font-family: Arial, sans-serif;">
-
     <div style="text-align: center; margin-bottom: 2rem;">
         <h2 style="font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; margin: 0 0 0.5rem 0;">Operator Access</h2>
         <p style="font-size: 12px; color: #555555; text-transform: uppercase; font-weight: bold; margin: 0;">FEFO Expiry Engine Terminal</p>
     </div>
 
     <!-- Secure Login Processing Entry Point Form Block -->
-    <form method="POST" action="" style="display: flex; flex-direction: column; gap: 1.5rem;">
-        <!-- FIXED: Added mandatory cross-site request forgery protection token variable -->
+    <form method="POST" action="{% url 'login' %}" style="display: flex; flex-direction: column; gap: 1.5rem;">
         {% csrf_token %}
-
         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label for="username" style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em;">Username</label>
             <input type="text" id="username" name="username" required autocomplete="username" style="width: 100%; border: 1px solid #000000; padding: 0.85rem; font-size: 14px; font-family: inherit; border-radius: 0;">
         </div>
-
         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label for="password" style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em;">Password</label>
             <input type="password" id="password" name="password" required autocomplete="current-password" style="width: 100%; border: 1px solid #000000; padding: 0.85rem; font-size: 14px; font-family: inherit; border-radius: 0;">
         </div>
-
         <button type="submit" style="width: 100%; background-color: #000000; color: #ffffff; border: 1px solid #000000; padding: 1.1rem; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; transition: background-color 0.1s ease;">
-            Authenticate Terminal Session →
+            Login
         </button>
     </form>
-
     <div style="text-align: center; margin-top: 1.5rem; font-size: 12px;">
         <span style="color: #666666;">New workstation?</span>
         <a href="{% url 'register' %}" style="color: #000000; font-weight: bold; text-decoration: underline;">Register Station Profile</a>
     </div>
-
 </div>
 {% endblock %}

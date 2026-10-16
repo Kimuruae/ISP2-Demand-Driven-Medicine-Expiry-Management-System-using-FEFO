@@ -1,0 +1,337 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .sysadmin {
+        max-width: 1450px;
+        margin: 0 auto;
+        padding: 28px 24px;
+        color: #111827;
+        font-family: Arial, sans-serif;
+    }
+
+    .sysadmin-layout {
+        display: grid;
+        grid-template-columns: 225px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .sysadmin-sidebar,
+    .sysadmin-panel {
+        background: #fff;
+        border: 1px solid #d1d5db;
+    }
+
+    .sysadmin-sidebar {
+        padding: 18px;
+    }
+
+    .sysadmin-sidebar h2 {
+        margin: 0 0 16px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .sysadmin-sidebar a {
+        display: block;
+        padding: 12px;
+        margin-bottom: 5px;
+        color: #374151;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        border-left: 3px solid transparent;
+    }
+
+    .sysadmin-sidebar a:hover,
+    .sysadmin-sidebar a.active {
+        background: #f3f4f6;
+        border-left-color: #111827;
+        color: #111827;
+    }
+
+    .sysadmin-main {
+        min-width: 0;
+    }
+
+    .sysadmin-heading {
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #111827;
+    }
+
+    .sysadmin-heading span {
+        display: block;
+        margin-bottom: 8px;
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .sysadmin-heading h1 {
+        margin: 0;
+        font-size: 26px;
+        text-transform: uppercase;
+    }
+
+    .sysadmin-heading p {
+        margin: 10px 0 0;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .sysadmin-cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .sysadmin-card {
+        padding: 22px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+    }
+
+    .sysadmin-card-label {
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.7px;
+        text-transform: uppercase;
+    }
+
+    .sysadmin-card-value {
+        margin: 12px 0 8px;
+        font-size: 32px;
+        font-weight: 900;
+    }
+
+    .sysadmin-card-description {
+        margin: 0;
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    .sysadmin-panel-header {
+        padding: 18px;
+        border-bottom: 1px solid #d1d5db;
+        background: #f9fafb;
+    }
+
+    .sysadmin-panel-header h2 {
+        margin: 0;
+        font-size: 15px;
+        text-transform: uppercase;
+    }
+
+    .sysadmin-panel-header p {
+        margin: 8px 0 0;
+        color: #6b7280;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .sysadmin-panel-body {
+        padding: 18px;
+    }
+
+    .sysadmin-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .sysadmin-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .sysadmin-table th,
+    .sysadmin-table td {
+        padding: 13px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+    }
+
+    .sysadmin-table th {
+        background: #f9fafb;
+        color: #4b5563;
+        font-size: 11px;
+        text-transform: uppercase;
+    }
+
+    .sysadmin-table td {
+        overflow-wrap: anywhere;
+    }
+
+    .sysadmin-empty {
+        padding: 22px;
+        background: #f9fafb;
+        color: #6b7280;
+        text-align: center;
+        font-size: 13px;
+    }
+
+    .sysadmin-note {
+        margin-top: 20px;
+        padding: 14px 16px;
+        border-left: 4px solid #2563eb;
+        background: #eff6ff;
+        color: #1e40af;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 1000px) {
+        .sysadmin-cards {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 760px) {
+        .sysadmin-layout {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .sysadmin-sidebar nav {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 5px;
+        }
+
+        .sysadmin-sidebar a {
+            margin: 0;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .sysadmin {
+            padding: 18px 12px;
+        }
+
+        .sysadmin-cards {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .sysadmin-heading h1 {
+            font-size: 21px;
+        }
+    }
+</style>
+
+<div class="sysadmin">
+    <div class="sysadmin-layout">
+
+        <!-- SYSTEM ADMIN NAVIGATION -->
+        <aside class="sysadmin-sidebar">
+            <h2>System Control</h2>
+
+            <nav aria-label="System administration">
+                <a href="#overview" class="active">System Overview</a>
+                <a href="#user-management">Manage Users</a>
+                <a href="#roles">Roles &amp; Permissions</a>
+                <a href="#settings">System Settings</a>
+                <a href="#recent-logs">Audit Logs</a>
+            </nav>
+        </aside>
+
+        <!-- DASHBOARD -->
+        <main class="sysadmin-main">
+
+            <header class="sysadmin-heading" id="overview">
+                <span>System Administration</span>
+                <h1>System Control Centre</h1>
+                <p>
+                    Manage application access, user accounts,
+                    configuration and system activity.
+                </p>
+            </header>
+
+            <!-- SUMMARY CARDS -->
+            <section class="sysadmin-cards">
+
+                <article class="sysadmin-card">
+                    <span class="sysadmin-card-label">Total Users</span>
+                    <p class="sysadmin-card-value">{{ total_users }}</p>
+                    <p class="sysadmin-card-description">
+                        Registered system accounts
+                    </p>
+                </article>
+
+                <article class="sysadmin-card">
+                    <span class="sysadmin-card-label">Active Accounts</span>
+                    <p class="sysadmin-card-value">{{ active_users }}</p>
+                    <p class="sysadmin-card-description">
+                        Accounts currently enabled
+                    </p>
+                </article>
+
+                <article class="sysadmin-card">
+                    <span class="sysadmin-card-label">Inactive Accounts</span>
+                    <p class="sysadmin-card-value">{{ inactive_users }}</p>
+                    <p class="sysadmin-card-description">
+                        Accounts currently disabled
+                    </p>
+                </article>
+
+            </section>
+
+            <!-- USER MANAGEMENT PREVIEW -->
+            <section class="sysadmin-panel" id="user-management">
+                <header class="sysadmin-panel-header">
+                    <h2>User Management</h2>
+                    <p>
+                        Account creation, updates, role assignment
+                        and account deactivation will be managed here.
+                    </p>
+                </header>
+
+                <div class="sysadmin-panel-body">
+                    <p>
+                        The user management module will be added in
+                        the next implementation step.
+                    </p>
+                </div>
+            </section>
+
+            <!-- AUDIT LOGS -->
+            <section class="sysadmin-panel" id="recent-logs"
+                     style="margin-top: 24px;">
+                <header class="sysadmin-panel-header">
+                    <h2>Recent System Activity</h2>
+                    <p>
+                        Latest recorded audit events.
+                    </p>
+                </header>
+
+                <div class="sysadmin-panel-body">
+                    {% for log in recent_logs %}
+                        <div style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                            {{ log }}
+                        </div>
+                    {% empty %}
+                        <div class="sysadmin-empty">
+                            No audit log entries are available.
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <div class="sysadmin-note">
+                Access to this dashboard is restricted to Django
+                superusers and users assigned the System Administrator role.
+            </div>
+
+        </main>
+    </div>
+</div>
+{% endblock content %}

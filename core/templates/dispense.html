@@ -14,16 +14,6 @@
         </div>
     </div>
 
-    <!-- Feedback Message Status Banner Stack -->
-    {% if messages %}
-        {% for message in messages %}
-            <div style="border: 1px solid #000000; background-color: #ffffff; padding: 1rem 1.25rem; font-size: 14px; font-weight: bold; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-                <span>{% if message.tags == 'error' %}⚠️ [ERROR]{% else %}✓ [SUCCESS]{% endif %}</span>
-                <p style="margin: 0;">{{ message }}</p>
-            </div>
-        {% endfor %}
-    {% endif %}
-
     <!-- Three-Column Integrated Operational Matrix Workspace Shell -->
     <div class="workspace-layout-shell">
         <style>

@@ -1,129 +1,606 @@
-{% extends 'base.html' %}
-{% load static %}
+
+{% extends "base.html" %}
 
 {% block content %}
-<div style="max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; font-family: Arial, sans-serif; color: #000000;">
+<style>
+    .admin-page {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 28px 24px;
+        color: #111827;
+        font-family: Arial, sans-serif;
+    }
 
-    <!-- Admin Station Header -->
-    <div style="border-bottom: 2px solid #000000; padding-bottom: 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
-        <div>
-            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555555; letter-spacing: 0.08em; display: block;">Executive Control & Strategy Center</span>
-            <h1 style="font-size: 26px; font-weight: 900; margin: 0; text-transform: uppercase;">Hospital Administrator Workspace</h1>
-        </div>
-        <div style="text-align: right; font-size: 13px; font-weight: bold; background-color: #f9f9f9; padding: 0.5rem 1rem; border: 1px solid #000000;">
-            STATION OPERATOR: <span style="text-decoration: underline; text-transform: uppercase;">{{ request.user.username }}</span> &bull;
-            <span style="color: #ff3b30;">ROLE: HOSPITAL ADMIN</span>
-        </div>
-    </div>
+    .admin-layout {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
 
-    <!-- Status Alert Stack -->
-    {% if messages %}
-        {% for message in messages %}
-            <div style="border: 1px solid #000000; background-color: #ffffff; padding: 1rem 1.25rem; font-size: 14px; font-weight: bold; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-                <span>⚡ [SYSTEM ALERT]</span> <p style="margin: 0;">{{ message }}</p>
-            </div>
-        {% endfor %}
-    {% endif %}
+    /* Sidebar */
+    .admin-sidebar {
+        padding: 20px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+    }
 
-    <!-- ANALYTICS DASHBOARD KPI SUMMARY MATRIX -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
-        <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
-            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #666666;">Total Active Stock Layers</span>
-            <h2 style="font-size: 32px; font-weight: 900; margin: 0.5rem 0 0 0;">{{ total_batches }} <span style="font-size: 14px; font-weight: normal;">Batches</span></h2>
-        </div>
-        <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff; border-left: 5px solid #ff3b30;">
-            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #ff3b30;">Unresolved Expiry Alerts</span>
-            <h2 style="font-size: 32px; font-weight: 900; margin: 0.5rem 0 0 0; color: #ff3b30;">{{ active_alerts_count }} <span style="font-size: 14px; font-weight: normal;">Threats</span></h2>
-        </div>
-        <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
-            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #666666;">Total Clinical Dispatches</span>
-            <h2 style="font-size: 32px; font-weight: 900; margin: 0.5rem 0 0 0;">{{ total_dispenses }} <span style="font-size: 14px; font-weight: normal;">TX Logs</span></h2>
-        </div>
-        <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff; border-left: 5px solid #007aff;">
-            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #007aff;">PO Pipeline Review Queue</span>
-            <h2 style="font-size: 32px; font-weight: 900; margin: 0.5rem 0 0 0; color: #007aff;">{{ pending_pos.count }} <span style="font-size: 14px; font-weight: normal;">Pending</span></h2>
-        </div>
-    </div>
+    .admin-sidebar h3 {
+        margin: 0 0 18px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
 
-    <!-- MAIN TWO-COLUMN MANAGEMENT GRID -->
-    <div class="admin-grid-matrix">
-        <style>
-            .admin-grid-matrix { display: grid; grid-template-columns: 1fr; gap: 2.5rem; align-items: start; }
-            @media (min-width: 1024px) { .admin-grid-matrix { grid-template-columns: 1.5fr 1fr !important; } }
-            .action-btn { font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 0.5rem 1rem; cursor: pointer; border: 1px solid #000000; background-color: #ffffff; }
-            .approve-btn:hover { background-color: #e2f0d9; }
-            .reject-btn:hover { background-color: #fce4d6; color: #ff3b30; }
-        </style>
+    .admin-sidebar a {
+        display: block;
+        padding: 12px;
+        margin-bottom: 5px;
+        color: #374151;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        border-left: 3px solid transparent;
+    }
 
-        <!-- COLUMN 1: PURCHASE ORDER CAPITAL APPROVAL WORKBENCH -->
-        <div style="display: flex; flex-direction: column; gap: 2rem;">
-            <div style="border: 1px solid #000000; padding: 2rem; background-color: #ffffff;">
-                <h3 style="font-size: 16px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 2px solid #000000; padding-bottom: 0.5rem;">
-                    Capital Expenditure Authorization Workbench
-                </h3>
-                <p style="font-size: 13px; color: #555555; margin-bottom: 1.5rem; line-height: 1.5;">
-                    Review incoming supply order requests drafted by the Procurement Desk based on automated 3-Month Moving Average velocity indicators.
+    .admin-sidebar a:hover,
+    .admin-sidebar a.active {
+        color: #111827;
+        background: #f3f4f6;
+        border-left-color: #111827;
+    }
+
+    /* Main heading */
+    .admin-main {
+        min-width: 0;
+    }
+
+    .admin-heading {
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #111827;
+    }
+
+    .admin-heading .eyebrow {
+        display: block;
+        margin-bottom: 8px;
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .admin-heading h1 {
+        margin: 0;
+        font-size: 26px;
+        line-height: 1.3;
+        text-transform: uppercase;
+    }
+
+    .admin-heading p {
+        margin: 10px 0 0;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    /* Notifications */
+    .admin-message {
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    /* KPI cards */
+    .admin-kpis {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .kpi-card {
+        padding: 22px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+    }
+
+    .kpi-card.alert {
+        border-left: 5px solid #dc2626;
+    }
+
+    .kpi-card.pending {
+        border-left: 5px solid #2563eb;
+    }
+
+    .kpi-label {
+        display: block;
+        margin-bottom: 12px;
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .kpi-value {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 900;
+    }
+
+    .kpi-card.alert .kpi-value {
+        color: #dc2626;
+    }
+
+    .kpi-card.pending .kpi-value {
+        color: #2563eb;
+    }
+
+    .kpi-description {
+        margin: 8px 0 0;
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    /* Management panels */
+    .admin-panels {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+    .panel {
+        min-width: 0;
+        border: 1px solid #d1d5db;
+        background: #fff;
+    }
+
+    .panel-header {
+        padding: 18px;
+        border-bottom: 1px solid #d1d5db;
+        background: #f9fafb;
+    }
+
+    .panel-header h2 {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.5;
+        text-transform: uppercase;
+    }
+
+    .panel-header p {
+        margin: 9px 0 0;
+        color: #6b7280;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .panel-body {
+        padding: 18px;
+        min-width: 0;
+    }
+
+    /* Purchase orders */
+    .purchase-order {
+        padding: 15px;
+        margin-bottom: 14px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .purchase-order:last-child {
+        margin-bottom: 0;
+    }
+
+    .po-topline {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .po-reference {
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .po-status {
+        padding: 4px 7px;
+        background: #fef3c7;
+        color: #92400e;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .po-medicine {
+        margin: 0 0 15px;
+        font-size: 16px;
+        overflow-wrap: anywhere;
+    }
+
+    .po-details {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .detail-label {
+        display: block;
+        margin-bottom: 5px;
+        color: #6b7280;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .detail-value {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .po-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .po-actions form {
+        margin: 0;
+    }
+
+    .action-btn {
+        width: 100%;
+        padding: 11px 8px;
+        border: 1px solid #111827;
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .approve-btn {
+        background: #111827;
+        color: #fff;
+    }
+
+    .approve-btn:hover {
+        background: #374151;
+    }
+
+    .reject-btn {
+        background: #fff;
+        border-color: #dc2626;
+        color: #dc2626;
+    }
+
+    .reject-btn:hover {
+        background: #fef2f2;
+    }
+
+    /* Transaction ledger */
+    .ledger-scroll {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .ledger-entry {
+        padding: 14px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .ledger-entry:first-child {
+        padding-top: 0;
+    }
+
+    .ledger-entry:last-child {
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .ledger-medicine {
+        margin: 0 0 10px;
+        font-size: 14px;
+        overflow-wrap: anywhere;
+    }
+
+    .ledger-meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+    }
+
+    .ledger-meta span {
+        color: #6b7280;
+        font-size: 11px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .ledger-meta strong {
+        color: #374151;
+    }
+
+    .empty-state {
+        padding: 22px 14px;
+        border: 1px dashed #d1d5db;
+        background: #f9fafb;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.6;
+        text-align: center;
+    }
+
+    @media (max-width: 1100px) {
+        .admin-panels {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    @media (max-width: 800px) {
+        .admin-layout {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .admin-sidebar nav {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 5px;
+        }
+
+        .admin-sidebar a {
+            margin: 0;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .admin-page {
+            padding: 18px 12px;
+        }
+
+        .admin-kpis,
+        .po-details,
+        .po-actions,
+        .ledger-meta {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .admin-heading h1 {
+            font-size: 21px;
+        }
+
+        .panel-header,
+        .panel-body {
+            padding: 14px;
+        }
+    }
+</style>
+
+<div class="admin-page">
+    <div class="admin-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar">
+            <h3>Administration</h3>
+
+            <nav aria-label="Administrator navigation">
+                <a href="{% url 'admin_dashboard' %}" class="active">
+                    Dashboard
+                </a>
+                <a href="{% url 'inventory' %}">
+                    Inventory
+                </a>
+                <a href="{% url 'inventory_reports' %}">
+                    Reports
+                </a>
+                <a href="{% url 'procurement' %}">
+                    Procurement
+                </a>
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="admin-main">
+
+            <header class="admin-heading">
+                <span class="eyebrow">Hospital Administration</span>
+                <h1>Hospital Administrator Workspace</h1>
+                <p>
+                    Monitor inventory, expiry risks, clinical dispatches
+                    and procurement.
                 </p>
+            </header>
 
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    {% for po in pending_pos %}
-                        <div style="border: 1px solid #000000; padding: 1.25rem; background-color: #fafafa;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                                <div>
-                                    <span style="font-size: 11px; font-weight: bold; color: #666666; display: block;">PURCHASE REQUISITION ID: `PO-2026-{{ po.id }}`</span>
-                                    <h4 style="margin: 0.2rem 0; font-size: 18px; text-transform: uppercase; font-weight: 800;">{{ po.medicine.name }}</h4>
+            <!-- MESSAGES -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="admin-message">
+                        <strong>System Alert:</strong>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- KPI CARDS -->
+            <section class="admin-kpis">
+
+                <article class="kpi-card">
+                    <span class="kpi-label">Batches</span>
+                    <p class="kpi-value">{{ total_batches|default:0 }}</p>
+                    <p class="kpi-description">Total Active Stock Layers</p>
+                </article>
+
+                <article class="kpi-card alert">
+                    <span class="kpi-label">Threats</span>
+                    <p class="kpi-value">{{ active_alerts_count|default:0 }}</p>
+                    <p class="kpi-description">Unresolved Expiry Alerts</p>
+                </article>
+
+                <article class="kpi-card">
+                    <span class="kpi-label">TX Logs</span>
+                    <p class="kpi-value">{{ total_dispenses|default:0 }}</p>
+                    <p class="kpi-description">Total Clinical Dispatches</p>
+                </article>
+
+                <article class="kpi-card pending">
+                    <span class="kpi-label">Pending</span>
+                    <p class="kpi-value">{{ pending_pos.count|default:0 }}</p>
+                    <p class="kpi-description">Purchase Orders Awaiting Review</p>
+                </article>
+
+            </section>
+
+            <!-- MANAGEMENT PANELS -->
+            <section class="admin-panels">
+
+                <!-- PROCUREMENT APPROVALS -->
+                <section class="panel">
+                    <header class="panel-header">
+                        <h2>Procurement Approval Workbench</h2>
+                        <p>
+                            Review purchase requests raised by the
+                            Procurement Officer before authorization.
+                        </p>
+                    </header>
+
+                    <div class="panel-body">
+                        {% for po in pending_pos %}
+                            <article class="purchase-order">
+
+                                <div class="po-topline">
+                                    <span class="po-reference">
+                                        PO-2026-{{ po.id }}
+                                    </span>
+                                    <span class="po-status">
+                                        Awaiting Approval
+                                    </span>
                                 </div>
-                                <span style="background-color: #e3f2fd; border: 1px solid #007aff; padding: 0.2rem 0.5rem; font-size: 10px; font-weight: bold; text-transform: uppercase;">Awaiting Approval</span>
-                            </div>
 
-                            <div style="font-size: 13px; color: #333333; margin-bottom: 1rem;">
-                                <div>Requested Volume: <strong>{{ po.quantity }} units</strong></div>
-                                <div>Intended Supplier: <strong>{{ po.supplier_name }}</strong></div>
-                                <div style="font-size: 11px; color: #666666; margin-top: 0.25rem;">Drafted by Procurement Officer: {{ po.raised_by.username }}</div>
-                            </div>
+                                <h3 class="po-medicine">
+                                    {{ po.medicine.name }}
+                                </h3>
 
-                            <!-- Dual Decision Vectors Form Group -->
-                            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px dashed #ccc; padding-top: 1rem;">
-                                <!-- Approve Route -->
-                                <form method="POST" action="{% url 'admin_process_po' po.id 'Approve' %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="action-btn approve-btn">✓ Authorize Procurement</button>
-                                </form>
-                                <!-- Reject Route -->
-                                <form method="POST" action="{% url 'admin_process_po' po.id 'Reject' %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="action-btn reject-btn">⚠️ Decline Request</button>
-                                </form>
-                            </div>
-                        </div>
-                    {% empty %}
-                        <div style="text-align: center; padding: 4rem; border: 1px dashed #000000; background-color: #ffffff; font-style: italic; font-size: 13px; color: #666666;">
-                            Clear Desk: No pending purchase requisitions awaiting administrative signature.
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
+                                <div class="po-details">
+                                    <div>
+                                        <span class="detail-label">
+                                            Requested Volume
+                                        </span>
+                                        <span class="detail-value">
+                                            {{ po.quantity }} units
+                                        </span>
+                                    </div>
 
-            <!-- CONSOLIDATED CONSOLIDATED GENERAL REPORT LEDGER -->
-            <div style="border: 1px solid #000000; padding: 2rem; background-color: #ffffff;">
-                <h3 style="font-size: 16px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 2px solid #000000; padding-bottom: 0.5rem;">
-                    Consolidated Cross-Departmental General Ledger
-                </h3>
-                <p style="font-size: 13px; color: #555555; margin-bottom: 1rem;">
-                    Real-time transaction stream tracking clinical FEFO extractions executed by on-duty pharmacy operators.
-                </p>
+                                    <div>
+                                        <span class="detail-label">
+                                            Supplier
+                                        </span>
+                                        <span class="detail-value">
+                                            {{ po.supplier_name }}
+                                        </span>
+                                    </div>
 
-                <div style="display: flex; flex-direction: column; gap: 0.85rem; max-height: 400px; overflow-y: auto;">
-                    {% for tx in global_transactions %}
-                        <div style="border: 1px solid #e0e0e0; padding: 1rem; font-size: 13px; display: flex; justify-content: space-between; align-items: center; background-color: #fafafa;">
-                            <div>
-                                <span style="font-weight: bold; text-transform: uppercase;">{{ tx.medicine.name }}</span>
-                                <div style="color: #666666; font-size: 11px; margin-top: 0.2rem;">
-                                    Patient: <code>{{ tx.patient_identifier }}</code> | Batch: <code>{{ tx.batch.batch_number }}</code>
+                                    <div>
+                                        <span class="detail-label">
+                                            Raised By
+                                        </span>
+                                        <span class="detail-value">
+                                            {{ po.raised_by.username }}
+                                        </span>
+                                    </div>
                                 </div>
+
+                                <div class="po-actions">
+                                    <form method="POST"
+                                          action="{% url 'admin_process_po' po.id 'Approve' %}">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="action-btn approve-btn">
+                                            Approve
+                                        </button>
+                                    </form>
+
+                                    <form method="POST"
+                                          action="{% url 'admin_process_po' po.id 'Reject' %}">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="action-btn reject-btn">
+                                            Reject
+                                        </button>
+                                    </form>
+                                </div>
+
+                            </article>
+                        {% empty %}
+                            <div class="empty-state">
+                                No purchase orders are awaiting approval.
                             </div>
-                            <div style="text-align: right;">
-                                <span style="font-weight: bold; background-color: #000; color: #fff; padding: 0.1rem 0.4rem; font-size: 11px;">QTY: {{ tx.quantity_dispensed }}</span>
-                                <div style="font-size: 11px; color: #666666; margin-top: 0.2rem;">By: {{ tx.dispensed_by.username }}</div>
-                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <!-- TRANSACTION LEDGER -->
+                <section class="panel">
+                    <header class="panel-header">
+                        <h2>Transaction Ledger</h2>
+                        <p>
+                            Review medicine dispensing transactions
+                            recorded by pharmacy operators.
+                        </p>
+                    </header>
+
+                    <div class="panel-body">
+                        <div class="ledger-scroll">
+                            {% for tx in global_transactions %}
+                                <article class="ledger-entry">
+                                    <h3 class="ledger-medicine">
+                                        {{ tx.medicine.name }}
+                                    </h3>
+
+                                    <div class="ledger-meta">
+                                        <span>
+                                            <strong>Patient:</strong>
+                                            {{ tx.patient_identifier|default:"Not recorded" }}
+                                        </span>
+
+                                        <span>
+                                            <strong>Batch:</strong>
+                                            {{ tx.batch.batch_number|default:"Not assigned" }}
+                                        </span>
+
+                                        <span>
+                                            <strong>Quantity:</strong>
+                                            {{ tx.quantity_dispensed }}
+                                        </span>
+
+                                        <span>
+                                            <strong>Operator:</strong>
+                                            {{ tx.dispensed_by.username|default:"Unknown" }}
+                                        </span>
+                                    </div>
+                                </article>
+                            {% empty %}
+                                <div class="empty-state">
+                                    No dispensing transactions recorded yet.
+                                </div>
+                            {% endfor %}
                         </div>
+                    </div>
+                </section>
+
+            </section>
+
+        </main>
+    </div>
+</div>
+
+{% endblock content %}

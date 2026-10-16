@@ -3,6 +3,7 @@ from django.urls import path
 from core import views
 
 urlpatterns = [
+
     # Master System Core Admin Panel
     path('admin/', admin.site.urls),
 
@@ -23,8 +24,10 @@ urlpatterns = [
     path('dispense/', views.dispense_view, name='dispense'),
 
     # Warehouse Logistics Store Manager Lanes
-    path('inventory/', views.store_manager_inventory_view, name='inventory'),
-    path('inventory/recommendations/', views.store_manager_recommendations_view, name='inventory_recommendations'),
+path('inventory/', views.store_manager_inventory_view, name='inventory'),
+path('inventory/reports/', views.inventory_reports_view, name='inventory_reports'),
+path('inventory/alerts/', views.inventory_alerts_view, name='inventory_alerts'),
+path('inventory/recommendations/', views.inventory_recommendations_view, name='inventory_recommendations'),
 
     # Supply Chain Procurement Console Lanes
     path('procurement/', views.procurement_dashboard_view, name='procurement'),

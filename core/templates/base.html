@@ -23,9 +23,15 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            background: #fff;
+            background-color: #111827;
+            color: #ffffff;
             border-bottom: 1px solid #000;
         }
+        /* Header links and brand */
+.site-header a,
+.site-header .user-label {
+    color: #ffffff;
+}
 
         .header-inner {
             max-width: 1600px;
@@ -222,147 +228,262 @@
             border-color: #fecaca;
         }
 
-        /* Footer */
-        .site-footer {
-            margin-top: 2rem;
-            border-top: 1px solid #000;
-            background: #fafafa;
-        }
+/* =====================================================
+   PUBLIC WEBSITE FOOTER
+   ===================================================== */
+.site-footer
+.portal-footer {
+    background-color: #111827;
+    color: #ffffff;
+}
+.site-footer{
+    margin-top: 2rem;
+    border-top: 1px solid #000;
+    background: #fafafa;
+    color: #222;
+}
 
-        .footer-inner {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 2rem;
-            display: grid;
-            grid-template-columns: repeat(
-                auto-fit, minmax(min(100%, 240px), 1fr)
-            );
-            gap: 20px;
-        }
+.site-footer .footer-inner {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit, minmax(min(100%, 240px), 1fr)
+    );
+    gap: 20px;
+}
 
-        .footer-box {
-            padding: 1.25rem;
-            background: #fff;
-            border: 1px solid #000;
-            border-radius: 4px;
-        }
+.site-footer .footer-box {
+    padding: 1.25rem;
+    background: #fff;
+    border: 1px solid #000;
+    border-radius: 4px;
+}
 
-        .footer-box h3 {
-            margin: 0 0 0.75rem;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
+.site-footer .footer-box h3 {
+    margin: 0 0 0.75rem;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
 
-        .footer-box p,
-        .footer-box li {
-            font-size: 13px;
-            color: #333;
-        }
+.site-footer .footer-box p,
+.site-footer .footer-box li {
+    font-size: 13px;
+    color: #333;
+}
 
-        .footer-box ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+.site-footer .footer-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
 
-        .footer-box li {
-            margin-bottom: 7px;
-        }
+.site-footer .footer-box li {
+    margin-bottom: 7px;
+}
 
-        .footer-box a {
-            text-decoration: underline;
-        }
+.site-footer .footer-box a {
+    color: #222;
+    text-decoration: underline;
+}
 
-        .footer-bottom {
-            padding: 1rem 2rem;
-            text-align: center;
-            border-top: 1px solid #ddd;
-            font-size: 12px;
-            color: #555;
-        }
+.site-footer .footer-bottom {
+    padding: 1rem 2rem;
+    text-align: center;
+    border-top: 1px solid #ddd;
+    font-size: 12px;
+    color: #555;
+}
 
-        /* Mobile */
-        @media (max-width: 760px) {
-            .header-inner {
-                padding: 1rem;
-                align-items: flex-start;
-            }
+/* Footer links */
+.site-footer a,
+.portal-footer a {
+    color: #ffffff;
+}
 
-            .brand {
-                max-width: 100%;
-            }
+/* Footer secondary text */
+.site-footer p,
+.portal-footer p,
+.site-footer .footer-bottom,
+.portal-footer .footer-bottom {
+    color: #d1d5db;
+}
 
-            .navigation {
-                justify-content: flex-start;
-                gap: 1rem;
-            }
+/* Consistent hover effect */
+.site-header a:hover,
+.site-footer a:hover,
+.portal-footer a:hover {
+    color: #93c5fd;
+}
 
-            .navigation a {
-                font-size: 13px;
-            }
+/* Public website footer */
+.site-footer {
+    background: #111827 !important;
+    background-color: #111827 !important;
+    color: #ffffff !important;
+    border-top: 1px solid #111827;
+}
 
-            .page-section {
-                padding: 2.5rem 1rem;
-            }
+.site-footer .footer-inner,
+.site-footer .footer-box,
+.site-footer .footer-bottom {
+    background: transparent !important;
+    color: #ffffff !important;
+}
 
-            .page-section h1,
-            .hero h1 {
-                font-size: 30px;
-            }
+.site-footer h2,
+.site-footer h3,
+.site-footer p,
+.site-footer span,
+.site-footer a {
+    color: #ffffff !important;
+}
 
-            .hero-inner {
-                padding: 4rem 1rem;
-            }
+.site-footer .footer-bottom {
+    border-top: 1px solid #374151;
+    color: #d1d5db !important;
+}
 
-            .footer-inner {
-                padding: 1rem;
-            }
-        }
+.site-footer a:hover {
+    color: #93c5fd !important;
+}
+
+
+/* =====================================================
+   PRIVATE PORTAL FOOTER
+   Used by authenticated users across all roles
+   ===================================================== */
+
+.portal-footer {
+    margin-top: 3rem;
+    background: #102b3f;
+    color: #fff;
+    border-top: 3px solid #168c91;
+}
+
+.portal-footer .footer-inner {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 1.75rem 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.portal-footer .footer-brand {
+    max-width: 360px;
+}
+
+.portal-footer .footer-brand strong {
+    display: block;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+}
+
+.portal-footer .footer-brand p {
+    margin: 0.5rem 0 0;
+    color: #cbd5e1;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.portal-footer .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+}
+
+.portal-footer .footer-links a {
+    color: #fff;
+    font-size: 13px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.portal-footer .footer-links a:hover {
+    color: #5ee0d2;
+    text-decoration: underline;
+}
+
+.portal-footer .footer-bottom {
+    padding: 1rem 2rem;
+    border-top: 1px solid #355064;
+    text-align: center;
+    font-size: 12px;
+    color: #cbd5e1;
+}
+
+
+/* =====================================================
+   RESPONSIVE FOOTERS
+   ===================================================== */
+
+@media (max-width: 760px) {
+    .site-footer .footer-inner {
+        padding: 1rem;
+    }
+
+    .site-footer .footer-box {
+        padding: 1rem;
+    }
+
+    .site-footer .footer-bottom {
+        padding: 1rem;
+    }
+
+    .portal-footer .footer-inner {
+        padding: 1.5rem 1rem;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .portal-footer .footer-links {
+        gap: 0.85rem 1rem;
+    }
+
+    .portal-footer .footer-bottom {
+        padding: 1rem;
+    }
+}
+
 
         {% block extra_css %}{% endblock %}
     </style>
 </head>
 <body>
     <!-- PUBLIC WEBSITE HEADER -->
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="{% url 'index' %}" class="brand">DEMAND-DRIVEN MEDICINE EXPIRY MANAGEMENT SYSTEM USING FE-FO ALGORITHM</a>
-                        <nav class="navigation" aria-label="Main navigation">
-                <!-- 1. Permanent Public Links -->
-                <a href="{% url 'index' %}" {% if request.resolver_match.url_name == 'index' %}aria-current="page"{% endif %}>Home</a>
-                <a href="{% url 'about' %}" {% if request.resolver_match.url_name == 'about' %}aria-current="page"{% endif %}>About Us</a>
-                <a href="{% url 'features' %}" {% if request.resolver_match.url_name == 'features' %}aria-current="page"{% endif %}>Features</a>
-                <a href="{% url 'contact' %}" {% if request.resolver_match.url_name == 'contact' %}aria-current="page"{% endif %}>Contact Us</a>
+<header class="site-header">
+    <div class="header-inner">
+        <a href="{% if request.user.is_authenticated %}{% if request.user.is_superuser or request.user.role.name == 'Hospital Admin' or request.user.role.name == 'Hospital Administrator' %}{% url 'admin_dashboard' %}{% elif request.user.role.name == 'Pharmacist' %}{% url 'dispense' %}{% elif request.user.role.name == 'Store Manager' %}{% url 'inventory' %}{% elif request.user.role.name == 'Procurement Officer' %}{% url 'procurement' %}{% else %}{% url 'index' %}{% endif %}{% else %}{% url 'index' %}{% endif %}"
+           class="brand">
+            MEDICINE EXPIRY MANAGEMENT SYSTEM
+        </a>
 
-                {% if request.user.is_authenticated %}
-                    {% if request.user.is_superuser or request.user.role.name == 'Hospital Admin' or request.user.role.name == 'Hospital Administrator' %}
-                        <a href="{% url 'admin_dashboard' %}" class="login-button">Admin Workspace</a>
-                    {% elif request.user.role.name == 'Pharmacist' %}
-                        <a href="{% url 'dispense' %}" class="login-button">Dispensing Portal</a>
-                    {% elif request.user.role.name == 'Store Manager' %}
-                        <a href="{% url 'inventory' %}" class="login-button">Store Ledger</a>
-                    {% elif request.user.role.name == 'Procurement Officer' %}
-                        <a href="{% url 'procurement' %}" class="login-button">Procurement Console</a>
-                    {% else %}
-                        <a href="{% url 'index' %}" class="login-button">Default Portal</a>
-                    {% endif %}
+<nav class="navigation" aria-label="Main navigation">
+    {% if request.user.is_authenticated %}
+        <span class="user-label">
+            {{ request.user.get_full_name|default:request.user.username }}
+        </span>
+        <a href="{% url 'logout' %}">Logout</a>
+    {% else %}
+        <a href="{% url 'index' %}">Home</a>
+        <a href="{% url 'features' %}">Features</a>
+        <a href="{% url 'about' %}">About Us</a>
+        <a href="{% url 'contact' %}">Contact Us</a>
+        <a href="{% url 'login' %}">Login</a>
+        <a href="{% url 'register' %}">Register</a>
+    {% endif %}
+</nav>
 
-                    <!-- User Account Meta-Signature Label Badge -->
-                    <span style="margin-left: 15px; font-size: 12px; color: #555555; font-weight: bold; text-transform: uppercase;">
-                        👤 {{ request.user.username }}
-                        <span style="font-size: 10px; font-weight: normal;">({{ request.user.role.name|default:"Superuser" }})</span>
-                    </span>
+    </div>
+</header>
 
-                    <a href="{% url 'logout' %}" style="margin-left: 12px; color: #ff3b30; font-weight: bold; text-decoration: none; text-transform: uppercase; font-size: 13px;">Logout</a>
-                {% else %}
-                    <!-- Authentication Entry Links -->
-                    <a href="{% url 'login' %}" {% if request.resolver_match.url_name == 'login' %}aria-current="page"{% endif %} class="login-button">Login</a>
-                    <a href="{% url 'register' %}" {% if request.resolver_match.url_name == 'register' %}aria-current="page"{% endif %} class="login-button" style="margin-left: 8px;">Register</a>
-                {% endif %}
-            </nav>
-        </div>
-    </header>
 
     <!-- DJANGO MESSAGES -->
     {% if messages %}
@@ -378,7 +499,41 @@
         {% block content %}
         {% endblock %}
     </main>
+<!--Footer-->
+{% if request.user.is_authenticated %}
+<footer class="portal-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <strong>MEDICINE EXPIRY MANAGEMENT SYSTEM</strong>
+            <p>Demand-driven inventory and FEFO management.</p>
+        </div>
 
+        <div class="footer-links">
+            {% with role_name=request.user.role.name|default:"" %}
+                {% if request.user.is_superuser or role_name == "Hospital Admin" or role_name == "Hospital Administrator" %}
+                    <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+                    <a href="{% url 'inventory' %}">Inventory</a>
+                    <a href="{% url 'procurement' %}">Procurement</a>
+                {% elif role_name == "Pharmacist" %}
+                    <a href="{% url 'dispense' %}">Dispensing</a>
+                {% elif role_name == "Store Manager" %}
+                    <a href="{% url 'inventory' %}">Inventory</a>
+                    <a href="{% url 'inventory_reports' %}">Stock Reports</a>
+                    <a href="{% url 'inventory_alerts' %}">Expiry Alerts</a>
+                    <a href="{% url 'inventory_recommendations' %}">Recommendations</a>
+                {% elif role_name == "Procurement Officer" %}
+                    <a href="{% url 'procurement' %}">Procurement</a>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        © {% now "Y" %} Medicine Expiry Management System. All rights reserved.
+    </div>
+</footer>
+
+{% else %}
     <!-- PUBLIC WEBSITE FOOTER -->
     <footer class="site-footer">
         <div class="footer-inner">
@@ -411,6 +566,8 @@
             &copy; {% now "Y" %} Demand-Driven Medicine Expiry Management System using FEFO Algorithm.
         </div>
     </footer>
+{% endif %}
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

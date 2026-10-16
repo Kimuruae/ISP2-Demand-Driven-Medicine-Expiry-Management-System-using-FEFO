@@ -15,16 +15,6 @@
         </div>
     </div>
 
-    <!-- Feedback Status Banners -->
-    {% if messages %}
-        {% for message in messages %}
-            <div style="border: 1px solid #000000; background-color: #ffffff; padding: 1rem 1.25rem; font-size: 14px; font-weight: bold; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-                <span>{% if message.tags == 'error' %}⚠️ [ERROR]{% else %}✓ [SUCCESS]{% endif %}</span>
-                <p style="margin: 0;">{{ message }}</p>
-            </div>
-        {% endfor %}
-    {% endif %}
-
     <!-- Operational Matrix Layout Grid -->
     <div class="workspace-layout-shell">
         <style>
@@ -35,17 +25,21 @@
             .sidebar-action-link.active-node { background-color: #000000; color: #ffffff; }
         </style>
 
-        <!-- SIDEBAR: STORE MANAGER CONTROLS -->
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-            <div style="border: 1px solid #000000; padding: 1rem; background-color: #fafafa; text-align: center;">
-                <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #444444;">Storage Engine</span>
-            </div>
-            <a href="{% url 'inventory' %}" class="sidebar-action-link active-node">📦 Register New Batch</a>
-            <a href="{% url 'inventory_reports' %}" class="sidebar-action-link">📋 View Stock Reports</a>
-            <a href="{% url 'inventory_alerts' %}" class="sidebar-action-link">🚨 Inventory Alerts</a>
-            <a href="{% url 'inventory_recommendations' %}" class="sidebar-action-link">✍️ Raise Procurement Advice</a>
-        </div>
 
+<!-- SIDEBAR: STORE MANAGER NAVIGATION -->
+<div style="display: flex; flex-direction: column; gap: 1rem;">
+    <div style="border: 1px solid #000; padding: 1rem; background: #fafafa; text-align: center;">
+        <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">
+            Store Manager Workspace
+        </span>
+    </div>
+
+    <a href="{% url 'inventory' %}" class="sidebar-action-link active-node">📦 Inventory & Stock Intake</a>
+    <a href="{% url 'inventory_reports' %}" class="sidebar-action-link">📋 Stock Reports</a>
+    <a href="{% url 'inventory_alerts' %}" class="sidebar-action-link">🚨 Expiry & Stock Alerts</a>
+    <a href="{% url 'inventory_recommendations' %}" class="sidebar-action-link">✍️ Procurement Recommendations</a>
+
+</div>
         <!-- CENTER PANEL: BATCH REGISTRATION ENTRY FORM -->
         <div style="border: 1px solid #000000; padding: 2rem; background-color: #ffffff;">
             <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem; letter-spacing: 0.02em;">
@@ -85,7 +79,6 @@
                         <input type="date" id="exp_date" name="expiry_date" required style="border: 1px solid #000000; padding: 0.85rem; font-size: 14px; font-family: inherit;">
                     </div>
                 </div>
-
                 <button type="submit" style="width: 100%; background-color: #000000; color: #ffffff; border: 1px solid #000000; padding: 1.1rem; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; margin-top: 0.5rem;">
                     Commit Stock Record to Storage Hub →
                 </button>
@@ -123,7 +116,6 @@
                 </ul>
             </div>
         </div>
-
     </div>
 </div>
 {% endblock %}
