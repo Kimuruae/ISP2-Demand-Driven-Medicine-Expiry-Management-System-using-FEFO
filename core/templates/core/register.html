@@ -1,185 +1,201 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operator Registration | Medicine Expiry Management System</title>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #ffffff;
-            color: #000000;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .site-header {
-            width: 100%;
-            padding: 1.5rem 2rem;
-            text-align: center;
-            font-size: 12px;
-            font-weight: bold;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: #000000;
-            border-bottom: 1px solid #000000;
-        }
-        .register-container {
-            width: 100%;
-            max-width: 500px;
-            padding: 2rem;
-            margin: 2rem auto;
-            display: flex;
-            flex-direction: column;
-        }
-        .schematic-box {
-            width: 100%;
-            border: 1px solid #000000;
-            background-color: #ffffff;
-            padding: 2.5rem 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .box-title {
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            margin: 0 0 0.25rem 0;
-            text-transform: uppercase;
-        }
-        .banner {
-            border: 1px solid #000000;
-            padding: 0.75rem;
-            font-size: 13px;
-            font-weight: bold;
-            text-align: center;
-        }
-        .banner.error { bg-color: #fafafa; color: #000000; }
-        .banner.success { background-color: #f0f0f0; }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .field-label {
-            font-size: 13px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
-        .text-input, .select-input {
-            width: 100%;
-            border: 1px solid #000000;
-            background-color: #ffffff;
-            padding: 0.75rem 1rem;
-            font-size: 15px;
-            font-family: inherit;
-            color: #000000;
-            outline: none;
-            border-radius: 0;
-        }
-        .black-submit-button {
-            width: 100%;
-            background-color: #000000;
-            color: #ffffff;
-            border: 1px solid #000000;
-            padding: 1rem;
-            font-size: 13px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            cursor: pointer;
-            transition: background-color 0.1s ease, color 0.1s ease;
-            margin-top: 0.5rem;
-        }
-        .black-submit-button:hover {
-            background-color: #ffffff;
-            color: #000000;
-        }
-        .shortcut-link {
-            text-align: center;
-            font-size: 13px;
-            margin-top: 1rem;
-        }
-        .shortcut-link a {
-            color: #000000;
-            font-weight: bold;
-            text-decoration: underline;
-        }
-        .site-footer {
-            width: 100%;
-            border-top: 1px solid #ddd;
-            text-align: center;
-            padding: 1.5rem 1rem;
-            font-size: 11px;
-            color: #666666;
-        }
-    </style>
-</head>
-<body>
-    <header class="site-header">
-         <div class="system-heading-group">
-            <h2 class="system-main-title">Demand-Driven Medicine Expiry Management System using FEFO Algorithm</h2>
-            <p class="system-sub-title">Kenyan Level-4 hospital inventory and FEFO management</p>
-        </div>
-    </header>
-    <main class="register-container">
-        <div class="schematic-box">
-            <h2 class="box-title">Create Account Profile</h2>
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="banner {% if message.tags %}{{ message.tags }}{% endif %}">
-                        {% if message.tags == 'error' %}⚠️{% else %}✓{% endif %} {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
+{% extends 'base.html' %}
+{% block title %}Register | Medicine Expiry Management System{% endblock %}
+{% block extra_css %}
+.register-page {
+    width: 100%;
+    max-width: 560px;
+    margin: 3rem auto;
+    padding: 0 1.25rem;
+}
+.register-card {
+    padding: 2.5rem;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+}
+.register-heading {
+    margin: 0 0 0.5rem;
+    text-align: center;
+    font-size: 25px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+.register-subheading {
+    margin: 0 0 2rem;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #555;
+}
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+.register-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
 
-            <form method="POST" action="{% url 'register' %}" style="display: flex; flex-direction: column; gap: 1.25rem;">
-                {% csrf_token %}
+.register-field label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.register-field input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 1px solid #9ca3af;
+    border-radius: 3px;
+    background: #fff;
+    color: #111827;
+    font: inherit;
+    font-size: 14px;
+}
 
-                <div class="input-group">
-                    <label for="username" class="field-label">Account Username</label>
-                    <input type="text" id="username" name="username" required autocomplete="off" class="text-input">
-                </div>
+.register-field input:focus {
+    outline: 2px solid #374151;
+    outline-offset: 2px;
+    border-color: #111827;
+}
 
-                <div class="input-group">
-                    <label for="email" class="field-label">Email Address</label>
-                    <input type="email" id="email" name="email" required autocomplete="off" class="text-input">
-                </div>
+.register-note {
+    margin: 0;
+    padding: 0.9rem 1rem;
+    border-left: 3px solid #374151;
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 13px;
+    line-height: 1.6;
+}
 
-                <div class="input-group">
-                    <label for="role" class="field-label">Assigned Facility Role</label>
-                    <select id="role" name="role" required class="select-input">
-                        <option value="" disabled selected>-- Select Operational Title --</option>
-                        {% for role in roles %}
-                            <option value="{{ role.id }}">{{ role.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+.register-submit {
+    width: 100%;
+    margin-top: 0.25rem;
+    padding: 1rem;
+    border: 1px solid #111827;
+    border-radius: 3px;
+    background: #111827;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
 
-                <div class="input-group">
-                    <label for="password" class="field-label">Password</label>
-                    <input type="password" id="password" name="password" required autocomplete="new-password" class="text-input">
-                </div>
+.register-submit:hover {
+    background: #fff;
+    color: #111827;
+}
 
-                <div class="input-group">
-                    <label for="password_confirm" class="field-label">Confirm Password</label>
-                    <input type="password" id="password_confirm" name="password_confirm" required autocomplete="new-password" class="text-input">
-                </div>
-                <button type="submit" class="black-submit-button">Register</button>
-            </form>
-            <div class="shortcut-link">Already registered?  <a href="{% url 'login' %}">Login</a></div>
-        </div>
-    </main>
-    <footer class="site-footer">
-        Medicine Expiry Management System &bull; Information Systems Project II &bull; May 2026
-    </footer>
-</body>
-</html>
+.register-login-link {
+    margin: 1.5rem 0 0;
+    text-align: center;
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.register-login-link a {
+    color: #111827;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.register-login-link a:hover {
+    color: #2563eb;
+}
+@media (max-width: 600px) {
+    .register-page {
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .register-card {
+        padding: 1.5rem;
+    }
+    .register-heading {
+        font-size: 21px;
+    }
+}
+{% endblock %}
+{% block content %}
+<section class="register-page">
+    <div class="register-card">
+        <h1 class="register-heading">Create an Account</h1>
+
+        <p class="register-subheading">
+            Request access to the Demand-Driven Medicine Expiry
+            Management System.
+        </p>
+
+        <form
+            method="POST"
+            action="{% url 'register' %}"
+            class="register-form"
+        >
+            {% csrf_token %}
+
+            <div class="register-field">
+                <label for="username">Account Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value="{{ request.POST.username|default:'' }}"
+                    required
+                    maxlength="150"
+                    autocomplete="username"
+                >
+            </div>
+
+            <div class="register-field">
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value="{{ request.POST.email|default:'' }}"
+                    required
+                    autocomplete="email"
+                >
+            </div>
+
+            <p class="register-note">
+                Your account will remain inactive until an authorized
+                System Administrator reviews your registration, activates
+                your account, and assigns the appropriate facility role.
+            </p>
+
+            <div class="register-field">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    minlength="10"
+                    autocomplete="new-password"
+                >
+            </div>
+
+            <div class="register-field">
+                <label for="password_confirm">Confirm Password</label>
+                <input type="password" id="password_confirm" name="password_confirm" required="10" autocomplete="new-password"></div>
+
+            <button type="submit" class="register-submit">
+                Submit Registration
+            </button>
+        </form>
+
+        <p class="register-login-link">
+            Already registered?
+            <a href="{% url 'login' %}">Login to your account</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

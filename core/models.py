@@ -3,14 +3,49 @@ from datetime import date
 from django.db import models
 
 class Role(models.Model):
+    SUPPORTED_ROLES = {"system administrator": ("System Administrator", "Manage accounts, application roles, settings and audit logs.",),
+        "hospital admin": (
+            "Hospital Admin",
+            "Oversee hospital-level activity and approve purchase orders.",
+        ),
+        "hospital administrator": (
+            "Hospital Administrator",
+            "Oversee hospital-level activity and approve purchase orders.",
+        ),
+        "pharmacist": (
+            "Pharmacist",
+            "Dispense medicines using FEFO and review dispensing alerts and reports.",
+        ),
+        "store manager": (
+            "Store Manager",
+            "Maintain stock batches, monitor expiry and raise procurement recommendations.",
+        ),
+        "procurement officer": ("Procurement Officer","Review forecasts, recommendations and purchase orders.",),
+    }
+    PORTAL_URLS = {
+        "system administrator": "system_admin_dashboard",
+        "hospital admin": "admin_dashboard",
+        "hospital administrator": "admin_dashboard",
+        "pharmacist": "dispense",
+        "store manager": "inventory",
+        "procurement officer": "procurement",
+    }
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True)
-    def __str__(self):return self.name
+
+@property
+def portal_url_name(self): return self.PORTAL_URLS.get( (self.name or "").strip().casefold(), "")
+
+@property
+def is_system_administrator(self): return ((self.name or "").strip().casefold()== "system administrator")
+def __str__(self): return self.name
 
 class user(AbstractUser):
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
     phone_number = models.CharField(max_length=15, blank=True)
-    def __str__(self):return f"{self.username} - {self.role.name if self.role else 'No Role'}"
+    def __str__(self):
+        role_name = self.role.name if self.role else "No role"
+        return f"{self.username} - {self.role.name if self.role else 'No Role'}"
 
 
 class Medicine(models.Model):

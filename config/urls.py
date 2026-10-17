@@ -1,11 +1,14 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from core import views
 
 urlpatterns = [
-
-    # Master System Core Admin Panel
+    #Django admin
     path('admin/', admin.site.urls),
+    # Master System Core Admin Panel
+    path('system-admin/', views.system_admin_dashboard_view, name='system_admin_dashboard', ),
+
+    #path('', include(core.urls)),
 
     # Core Public & Onboarding Content Views
     path('', views.home_redirect, name='index'),

@@ -1,6 +1,4 @@
-
 {% extends "base.html" %}
-
 {% block content %}
 <style>
     .admin-page {
@@ -392,7 +390,6 @@
         <!-- SIDEBAR -->
         <aside class="admin-sidebar">
             <h3>Administration</h3>
-
             <nav aria-label="Administrator navigation">
                 <a href="{% url 'admin_dashboard' %}" class="active">
                     Dashboard
@@ -411,7 +408,6 @@
 
         <!-- MAIN CONTENT -->
         <main class="admin-main">
-
             <header class="admin-heading">
                 <span class="eyebrow">Hospital Administration</span>
                 <h1>Hospital Administrator Workspace</h1>
@@ -433,7 +429,6 @@
 
             <!-- KPI CARDS -->
             <section class="admin-kpis">
-
                 <article class="kpi-card">
                     <span class="kpi-label">Batches</span>
                     <p class="kpi-value">{{ total_batches|default:0 }}</p>
@@ -457,12 +452,10 @@
                     <p class="kpi-value">{{ pending_pos.count|default:0 }}</p>
                     <p class="kpi-description">Purchase Orders Awaiting Review</p>
                 </article>
-
             </section>
 
             <!-- MANAGEMENT PANELS -->
             <section class="admin-panels">
-
                 <!-- PROCUREMENT APPROVALS -->
                 <section class="panel">
                     <header class="panel-header">
@@ -476,7 +469,6 @@
                     <div class="panel-body">
                         {% for po in pending_pos %}
                             <article class="purchase-order">
-
                                 <div class="po-topline">
                                     <span class="po-reference">
                                         PO-2026-{{ po.id }}
@@ -496,17 +488,13 @@
                                             Requested Volume
                                         </span>
                                         <span class="detail-value">
-                                            {{ po.quantity }} units
+                                            {{ po.quantity_ordered }} units
                                         </span>
                                     </div>
 
                                     <div>
-                                        <span class="detail-label">
-                                            Supplier
-                                        </span>
-                                        <span class="detail-value">
-                                            {{ po.supplier_name }}
-                                        </span>
+                                        <span class="detail-label">Supplier</span>
+                                        <span class="detail-value">{{ po.supplier.supplier_name }}</span>
                                     </div>
 
                                     <div>
@@ -596,11 +584,8 @@
                         </div>
                     </div>
                 </section>
-
             </section>
-
         </main>
     </div>
 </div>
-
 {% endblock content %}
