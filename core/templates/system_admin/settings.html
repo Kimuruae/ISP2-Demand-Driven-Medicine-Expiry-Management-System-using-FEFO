@@ -1,0 +1,48 @@
+{% extends "system_admin/base.html" %}
+{% block admin_content %}
+<header class="sa-header">
+    <span class="eyebrow">Application Configuration</span>
+    <h1>System Settings</h1>
+    <p>Maintain application configuration values and review saved settings.</p>
+</header>
+<section class="sa-panel"><h2>Create or Update a Setting</h2>
+    <p class="sa-muted">
+        Use unique setting keys and document what each value controls.
+        Do not store passwords or secret credentials in ordinary settings.
+    </p>
+    <form method="post" action="{% url 'system_admin_dashboard' %}" class="sa-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_setting">
+        <input name="key" placeholder="Setting key" required>
+        <input name="value" placeholder="Setting value" required>
+        <input name="description" placeholder="Description (optional)">
+        <button type="submit">Save Setting</button>
+    </form>
+</section>
+<section class="sa-panel"><h2>Configured Settings</h2>
+    <div class="sa-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                    <th>Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for setting in settings %}
+                <tr>
+                    <td><strong>{{ setting.key }}</strong></td>
+                    <td>{{ setting.value }}</td>
+                    <td>{{ setting.description|default:"—" }}</td>
+                    <td>{{ setting.updated_at|date:"Y-m-d H:i"|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="sa-empty">No settings have been configured.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock admin_content %}

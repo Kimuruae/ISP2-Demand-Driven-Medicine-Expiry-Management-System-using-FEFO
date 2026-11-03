@@ -1,0 +1,74 @@
+{% extends "system_admin/base.html" %}
+{% block admin_content %}
+<header class="sa-header">
+    <span class="eyebrow">Monitoring &amp; Diagnostics</span>
+    <h1>System Health</h1>
+    <p>Review application status and identify areas that need operational attention.</p>
+</header>
+<section class="sa-grid">
+    <article class="sa-card">
+        <small>Application</small>
+        <div class="sa-number" style="font-size:22px;">Django</div>
+        <p class="sa-muted">Application framework</p>
+    </article>
+
+    <article class="sa-card">
+        <small>Database</small>
+        <div class="sa-number" style="font-size:22px;">PostgreSQL</div>
+        <p class="sa-muted">Configured database technology</p>
+    </article>
+
+    <article class="sa-card">
+        <small>Monitoring</small>
+        <div class="sa-number" style="font-size:22px;">Overview</div>
+        <p class="sa-muted">Operational indicators</p>
+    </article>
+</section>
+
+<section class="sa-panel">
+    <h2>Operational Monitoring</h2>
+    <div class="sa-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Component</th>
+                    <th>What to monitor</th>
+                    <th>Current verification</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Application</td>
+                    <td>HTTP errors, exceptions and request handling</td>
+                    <td>Requires application health checks and logs</td>
+                </tr>
+                <tr>
+                    <td>Database</td>
+                    <td>Database connectivity and query failures</td>
+                    <td>Requires a live database health check</td>
+                </tr>
+                <tr>
+                    <td>Medicine inventory</td>
+                    <td>Stock inconsistencies and batch records</td>
+                    <td>Requires inventory validation checks</td>
+                </tr>
+                <tr>
+                    <td>Expiry monitoring</td>
+                    <td>Unresolved expiry alerts and approaching expiry dates</td>
+                    <td>Requires expiry-alert data</td>
+                </tr>
+                <tr>
+                    <td>Forecasting</td>
+                    <td>Forecast generation and procurement recommendations</td>
+                    <td>Requires forecasting status and error tracking</td>
+                </tr>
+                <tr>
+                    <td>Backups</td>
+                    <td>Last successful backup and recovery readiness</td>
+                    <td>Requires a configured backup process</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock admin_content %}

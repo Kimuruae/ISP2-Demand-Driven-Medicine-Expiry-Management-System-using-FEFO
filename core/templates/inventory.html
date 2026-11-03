@@ -1,121 +1,126 @@
+
 {% extends 'base.html' %}
 {% load static %}
+
 {% block content %}
-<div style="max-width: 1300px; margin: 2rem auto; padding: 0 1.5rem; font-family: Arial, sans-serif; color: #000000;">
+<div style="max-width:1400px;margin:30px auto;padding:0 20px;font-family:Arial,sans-serif;color:#1e293b;">
 
-    <!-- Global Station Identification Header -->
-    <div style="border-bottom: 2px solid #000000; padding-bottom: 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
-        <div>
-            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555555; letter-spacing: 0.08em; display: block;">Logistics & Storage Workstation</span>
-            <h1 style="font-size: 26px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: -0.01em;">Store Inventory Ledger</h1>
-        </div>
-        <div style="text-align: right; font-size: 13px; font-weight: bold; background-color: #f9f9f9; padding: 0.5rem 1rem; border: 1px solid #000000;">
-            STATION OPERATOR: <span style="text-decoration: underline; text-transform: uppercase;">{{ request.user.username }}</span> &bull;
-            <span style="color: #555555;">ROLE: STORE MANAGER</span>
-        </div>
+    <div style="background:linear-gradient(120deg,#123b66,#087e8b);color:white;padding:28px;border-radius:14px;margin-bottom:25px;">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.85;">Store Manager Workspace</div>
+        <h1 style="font-size:28px;margin:8px 0;font-weight:800;">Inventory Management</h1>
+        <p style="margin:0;font-size:14px;opacity:.9;">Register medicine batches, monitor available stock and maintain accurate inventory records.</p>
     </div>
 
-    <!-- Operational Matrix Layout Grid -->
-    <div class="workspace-layout-shell">
-        <style>
-            .workspace-layout-shell { display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: start; }
-            @media (min-width: 992px) { .workspace-layout-shell { grid-template-columns: 280px 2fr 1.5fr !important; } }
-            .sidebar-action-link { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; border: 1px solid #000000; background-color: #ffffff; color: #000000; text-decoration: none; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em; transition: background-color 0.1s ease, color 0.1s ease; }
-            .sidebar-action-link:hover { background-color: #000000; color: #ffffff; }
-            .sidebar-action-link.active-node { background-color: #000000; color: #ffffff; }
-        </style>
+    <style>
+        .sm-layout{display:grid;grid-template-columns:240px 1.3fr 1fr;gap:20px;align-items:start}
+        .sm-card{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:22px;box-shadow:0 3px 12px rgba(15,23,42,.05)}
+        .sm-link{display:block;padding:13px 15px;border-radius:8px;text-decoration:none;color:#334155;font-size:13px;font-weight:700;background:#f1f5f9;margin-bottom:9px;transition:.2s}
+        .sm-link:hover,.sm-link.active{background:#123b66;color:white}
+        .sm-input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:7px;font-size:14px;background:#fff}
+        .sm-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;color:#475569;margin-bottom:7px}
+        .sm-button{width:100%;border:0;border-radius:8px;background:#087e8b;color:white;padding:14px;font-size:13px;font-weight:800;text-transform:uppercase;cursor:pointer}
+        .sm-button:hover{background:#06636d}
+        .sm-stock{padding:13px;border:1px solid #e2e8f0;border-radius:9px;margin-bottom:10px;background:#f8fafc}
+        @media(max-width:1000px){.sm-layout{grid-template-columns:1fr}}
+    </style>
 
+    <div class="sm-layout">
 
-<!-- SIDEBAR: STORE MANAGER NAVIGATION -->
-<div style="display: flex; flex-direction: column; gap: 1rem;">
-    <div style="border: 1px solid #000; padding: 1rem; background: #fafafa; text-align: center;">
-        <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">
-            Store Manager Workspace
-        </span>
-    </div>
+        <!-- SIDEBAR -->
+        <aside class="sm-card">
+            <h3 style="font-size:13px;text-transform:uppercase;color:#64748b;margin:0 0 18px;">Navigation</h3>
+            <a href="{% url 'inventory' %}" class="sm-link active">📦 Inventory & Stock Intake</a>
+            <a href="{% url 'inventory_reports' %}" class="sm-link">📊 Stock Reports</a>
+            <a href="{% url 'inventory_alerts' %}" class="sm-link">🚨 Alerts Centre</a>
+            <a href="{% url 'inventory_recommendations' %}" class="sm-link">📝 Procurement Advice</a>
 
-    <a href="{% url 'inventory' %}" class="sidebar-action-link active-node">📦 Inventory & Stock Intake</a>
-    <a href="{% url 'inventory_reports' %}" class="sidebar-action-link">📋 Stock Reports</a>
-    <a href="{% url 'inventory_alerts' %}" class="sidebar-action-link">🚨 Expiry & Stock Alerts</a>
-    <a href="{% url 'inventory_recommendations' %}" class="sidebar-action-link">✍️ Procurement Recommendations</a>
+            <div style="margin-top:25px;padding:15px;background:#e0f2fe;border-radius:9px;">
+                <div style="font-size:11px;font-weight:800;color:#075985;text-transform:uppercase;">FEFO Reminder</div>
+                <p style="font-size:12px;line-height:1.6;color:#334155;margin:7px 0 0;">
+                    Stock with the earliest expiry date should be prioritised during dispensing.
+                </p>
+            </div>
+        </aside>
 
-</div>
-        <!-- CENTER PANEL: BATCH REGISTRATION ENTRY FORM -->
-        <div style="border: 1px solid #000000; padding: 2rem; background-color: #ffffff;">
-            <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem; letter-spacing: 0.02em;">
-                Register Inbound Stock Shipment
-            </h3>
+        <!-- STOCK INTAKE FORM -->
+        <section class="sm-card">
+            <h2 style="font-size:17px;margin:0 0 7px;color:#123b66;">Register New Stock</h2>
+            <p style="font-size:13px;color:#64748b;margin:0 0 22px;">Enter the details of the incoming medicine batch.</p>
 
-            <form method="POST" action="{% url 'inventory' %}" style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <form method="POST" action="{% url 'inventory' %}" style="display:flex;flex-direction:column;gap:16px;">
                 {% csrf_token %}
 
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label for="medicine" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Medicine Formulation</label>
-                    <select id="medicine" name="medicine_id" required style="width: 100%; border: 1px solid #000000; padding: 0.85rem; font-size: 14px; background-color: #ffffff;">
-                        <option value="" disabled selected>-- Select Target Drug Profile --</option>
+                <div>
+                    <label class="sm-label" for="medicine">Medicine</label>
+                    <select id="medicine" name="medicine_id" class="sm-input" required>
+                        <option value="">-- Select Medicine --</option>
                         {% for med in medicines %}
-                            <option value="{{ med.id }}">{{ med.name }} (Code: {{ med.code }})</option>
+                            <option value="{{ med.id }}">{{ med.name }} ({{ med.code }})</option>
                         {% endfor %}
                     </select>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label for="batch_num" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Batch / Serial Identifier</label>
-                    <input type="text" id="batch_num" name="batch_number" required placeholder="e.g., BATCH-2026-X8" style="width: 100%; border: 1px solid #000000; padding: 0.85rem; font-size: 14px;">
+                <div>
+                    <label class="sm-label" for="batch_num">Batch Number</label>
+                    <input class="sm-input" type="text" id="batch_num" name="batch_number" required placeholder="e.g. BATCH-2026-001">
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label for="qty" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Inbound Quantity Received</label>
-                    <input type="number" id="qty" name="quantity" min="1" required style="width: 100%; border: 1px solid #000000; padding: 0.85rem; font-size: 14px;">
+                <div>
+                    <label class="sm-label" for="qty">Quantity Received</label>
+                    <input class="sm-input" type="number" id="qty" name="quantity" min="1" required placeholder="Enter quantity">
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label for="mfg_date" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Manufacturing Date</label>
-                        <input type="date" id="mfg_date" name="manufacturing_date" required style="border: 1px solid #000000; padding: 0.85rem; font-size: 14px; font-family: inherit;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label class="sm-label" for="received_date">Date Received</label>
+                        <input class="sm-input" type="date" id="received_date" name="received_date" required value="{{ today|date:'Y-m-d' }}">
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label for="exp_date" style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Expiry Date</label>
-                        <input type="date" id="exp_date" name="expiry_date" required style="border: 1px solid #000000; padding: 0.85rem; font-size: 14px; font-family: inherit;">
+                    <div>
+                        <label class="sm-label" for="exp_date">Expiry Date</label>
+                        <input class="sm-input" type="date" id="exp_date" name="expiry_date" required>
                     </div>
                 </div>
-                <button type="submit" style="width: 100%; background-color: #000000; color: #ffffff; border: 1px solid #000000; padding: 1.1rem; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; margin-top: 0.5rem;">
-                    Commit Stock Record to Storage Hub →
-                </button>
+
+                <div>
+                    <label class="sm-label" for="storage_location">Storage Location</label>
+                    <input class="sm-input" type="text" id="storage_location" name="storage_location" placeholder="e.g. Pharmacy Store - Shelf A3">
+                </div>
+
+                <button type="submit" class="sm-button">＋ Register Medicine Batch</button>
             </form>
-        </div>
+        </section>
 
-        <!-- RIGHT PANEL: CURRENT STORAGE CAPACITY OVERVIEW -->
-        <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
-            <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem; letter-spacing: 0.02em;">
-                Facility Stock Rollup
-            </h3>
-            <p style="font-size: 12px; color: #555555; margin-bottom: 1rem; line-height: 1.5;">
-                This ledger displays verified, unexpired stock layers loaded across clinic shelves.
-            </p>
+        <!-- CURRENT STOCK -->
+        <section class="sm-card">
+            <h2 style="font-size:17px;margin:0 0 7px;color:#123b66;">Available Stock</h2>
+            <p style="font-size:13px;color:#64748b;margin:0 0 20px;">Active, unexpired medicine batches.</p>
 
-            <div style="max-height: 480px; overflow-y: auto;">
-                <ul style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-                    {% for batch in active_batches %}
-                        <li style="border: 1px solid #000000; padding: 1rem; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong style="text-transform: uppercase; font-size: 14px;">{{ batch.medicine.name }}</strong>
-                                <div style="font-size: 11px; color: #555555; margin-top: 0.2rem;">
-                                    Tag: <code>{{ batch.batch_number }}</code> | Total: <strong>{{ batch.quantity_available }} units</strong>
-                                </div>
-                            </div>
-                            <div style="text-align: right; font-size: 12px; font-weight: bold;">
-                                EXP: {{ batch.expiry_date|date:"Y-m-d" }}
-                            </div>
-                        </li>
-                    {% empty %}
-                        <li style="text-align: center; padding: 2rem; border: 1px dashed #000000; font-style: italic; font-size: 13px; color: #666666;">
-                            No active storage items loaded.
-                        </li>
-                    {% endfor %}
-                </ul>
+            <div style="max-height:540px;overflow-y:auto;">
+                {% for batch in active_batches %}
+                    <div class="sm-stock">
+                        <div style="display:flex;justify-content:space-between;gap:10px;align-items:start;">
+                            <strong style="font-size:14px;color:#1e293b;">{{ batch.medicine.name }}</strong>
+                            <span style="font-size:11px;background:#dcfce7;color:#166534;padding:5px 8px;border-radius:20px;font-weight:800;">ACTIVE</span>
+                        </div>
+                        <div style="font-size:12px;color:#64748b;margin-top:9px;">
+                            Batch: <strong>{{ batch.batch_number }}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin-top:9px;font-size:12px;">
+                            <span>Available: <strong style="color:#087e8b;">{{ batch.quantity_available }} units</strong></span>
+                            <span>Expires: <strong>{{ batch.expiry_date|date:"Y-m-d" }}</strong></span>
+                        </div>
+                        <div style="font-size:11px;color:#64748b;margin-top:7px;">
+                            Location: {{ batch.storage_location|default:"Not specified" }}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div style="padding:35px 15px;text-align:center;background:#f8fafc;border-radius:9px;color:#64748b;font-size:13px;">
+                        No active stock batches have been registered.
+                    </div>
+                {% endfor %}
             </div>
-        </div>
+        </section>
+
     </div>
 </div>
 {% endblock %}

@@ -1,0 +1,77 @@
+{% extends "system_admin/base.html" %}
+
+{% block admin_content %}
+<header class="sa-header">
+    <span class="eyebrow">Access Governance</span>
+    <h1>Roles &amp; Access Control</h1>
+    <p>Review application roles and manage supported role assignments.</p>
+</header>
+
+<section class="sa-panel">
+    <h2>Create a Supported Role</h2>
+    <p class="sa-muted">Only roles supported by the application can be created.</p>
+
+    <form method="post" action="{% url 'system_admin_dashboard' %}" class="sa-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_role">
+
+        <select name="role_name" required>
+            <option value="">Choose a supported role</option>
+            <option value="System Administrator">System Administrator</option>
+            <option value="Hospital Administrator">Hospital Administrator</option>
+            <option value="Pharmacist">Pharmacist</option>
+            <option value="Store Manager">Store Manager</option>
+            <option value="Procurement Officer">Procurement Officer</option>
+        </select>
+
+        <input name="role_description" placeholder="Role description (optional)">
+        <button type="submit">Create Role</button>
+    </form>
+</section>
+
+<section class="sa-panel">
+    <h2>Application Role Directory</h2>
+
+    <div class="sa-grid">
+        <article class="sa-card">
+            <small>System Administrator</small>
+            <p>Manages accounts, application configuration, access governance and audit review.</p>
+        </article>
+        <article class="sa-card">
+            <small>Hospital Administrator</small>
+            <p>Reviews hospital-level operations and processes purchase-order approvals.</p>
+        </article>
+        <article class="sa-card">
+            <small>Pharmacist</small>
+            <p>Handles dispensing and medicine-related pharmacy operations.</p>
+        </article>
+        <article class="sa-card">
+            <small>Store Manager</small>
+            <p>Manages inventory, batch information and stock monitoring.</p>
+        </article>
+        <article class="sa-card">
+            <small>Procurement Officer</small>
+            <p>Reviews demand forecasts, procurement recommendations and orders.</p>
+        </article>
+    </div>
+
+    <h2>Roles Configured in the Database</h2>
+    <div class="sa-table-wrap">
+        <table>
+            <thead>
+                <tr><th>Role</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                {% for role in roles %}
+                <tr>
+                    <td><strong>{{ role.name }}</strong></td>
+                    <td>{{ role.description|default:"No description provided." }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="2" class="sa-empty">No roles configured.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock admin_content %}

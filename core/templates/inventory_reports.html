@@ -1,68 +1,103 @@
+
 {% extends 'base.html' %}
 
 {% block content %}
-<div style="max-width: 1300px; margin: 2rem auto; padding: 0 1.5rem; font-family: Arial, sans-serif; color: #000000;">
+<div style="max-width:1400px;margin:30px auto;padding:0 20px;font-family:Arial,sans-serif;color:#1e293b;">
 
-    <!-- Header Summary Block -->
-    <div style="border-bottom: 2px solid #000000; padding-bottom: 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end;">
-        <div>
-            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555555; letter-spacing: 0.08em; display: block;">Logistics & Storage Workstation</span>
-            <h1 style="font-size: 26px; font-weight: 900; margin: 0; text-transform: uppercase;">Inventory Stock Ledger Reports</h1>
-        </div>
-        <div style="font-size: 13px; font-weight: bold;">OPERATOR: {{ request.user.username }}</div>
+    <div style="background:linear-gradient(120deg,#123b66,#087e8b);color:white;padding:28px;border-radius:14px;margin-bottom:25px;">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.85;">Store Manager Workspace</div>
+        <h1 style="font-size:28px;margin:8px 0;font-weight:800;">Inventory Stock Reports</h1>
+        <p style="margin:0;font-size:14px;opacity:.9;">Review stock quantities, batch records and medicine expiry information.</p>
     </div>
 
-    <div class="workspace-layout-shell">
-        <!-- SIDEBAR -->
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-            <div style="border: 1px solid #000000; padding: 1rem; background-color: #fafafa; text-align: center;">
-                <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #444444;">Storage Engine</span>
-            </div>
-            <a href="{% url 'inventory' %}" class="sidebar-action-link">📦 Register New Batch</a>
-            <a href="{% url 'inventory_reports' %}" class="sidebar-action-link active-node">📋 View Stock Reports</a>
-            <a href="{% url 'inventory_alerts' %}" class="sidebar-action-link">🚨 Inventory Alerts</a>
-            <a href="{% url 'inventory_recommendations' %}" class="sidebar-action-link">✍️ Raise Procurement Advice</a>
-        </div>
+    <style>
+        .sm-layout{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start}
+        .sm-card{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:22px;box-shadow:0 3px 12px rgba(15,23,42,.05)}
+        .sm-link{display:block;padding:13px 15px;border-radius:8px;text-decoration:none;color:#334155;font-size:13px;font-weight:700;background:#f1f5f9;margin-bottom:9px}
+        .sm-link:hover,.sm-link.active{background:#123b66;color:white}
+        .sm-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+        .sm-stat{padding:18px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc}
+        .sm-stat-label{font-size:11px;color:#64748b;text-transform:uppercase;font-weight:800}
+        .sm-stat-value{font-size:25px;font-weight:800;margin-top:9px;color:#123b66}
+        .sm-table-wrap{overflow-x:auto}
+        .sm-table{width:100%;border-collapse:collapse;font-size:13px;min-width:750px}
+        .sm-table th{background:#123b66;color:white;text-align:left;padding:13px}
+        .sm-table td{padding:13px;border-bottom:1px solid #e2e8f0}
+        .sm-table tr:nth-child(even){background:#f8fafc}
+        @media(max-width:1000px){.sm-layout{grid-template-columns:1fr}.sm-stat-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:500px){.sm-stat-grid{grid-template-columns:1fr}}
+    </style>
 
-        <!-- MAIN CONTENT PANEL -->
-        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-            <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
-                <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin: 0 0 0.5rem 0;">Stock Registry Overview</h3>
-                <p style="margin: 0; font-size: 13px; color: #444444; line-height: 1.5;">
-                    This audit profile contains historical reception lines logged by facility store managers. Use this log to track supply flow metrics over time.
-                </p>
-            </div>
+    <div class="sm-layout">
 
-            <div style="border: 1px solid #000000; padding: 1.5rem; background-color: #ffffff;">
-                <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 1px solid #000000; padding-bottom: 0.5rem;">
-                    Historical Inbound Stock Log Lines
-                </h3>
+        <aside class="sm-card">
+            <h3 style="font-size:13px;text-transform:uppercase;color:#64748b;margin:0 0 18px;">Navigation</h3>
+            <a href="{% url 'inventory' %}" class="sm-link">📦 Stock Intake</a>
+            <a href="{% url 'inventory_reports' %}" class="sm-link active">📊 Stock Reports</a>
+            <a href="{% url 'inventory_alerts' %}" class="sm-link">🚨 Alerts Centre</a>
+            <a href="{% url 'inventory_recommendations' %}" class="sm-link">📝 Procurement Advice</a>
+        </aside>
 
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    {% for batch in all_batches %}
-                        <div style="border-left: 4px solid #000000; border-top: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0; padding: 1rem; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
-                            <div>
-                                <span style="font-weight: bold; font-size: 14px; text-transform: uppercase;">{{ batch.medicine.name }}</span>
-                                <span style="margin-left: 10px; padding: 0.1rem 0.4rem; background-color: #f4f4f4; border: 1px solid #000000; font-size: 11px; font-weight: bold;">
-                                    VOL: {{ batch.quantity_initially_received }}
-                                </span>
-                                <div style="color: #555555; margin-top: 0.25rem;">
-                                    Serial Ref: <code>{{ batch.batch_number }}</code> | Remaining Vol: <strong>{{ batch.quantity_available }} units</strong>
-                                </div>
-                            </div>
-                            <div style="text-align: right; font-size: 12px; color: #555555;">
-                                <div>MFG: <strong>{{ batch.manufacturing_date|date:"Y-m-d" }}</strong></div>
-                                <div>EXP: <strong>{{ batch.expiry_date|date:"Y-m-d" }}</strong></div>
-                            </div>
-                        </div>
-                    {% empty %}
-                        <div style="text-align: center; padding: 3rem; border: 1px dashed #000000; font-style: italic; font-size: 13px; color: #666666;">
-                            No logged entry sequences found in project storage registries.
-                        </div>
-                    {% endfor %}
+        <main style="display:flex;flex-direction:column;gap:20px;">
+
+            <div class="sm-stat-grid">
+                <div class="sm-stat">
+                    <div class="sm-stat-label">Total Batches</div>
+                    <div class="sm-stat-value">{{ total_batches }}</div>
+                </div>
+                <div class="sm-stat">
+                    <div class="sm-stat-label">Total Units</div>
+                    <div class="sm-stat-value">{{ total_units }}</div>
+                </div>
+                <div class="sm-stat">
+                    <div class="sm-stat-label">Expired Batches</div>
+                    <div class="sm-stat-value" style="color:#dc2626;">{{ expired_batches }}</div>
+                </div>
+                <div class="sm-stat">
+                    <div class="sm-stat-label">Expiring Soon</div>
+                    <div class="sm-stat-value" style="color:#d97706;">{{ expiring_soon }}</div>
                 </div>
             </div>
-        </div>
+
+            <section class="sm-card">
+                <h2 style="font-size:17px;color:#123b66;margin:0 0 7px;">Historical Stock Register</h2>
+                <p style="font-size:13px;color:#64748b;margin:0 0 20px;">A record of medicine batches received by the facility.</p>
+
+                <div class="sm-table-wrap">
+                    <table class="sm-table">
+                        <thead>
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Batch Number</th>
+                                <th>Quantity Received</th>
+                                <th>Available Units</th>
+                                <th>Date Received</th>
+                                <th>Expiry Date</th>
+                                <th>Storage Location</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for batch in all_batches %}
+                                <tr>
+                                    <td><strong>{{ batch.medicine.name }}</strong></td>
+                                    <td>{{ batch.batch_number }}</td>
+                                    <td>{{ batch.quantity_received }}</td>
+                                    <td>{{ batch.quantity_available }}</td>
+                                    <td>{{ batch.received_date|date:"Y-m-d" }}</td>
+                                    <td>{{ batch.expiry_date|date:"Y-m-d" }}</td>
+                                    <td>{{ batch.storage_location|default:"Not specified" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" style="text-align:center;padding:30px;color:#64748b;">No stock records are available.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
     </div>
 </div>
-{% endblock content %}
+{% endblock %}

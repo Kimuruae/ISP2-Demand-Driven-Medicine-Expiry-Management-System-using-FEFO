@@ -1,53 +1,71 @@
 {% extends 'base.html' %}
-{% block title %}Register | Medicine Expiry Management System{% endblock %}
+{% block title %}Staff Registration | Medicine Expiry Management System{% endblock %}
+
 {% block extra_css %}
 .register-page {
     width: 100%;
-    max-width: 560px;
+    max-width: 850px;
     margin: 3rem auto;
     padding: 0 1.25rem;
 }
+
 .register-card {
     padding: 2.5rem;
     border: 1px solid #d1d5db;
-    background: #ffffff;
+    background: #fff;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
 }
+
 .register-heading {
     margin: 0 0 0.5rem;
     text-align: center;
-    font-size: 25px;
+    font-size: 27px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: -0.02em;
 }
+
 .register-subheading {
     margin: 0 0 2rem;
     text-align: center;
-    font-size: 13px;
-    line-height: 1.7;
     color: #555;
+    font-size: 14px;
+    line-height: 1.7;
 }
-.register-form {
-    display: flex;
-    flex-direction: column;
+
+.register-section-title {
+    margin: 1.5rem 0 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid #d1d5db;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.register-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.25rem;
 }
+
 .register-field {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.45rem;
+    min-width: 0;
 }
 
 .register-field label {
     font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
 }
+
 .register-field input {
     width: 100%;
-    padding: 0.9rem 1rem;
+    min-width: 0;
+    padding: 0.85rem 0.9rem;
     border: 1px solid #9ca3af;
     border-radius: 3px;
     background: #fff;
@@ -62,19 +80,26 @@
     border-color: #111827;
 }
 
+.register-hint {
+    margin: 0.25rem 0 0;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
 .register-note {
-    margin: 0;
-    padding: 0.9rem 1rem;
-    border-left: 3px solid #374151;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    border-left: 4px solid #374151;
     background: #f3f4f6;
     color: #374151;
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
 .register-submit {
     width: 100%;
-    margin-top: 0.25rem;
+    margin-top: 1.5rem;
     padding: 1rem;
     border: 1px solid #111827;
     border-radius: 3px;
@@ -85,7 +110,6 @@
     letter-spacing: 0.05em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease;
 }
 
 .register-submit:hover {
@@ -104,97 +128,164 @@
     color: #111827;
     font-weight: 700;
     text-decoration: underline;
-    text-underline-offset: 3px;
 }
-.register-login-link a:hover {
-    color: #2563eb;
-}
+
 @media (max-width: 600px) {
     .register-page {
-        margin: 2rem auto;
+        margin: 1.5rem auto;
         padding: 0 1rem;
     }
 
     .register-card {
-        padding: 1.5rem;
+        padding: 1.25rem;
     }
+
+    .register-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
     .register-heading {
-        font-size: 21px;
+        font-size: 22px;
     }
 }
 {% endblock %}
 {% block content %}
 <section class="register-page">
     <div class="register-card">
-        <h1 class="register-heading">Create an Account</h1>
-
+        <h1 class="register-heading">Staff Registration</h1>
         <p class="register-subheading">
-            Request access to the Demand-Driven Medicine Expiry
-            Management System.
+            Create your account for the Demand-Driven Medicine
+            Expiry Management System.
         </p>
 
-        <form
-            method="POST"
-            action="{% url 'register' %}"
-            class="register-form"
-        >
+        <form method="POST" action="{% url 'register' %}">
             {% csrf_token %}
 
-            <div class="register-field">
-                <label for="username">Account Username</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    value="{{ request.POST.username|default:'' }}"
-                    required
-                    maxlength="150"
-                    autocomplete="username"
-                >
+            <h2 class="register-section-title">Personal Information</h2>
+            <div class="register-grid">
+                <div class="register-field">
+                    <label for="first_name">First Name *</label>
+                    <input
+                        type="text"
+                        id="first_name"
+                        name="first_name"
+                        value="{{ form_data.first_name|default:'' }}"
+                        maxlength="150"
+                        autocomplete="given-name"
+                        required
+                    >
+                </div>
+
+                <div class="register-field">
+                    <label for="last_name">Surname *</label>
+                    <input
+                        type="text"
+                        id="last_name"
+                        name="last_name"
+                        value="{{ form_data.last_name|default:'' }}"
+                        maxlength="150"
+                        autocomplete="family-name"
+                        required
+                    >
+                </div>
+
+                <div class="register-field">
+                    <label for="other_name">Other Name</label>
+                    <input
+                        type="text"
+                        id="other_name"
+                        name="other_name"
+                        value="{{ form_data.other_name|default:'' }}"
+                        maxlength="150"
+                        autocomplete="additional-name"
+                    >
+                </div>
+
+                <div class="register-field">
+                    <label for="phone_number">Phone Number *</label>
+                    <input
+                        type="tel"
+                        id="phone_number"
+                        name="phone_number"
+                        value="{{ form_data.phone_number|default:'' }}"
+                        maxlength="15"
+                        autocomplete="tel"
+                        placeholder="e.g. 0712345678"
+                        required
+                    >
+                </div>
+
+                <div class="register-field">
+                    <label for="email">Email Address *</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value="{{ form_data.email|default:'' }}"
+                        maxlength="254"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <div class="register-field">
+                    <label for="username">Username *</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        value="{{ form_data.username|default:'' }}"
+                        maxlength="150"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
             </div>
 
-            <div class="register-field">
-                <label for="email">Email Address</label>
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value="{{ request.POST.email|default:'' }}"
-                    required
-                    autocomplete="email"
-                >
+            <h2 class="register-section-title">Account Security</h2>
+            <div class="register-grid">
+                <div class="register-field">
+                    <label for="password">Password *</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        minlength="10"
+                        autocomplete="new-password"
+                        required
+                    >
+                    <p class="register-hint">
+                        Use a strong password that meets the system's
+                        password validation requirements.
+                    </p>
+                </div>
+
+                <div class="register-field">
+                    <label for="password_confirm">Confirm Password *</label>
+                    <input
+                        type="password"
+                        id="password_confirm"
+                        name="password_confirm"
+                        minlength="10"
+                        autocomplete="new-password"
+                        required
+                    >
+                </div>
             </div>
 
-            <p class="register-note">
-                Your account will remain inactive until an authorized
-                System Administrator reviews your registration, activates
-                your account, and assigns the appropriate facility role.
-            </p>
-
-            <div class="register-field">
-                <label for="password">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    required
-                    minlength="10"
-                    autocomplete="new-password"
-                >
+            <div class="register-note">
+                <strong>Account approval:</strong>
+                Submitting this form creates an inactive account.
+                A System Administrator must review the registration,
+                activate the account, and assign the appropriate role
+                before access is granted.
             </div>
-
-            <div class="register-field">
-                <label for="password_confirm">Confirm Password</label>
-                <input type="password" id="password_confirm" name="password_confirm" required="10" autocomplete="new-password"></div>
-
-            <button type="submit" class="register-submit">
-                Submit Registration
-            </button>
+            <button type="submit" class="register-submit">Submit Registration</button>
         </form>
 
-        <p class="register-login-link">
-            Already registered?
-            <a href="{% url 'login' %}">Login to your account</a>
+        <p class="register-login-link">Already have an account?
+            <a href="{% url 'login' %}">Login here</a>
         </p>
     </div>
 </section>

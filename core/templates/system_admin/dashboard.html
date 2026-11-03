@@ -1,0 +1,81 @@
+{% extends "system_admin/base.html" %}
+
+{% block admin_content %}
+<header class="sa-header">
+    <span class="eyebrow">System Overview</span>
+    <h1>System Control Centre</h1>
+    <p>Monitor user access, medicine records, batch records and recent administrative activity.</p>
+</header>
+
+<section class="sa-grid">
+    <article class="sa-card">
+        <small>Total users</small>
+        <div class="sa-number">{{ total_users|default:0 }}</div>
+        <p class="sa-muted">Registered accounts</p>
+    </article>
+    <article class="sa-card">
+        <small>Active users</small>
+        <div class="sa-number">{{ active_users|default:0 }}</div>
+        <p class="sa-muted">Enabled accounts</p>
+    </article>
+    <article class="sa-card">
+        <small>Inactive users</small>
+        <div class="sa-number">{{ inactive_users|default:0 }}</div>
+        <p class="sa-muted">Disabled accounts</p>
+    </article>
+    <article class="sa-card">
+        <small>Medicines</small>
+        <div class="sa-number">{{ total_medicines|default:0 }}</div>
+        <p class="sa-muted">Medicine catalogue entries</p>
+    </article>
+    <article class="sa-card">
+        <small>Medicine batches</small>
+        <div class="sa-number">{{ total_batches|default:0 }}</div>
+        <p class="sa-muted">Recorded batches</p>
+    </article>
+    <article class="sa-card">
+        <small>System settings</small>
+        <div class="sa-number">{{ settings_count|default:0 }}</div>
+        <p class="sa-muted">Configured settings</p>
+    </article>
+</section>
+
+<section class="sa-panel">
+    <h2>Quick Actions</h2>
+    <p class="sa-muted">Navigate directly to an administrative task.</p>
+    <div class="sa-form">
+        <a class="sa-button" href="{% url 'system_admin_users' %}">Manage Users</a>
+        <a class="sa-button" href="{% url 'system_admin_roles' %}">Manage Roles</a>
+        <a class="sa-button" href="{% url 'system_admin_settings' %}">System Settings</a>
+        <a class="sa-button" href="{% url 'system_admin_audit_logs' %}">View Audit Logs</a>
+    </div>
+</section>
+
+<section class="sa-panel">
+    <h2>Recent Administrative Activity</h2>
+    <div class="sa-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>User</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_logs %}
+                <tr>
+                    <td>{{ log.action }}</td>
+                    <td>{{ log.entity_type }}</td>
+                    <td>{{ log.user.username|default:"System" }}</td>
+                    <td>{{ log.created_at|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="sa-empty">No audit events available.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock admin_content %}

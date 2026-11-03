@@ -1,0 +1,63 @@
+{% extends "system_admin/base.html" %}
+
+{% block admin_content %}
+<header class="sa-header">
+    <span class="eyebrow">Accountability &amp; Traceability</span>
+    <h1>Audit Logs</h1>
+    <p>Review recorded administrative and operational events.</p>
+</header>
+
+<section class="sa-panel">
+    <h2>Recorded System Activity</h2>
+    <p class="sa-muted">
+        Entries are displayed from the existing audit-log records supplied by the view.
+    </p>
+
+    <input id="auditSearch" class="sa-search" type="search"
+           placeholder="Search action, entity, user or details..."
+           aria-label="Search audit logs">
+
+    <div class="sa-table-wrap">
+        <table id="auditTable">
+            <thead>
+                <tr>
+                    <th>Date &amp; Time</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_logs %}
+                <tr>
+                    <td>{{ log.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ log.user.username|default:"System" }}</td>
+                    <td><strong>{{ log.action }}</strong></td>
+                    <td>{{ log.entity_type }}</td>
+                    <td>{{ log.details|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="sa-empty">No audit records available.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+<script>
+(function () {
+    const search = document.getElementById("auditSearch");
+    const table = document.getElementById("auditTable");
+
+    if (search && table) {
+        search.addEventListener("input", function () {
+            const term = search.value.toLowerCase().trim();
+
+            table.querySelectorAll("tbody tr").forEach(function (row) {
+                row.hidden = !row.textContent.toLowerCase().includes(term);
+            });
+        });
+    }
+})();
+</script>
+{% endblock admin_content %}

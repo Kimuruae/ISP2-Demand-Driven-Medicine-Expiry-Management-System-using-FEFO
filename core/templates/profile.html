@@ -1,0 +1,326 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .profile-page {
+        max-width: 1050px;
+        margin: 0 auto;
+        padding: 24px;
+        color: #1E293B;
+        font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    .profile-banner {
+        padding: 28px;
+        border-radius: 16px;
+        background: linear-gradient(120deg, #16324F, #0F766E);
+        color: white;
+        margin-bottom: 22px;
+    }
+
+    .profile-banner h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+    }
+
+    .profile-banner p {
+        margin: 0;
+        color: #D5E2EE;
+    }
+
+    .profile-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .profile-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 4px 16px #16324F0A;
+        min-width: 0;
+    }
+
+    .profile-card h2 {
+        margin: 0 0 20px;
+        font-size: 18px;
+        color: #16324F;
+    }
+
+    .profile-field {
+        padding: 13px 0;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+    .profile-field:last-child {
+        border-bottom: none;
+    }
+
+    .profile-label {
+        display: block;
+        margin-bottom: 5px;
+        color: #64748B;
+        font-size: 12px;
+    }
+
+    .profile-value {
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .profile-role {
+        display: inline-block;
+        padding: 6px 11px;
+        border-radius: 20px;
+        background: #CCFBF1;
+        color: #115E59;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .profile-status {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        background: #DCFCE7;
+        color: #166534;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .profile-form p {
+        margin-bottom: 15px;
+    }
+
+    .profile-form label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .profile-form input {
+        width: 100%;
+        padding: 11px;
+        border: 1px solid #CBD5E1;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font: inherit;
+    }
+
+    .profile-form input:focus {
+        outline: 3px solid #0F766E20;
+        border-color: #0F766E;
+    }
+
+    .profile-form .helptext {
+        display: block;
+        margin-top: 6px;
+        color: #64748B;
+        font-size: 12px;
+    }
+
+    .profile-form ul.errorlist {
+        color: #B91C1C;
+        font-size: 12px;
+    }
+
+    .profile-button {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        background: #0F766E;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .profile-button:hover {
+        background: #115E59;
+    }
+
+    .profile-messages {
+        margin-bottom: 16px;
+    }
+
+    .profile-message {
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: #DCFCE7;
+        color: #166534;
+    }
+
+    .profile-error {
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .profile-help {
+        margin-top: 16px;
+        color: #64748B;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 700px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-page {
+            padding: 14px;
+        }
+
+        .profile-banner {
+            padding: 22px;
+        }
+    }
+</style>
+
+<div class="profile-page">
+
+    <header class="profile-banner">
+        <h1>My Profile</h1>
+        <p>View your account details, assigned role and security settings.</p>
+    </header>
+
+    {% if messages %}
+        <div class="profile-messages">
+            {% for message in messages %}
+                <div class="profile-message">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="profile-grid">
+
+        <!-- Account information -->
+        <section class="profile-card">
+            <h2>Account Information</h2>
+
+            <div class="profile-field">
+                <span class="profile-label">Full Name</span>
+                <div class="profile-value">
+                    {% with full_name=profile_user.get_full_name %}
+                        {% if full_name %}
+                            {{ full_name }}
+                        {% else %}
+                            {{ profile_user.username }}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+
+            <div class="profile-field">
+                <span class="profile-label">Username</span>
+                <div class="profile-value">{{ profile_user.username }}</div>
+            </div>
+
+            <div class="profile-field">
+                <span class="profile-label">Email Address</span>
+                <div class="profile-value">
+                    {{ profile_user.email|default:"Not provided" }}
+                </div>
+            </div>
+
+            <div class="profile-field">
+                <span class="profile-label">Phone Number</span>
+                <div class="profile-value">
+                    {{ profile_user.phone_number|default:"Not provided" }}
+                </div>
+            </div>
+
+            <div class="profile-field">
+                <span class="profile-label">Assigned Role</span>
+                <div class="profile-value">
+                    {% if assigned_role %}
+                        <span class="profile-role">
+                            {{ assigned_role.name }}
+                        </span>
+                    {% else %}
+                        Not assigned
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="profile-field">
+                <span class="profile-label">Account Status</span>
+                <div class="profile-value">
+                    {% if profile_user.is_active %}
+                        <span class="profile-status">Active</span>
+                    {% else %}
+                        <span class="profile-role">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="profile-field">
+                <span class="profile-label">Member Since</span>
+                <div class="profile-value">
+                    {{ profile_user.date_joined|date:"d M Y" }}
+                </div>
+            </div>
+        </section>
+
+        <!-- Password management -->
+        <section class="profile-card">
+            <h2>Change Password</h2>
+
+            <p class="profile-help">
+                Enter your current password, then choose and confirm
+                your new password.
+            </p>
+
+            <form method="post" class="profile-form">
+                {% csrf_token %}
+
+                {% if password_form.non_field_errors %}
+                    <div class="profile-error">
+                        {{ password_form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% for field in password_form %}
+                    <p>
+                        <label for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+
+                        {{ field }}
+
+                        {% if field.help_text %}
+                            <span class="helptext">
+                                {{ field.help_text|safe }}
+                            </span>
+                        {% endif %}
+
+                        {% for error in field.errors %}
+                            <span style="color:#B91C1C;font-size:12px;">
+                                {{ error }}
+                            </span>
+                        {% endfor %}
+                    </p>
+                {% endfor %}
+
+                <button type="submit" class="profile-button">
+                    Update Password
+                </button>
+            </form>
+
+            <p class="profile-help">
+                Use a strong, unique password. Your current password
+                is required to authorise the change.
+            </p>
+        </section>
+
+    </div>
+</div>
+{% endblock %}

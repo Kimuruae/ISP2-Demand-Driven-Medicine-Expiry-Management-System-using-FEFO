@@ -1,0 +1,71 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 30px auto; padding: 20px;">
+
+    <h1>Purchase Order Log</h1>
+    <p>Review and track purchase orders submitted by the procurement department.</p>
+
+    <div style="margin: 20px 0;">
+        <strong>Total matching orders:</strong> {{ total_orders }}
+    </div>
+
+    <form method="get" style="margin-bottom: 20px;">
+        <label for="status">Filter by status:</label>
+
+        <select name="status" id="status">
+            <option value="">All statuses</option>
+            {% for status in statuses %}
+                <option value="{{ status }}"
+                    {% if selected_status == status %}selected{% endif %}>
+                    {{ status }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Filter</button>
+        <a href="{% url 'procurement_reports' %}">Clear</a>
+    </form>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="padding: 10px; text-align: left;">Order ID</th>
+                    <th style="padding: 10px; text-align: left;">Medicine</th>
+                    <th style="padding: 10px; text-align: left;">Supplier</th>
+                    <th style="padding: 10px; text-align: left;">Quantity</th>
+                    <th style="padding: 10px; text-align: left;">Order Date</th>
+                    <th style="padding: 10px; text-align: left;">Raised By</th>
+                    <th style="padding: 10px; text-align: left;">Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for po in purchase_orders %}
+                <tr>
+                    <td style="padding: 10px;">#{{ po.id }}</td>
+                    <td style="padding: 10px;">{{ po.medicine.name|default:"—" }}</td>
+                    <td style="padding: 10px;">{{ po.supplier.supplier_name|default:"—" }}</td>
+                    <td style="padding: 10px;">{{ po.quantity_ordered }}</td>
+                    <td style="padding: 10px;">{{ po.order_date|date:"d M Y"|default:"—" }}</td>
+                    <td style="padding: 10px;">{{ po.raised_by|default:"—" }}</td>
+                    <td style="padding: 10px;">{{ po.status }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="padding: 20px;">
+                        No purchase orders found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p style="margin-top: 20px;">
+        <a href="{% url 'procurement' %}">Return to Procurement Dashboard</a>
+    </p>
+</div>
+{% endblock %}

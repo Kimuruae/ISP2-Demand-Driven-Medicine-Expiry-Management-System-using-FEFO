@@ -1,0 +1,496 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .sa {
+        --primary: #0F766E;
+        --primary-light: #CCFBF1;
+        --primary-hover: #115E59;
+        --navy: #16324F;
+        --text: #1E293B;
+        --muted: #64748B;
+        --border: #E2E8F0;
+        --background: #F8FAFC;
+        --success: #15803D;
+        --warning: #B45309;
+        --danger: #B91C1C;
+
+        max-width: 1600px;
+        margin: auto;
+        padding: 24px;
+        color: var(--text);
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 14px;
+    }
+
+    .sa * { box-sizing: border-box; }
+
+    .sa-layout {
+        display: grid;
+        grid-template-columns: 235px minmax(0, 1fr);
+        gap: 22px;
+        align-items: start;
+    }
+
+    .sa-sidebar {
+        position: sticky;
+        top: 15px;
+        padding: 18px 12px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--navy);
+        box-shadow: 0 5px 20px #0f172a12;
+    }
+
+    .sa-brand {
+        padding: 6px 12px 18px;
+        border-bottom: 1px solid #ffffff25;
+        margin-bottom: 12px;
+    }
+
+    .sa-brand strong {
+        color: #99F6E4;
+        font-size: 11px;
+        letter-spacing: 1px;
+    }
+
+    .sa-brand p {
+        margin: 6px 0 0;
+        color: #FFFFFF;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .sa-nav { display: grid; gap: 5px; }
+
+    .sa-nav a {
+        display: block;
+        padding: 12px;
+        border: 1px solid transparent;
+        border-left: 3px solid transparent;
+        border-radius: 9px;
+        color: #D5E2EE;
+        font-weight: 650;
+        text-decoration: none;
+        transition: background .15s ease, color .15s ease;
+    }
+
+    .sa-nav a:hover,
+    .sa-nav a.active {
+        color: #FFFFFF;
+        background: #0F766E;
+        border-color: #2DD4BF;
+    }
+
+    .sa-nav a.active {
+        border-left-color: #99F6E4;
+    }
+
+    .sa-main { min-width: 0; }
+
+    .sa-header {
+        padding: 26px;
+        margin-bottom: 20px;
+        border: 1px solid #B2DFDB;
+        border-radius: 16px;
+        background: linear-gradient(120deg, #FFFFFF, #ECFDF5);
+    }
+
+    .sa-header .eyebrow {
+        color: var(--primary);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .sa-header h1 {
+        margin: 8px 0;
+        color: var(--navy);
+        font-size: clamp(24px, 3vw, 34px);
+        letter-spacing: -.6px;
+    }
+
+    .sa-header p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+    }
+
+    .sa-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .sa-card,
+    .sa-panel {
+        min-width: 0;
+        padding: 20px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #FFFFFF;
+        box-shadow: 0 5px 20px #0f172a08;
+    }
+
+    .sa-card {
+        border-top: 3px solid var(--primary);
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .sa-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px #0f172a12;
+    }
+
+    .sa-card small {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .sa-number {
+        margin: 10px 0 4px;
+        color: var(--navy);
+        font-size: 32px;
+        font-weight: 850;
+    }
+
+    .sa-panel { margin-bottom: 20px; }
+
+    .sa-panel h2 {
+        margin: 0 0 8px;
+        color: var(--navy);
+        font-size: 17px;
+    }
+
+    .sa-muted {
+        color: var(--muted);
+        line-height: 1.65;
+    }
+
+    .sa-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 10px;
+        align-items: center;
+        margin: 16px 0;
+    }
+
+    .sa input,
+    .sa select,
+    .sa textarea {
+        width: 100%;
+        min-width: 0;
+        padding: 10px 11px;
+        border: 1px solid #CBD5E1;
+        border-radius: 8px;
+        background: #FFFFFF;
+        color: var(--text);
+        font: inherit;
+    }
+
+    .sa input:focus,
+    .sa select:focus,
+    .sa textarea:focus {
+        outline: 3px solid #0F766E25;
+        border-color: var(--primary);
+    }
+
+    .sa button,
+    .sa .sa-button {
+        display: inline-block;
+        padding: 10px 13px;
+        border: 1px solid var(--primary);
+        border-radius: 8px;
+        background: var(--primary);
+        color: #FFFFFF;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 750;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background .15s ease;
+    }
+
+    .sa button:hover,
+    .sa .sa-button:hover {
+        background: var(--primary-hover);
+    }
+
+    .sa .secondary {
+        background: #FFFFFF;
+        color: var(--navy);
+        border-color: #CBD5E1;
+    }
+
+    .sa .secondary:hover {
+        background: #F1F5F9;
+    }
+
+    .sa .danger {
+        background: #FEF2F2;
+        color: var(--danger);
+        border-color: #FECACA;
+    }
+
+    .sa .danger:hover {
+        background: #FEE2E2;
+    }
+
+    .sa-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+
+    .sa table {
+        width: 100%;
+        min-width: 620px;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+
+    .sa th {
+        padding: 12px;
+        background: #F1F5F9;
+        color: #475569;
+        font-size: 10px;
+        letter-spacing: .5px;
+        text-align: left;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .sa td {
+        padding: 12px;
+        border-top: 1px solid #EDF0F5;
+        vertical-align: middle;
+    }
+
+    .sa tbody tr:hover { background: #F8FAFC; }
+
+    .sa td form {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+    }
+
+    .sa td select { min-width: 130px; }
+
+    .sa .status {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 20px;
+        background: #DCFCE7;
+        color: #166534;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .sa .status.inactive {
+        background: #F1F5F9;
+        color: #475569;
+    }
+
+    .sa-empty {
+        padding: 24px;
+        color: var(--muted);
+        text-align: center;
+    }
+
+    .sa-note {
+        padding: 14px;
+        border-left: 4px solid var(--primary);
+        border-radius: 8px;
+        background: #F0FDFA;
+        color: #115E59;
+        line-height: 1.6;
+    }
+
+    .sa-search { max-width: 360px; margin: 14px 0; }
+
+    @media (max-width: 900px) {
+        .sa-layout { grid-template-columns: 1fr; }
+        .sa-sidebar { position: static; }
+        .sa-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+        .sa { padding: 12px; }
+        .sa-grid { grid-template-columns: 1fr; }
+        .sa-nav { grid-template-columns: 1fr; }
+        .sa-header { padding: 19px; }
+    }
+
+
+/* ===== FULL DASHBOARD COLOUR THEME ===== */
+
+/* Main dashboard background */
+.sa {
+    background: #F1F5F9;
+    border-radius: 18px;
+}
+
+/* Main content header */
+.sa-header {
+    background: linear-gradient(135deg, #16324F 0%, #0F766E 100%);
+    border: none;
+    color: #FFFFFF;
+    box-shadow: 0 8px 24px #16324F20;
+}
+
+.sa-header h1,
+.sa-header p,
+.sa-header .eyebrow {
+    color: #FFFFFF;
+}
+
+.sa-header p {
+    opacity: 0.88;
+}
+
+/* Metric cards */
+.sa-card {
+    background: #FFFFFF;
+    border: 1px solid #D7E5E8;
+    border-top: 4px solid #0F766E;
+    box-shadow: 0 4px 14px #16324F0D;
+}
+
+.sa-card:nth-child(2) {
+    border-top-color: #0284C7;
+}
+
+.sa-card:nth-child(3) {
+    border-top-color: #D97706;
+}
+
+.sa-number {
+    color: #16324F;
+}
+
+/* Main content panels */
+.sa-panel {
+    background: #FFFFFF;
+    border: 1px solid #D7E5E8;
+    box-shadow: 0 4px 14px #16324F0D;
+}
+
+.sa-panel h2 {
+    color: #16324F;
+}
+
+/* Tables */
+.sa-table-wrap {
+    background: #FFFFFF;
+    border-color: #D7E5E8;
+}
+
+.sa th {
+    background: #E6F4F1;
+    color: #164E48;
+}
+
+.sa td {
+    background: #FFFFFF;
+}
+
+.sa tbody tr:hover td {
+    background: #F0FDFA;
+}
+
+/* Form controls */
+.sa input,
+.sa select,
+.sa textarea {
+    background: #FFFFFF;
+    border-color: #CBD5E1;
+}
+
+.sa input:focus,
+.sa select:focus,
+.sa textarea:focus {
+    border-color: #0F766E;
+    outline: 3px solid #0F766E20;
+}
+
+/* Information notes */
+.sa-note {
+    background: #CCFBF1;
+    border-left-color: #0F766E;
+    color: #134E4A;
+}
+
+/* Status indicators */
+.sa .status {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.sa .status.inactive {
+    background: #F1F5F9;
+    color: #475569;
+}
+
+/* Buttons */
+.sa button,
+.sa .sa-button {
+    background: #0F766E;
+    border-color: #0F766E;
+}
+
+.sa button:hover,
+.sa .sa-button:hover {
+    background: #115E59;
+}
+
+/* Responsive dashboard spacing */
+@media (max-width: 560px) {
+    .sa {
+        border-radius: 10px;
+    }
+}
+</style>
+<div class="sa">
+    <div class="sa-layout">
+        <aside class="sa-sidebar">
+            <div class="sa-brand">
+                <strong>SYSTEM CONTROL</strong>
+                <p>Administration Portal</p>
+            </div>
+            <nav class="sa-nav" aria-label="System Administrator navigation">
+                <a href="{% url 'system_admin_dashboard' %}"
+                   class="{% if request.resolver_match.url_name == 'system_admin_dashboard' %}active{% endif %}">
+                    System Overview
+                </a>
+                <a href="{% url 'system_admin_users' %}"
+                   class="{% if request.resolver_match.url_name == 'system_admin_users' %}active{% endif %}">
+                     Manage Users
+                </a>
+                <a href="{% url 'system_admin_roles' %}"
+                   class="{% if request.resolver_match.url_name == 'system_admin_roles' %}active{% endif %}">
+                     Roles Management
+                </a>
+                <a href="{% url 'system_admin_settings' %}"
+                   class="{% if request.resolver_match.url_name == 'system_admin_settings' %}active{% endif %}">
+                    System Settings
+                </a>
+                <a href="{% url 'system_admin_audit_logs' %}"
+                   class="{% if request.resolver_match.url_name == 'system_admin_audit_logs' %}active{% endif %}">
+                     Activities
+                </a>
+                <a href="{% url 'system_admin_health' %}"
+                   class="{% if request.resolver_match.url_name == 'system_admin_health' %}active{% endif %}">
+                    System Health
+                </a>
+                <a href="{% url 'alerts' %}" class="sidebar-action-link"><span>⚠️</span> Alerts Centre</a>
+            </nav>
+        </aside>
+        <main class="sa-main">{% block admin_content %}{% endblock admin_content %}</main>
+    </div>
+</div>
+{% endblock content %}
