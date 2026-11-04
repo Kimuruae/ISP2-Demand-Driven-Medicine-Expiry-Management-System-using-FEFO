@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from datetime import date
+from django.utils import timezone
 from django.db import models
 from django.db.models import Q
 from django.conf import settings
@@ -282,6 +283,82 @@ class PurchaseOrder(models.Model):
     raised_by = models.ForeignKey( user,on_delete=models.SET_NULL,null=True,blank=True,)
 
     def __str__(self): return f"PO-{self.id}"
+
+class GoodsReceipt(models.Model): #Records physical delivery against approved purchase orders that have been placed with the supplier.
+        purchase_order = models.ForeignKey(PurchaseOrder,on_delete=models.PROTECT, related_name="goods_receipts",)
+        received_by = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            on_delete=models.SET_NULL,
+            null=True,
+            blank=True,
+            related_name="goods_receipts_recorded",
+        )
+
+        delivery_date = models.DateField(default=timezone.localdate)
+        received_at = models.DateTimeField(auto_now_add=True)
+        delivery_reference = models.CharField(max_length=100,blank=True,)
+        notes = models.TextField(blank=True)
+
+        class Meta: ordering = ["-received_at"] #holds data about data
+        def __str__(self): return f"Receipt for PO-{self.purchase_order_id}"
+
+class GoodsReceiptItem(models.Model):
+    # Records individual medicine batches physically verified during a goods receipt.
+    class InspectionStatus(models.TextChoices):
+        PENDING = "Pending", "Pending Inspection"
+        ACCEPTED = "Accepted", "Accepted"
+        REJECTED = "Rejected", "Rejected"
+        QUARANTINED = "Quarantined", "Quarantined"
+
+    goods_receipt = models.ForeignKey(
+        GoodsReceipt,
+        on_delete=models.PROTECT,
+        related_name="items"
+    )
+
+    batch_number = models.CharField(max_length=100)
+    quantity_received = models.PositiveIntegerField()
+    expiry_date = models.DateField()
+    storage_location = models.CharField(max_length=100,blank=True)
+    inspection_status = models.CharField(
+        max_length=20,
+        choices=InspectionStatus.choices,
+        default=InspectionStatus.PENDING
+    )
+
+    inspected_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="goods_receipt_items_inspected"
+    )
+
+    inspected_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    inspection_notes = models.TextField(blank=True)
+    medicine_batch = models.OneToOneField(
+        MedicineBatch,
+        on_delete=models.PROTECT,
+        related_name="goods_receipt_item",
+        null = True,
+        blank = True
+    )
+
+    class Meta:
+        ordering = ["expiry_date"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(quantity_received__gt=0),
+                name="goods_receipt_qty_positive"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.batch_number} - {self.quantity_received} units"
 
 class SystemSetting(models.Model):
     key = models.CharField(max_length=100, unique=True)

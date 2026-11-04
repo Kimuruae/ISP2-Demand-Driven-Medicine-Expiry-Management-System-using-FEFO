@@ -1,68 +1,59 @@
 from django.contrib import admin
 from django.urls import path, include
-from core import views
+from core import views, receiving_views
 
 urlpatterns = [
 path("profile/", views.profile_view, name="profile"),
 
-    #Django admin
-    path('admin/', admin.site.urls),
-    # Master System Core Admin Panel
-    path('system-admin/', views.system_admin_dashboard_view, name='system_admin_dashboard', ),
-    path("system-admin/users/", views.system_admin_users_view, name="system_admin_users",),
-
-path(
-    "system-admin/roles/",
-    views.system_admin_roles_view,
-    name="system_admin_roles",
-),
-
-path(
-    "system-admin/settings/",
-    views.system_admin_settings_view,
-    name="system_admin_settings",
-),
-
-path(
-    "system-admin/audit-logs/",
-    views.system_admin_audit_logs_view,
-    name="system_admin_audit_logs",
-),
-
+#Django admin
+path('admin/', admin.site.urls),
+# Master System Core Admin Panel
+path('system-admin/', views.system_admin_dashboard_view, name='system_admin_dashboard', ),
+path("system-admin/users/", views.system_admin_users_view, name="system_admin_users",),
+path("system-admin/roles/",views.system_admin_roles_view,name="system_admin_roles",),
+path("system-admin/settings/",views.system_admin_settings_view,name="system_admin_settings",),
+path("system-admin/audit-logs/",views.system_admin_audit_logs_view,name="system_admin_audit_logs",),
 path("system-admin/health/",views.system_admin_health_view,name="system_admin_health",),
-
 
     #path('', include(core.urls)),
 
     # Core Public & Onboarding Content Views
-    path('', views.home_redirect, name='index'),
-    path('about/', views.about, name='about'),
-    path('features/', views.features, name='features'),
-    path('contact/', views.contact, name='contact'),
-    path('login/', views.login_view, name='login'),
-    path('register/', views.register_view, name='register'),
-    path('logout/', views.logout_view, name='logout'),
+path('', views.home_redirect, name='index'),
+path('about/', views.about, name='about'),
+path('features/', views.features, name='features'),
+path('contact/', views.contact, name='contact'),
+path('login/', views.login_view, name='login'),
+path('register/', views.register_view, name='register'),
+path('logout/', views.logout_view, name='logout'),
 
     # Hospital Admin Desk Portals Map
-    path('dashboard/', views.hospital_admin_dashboard_view, name='admin_dashboard'),
-    path('dashboard/po/<int:po_id>/<str:action>/', views.hospital_admin_process_po_view, name='admin_process_po'),
+path('dashboard/', views.hospital_admin_dashboard_view, name='admin_dashboard'),
+path('dashboard/po/<int:po_id>/<str:action>/', views.hospital_admin_process_po_view, name='admin_process_po'),
 
     # Clinical Pharmacist Workstations
-    path('dispense/', views.dispense_view, name='dispense'),
+path('dispense/', views.dispense_view, name='dispense'),
 path("pharmacist/dashboard/",views.pharmacist_dashboard_view,name="pharmacist_dashboard",),
 
-    # Warehouse Logistics Store Manager Lanes
+# Warehouse Logistics Store Manager Lanes
 path('inventory/', views.store_manager_inventory_view, name='inventory'),
 path('inventory/reports/', views.inventory_reports_view, name='inventory_reports'),
 path('inventory/alerts/', views.inventory_alerts_view, name='inventory_alerts'),
 path('inventory/recommendations/', views.inventory_recommendations_view, name='inventory_recommendations'),
+
+# Supply Chain Procurement Console Lanes
+path('procurement/', views.procurement_dashboard_view, name='procurement'),
+path('procurement/po/<int:po_id>/place/', views.place_supplier_order_view, name='place_supplier_order'),
+path("procurement/reports/",views.procurement_reports_view,name="procurement_reports",),
 path('inventory/recommendations/submit/',views.store_manager_recommendations_view, name='store_manager_recommendations'),
 
-    # Supply Chain Procurement Console Lanes
-    path('procurement/', views.procurement_dashboard_view, name='procurement'),
-    path('procurement/po/<int:po_id>/place/', views.place_supplier_order_view, name='place_supplier_order'),
-    path("procurement/reports/",views.procurement_reports_view,name="procurement_reports",),
-    path('inventory/recommendations/submit/',views.store_manager_recommendations_view, name='store_manager_recommendations'),
+#Goods Receiving and Inspection Workflow
+path("inventory/receipts/",receiving_views.goods_receipt_list,name="goods_receipts",),
+path("inventory/receipts/create/",receiving_views.goods_receipt_create,name="goods_receipt_create",),
+path("inventory/receipts/<int:receipt_id>/",receiving_views.goods_receipt_detail,name="goods_receipt_detail",),
+path("inventory/receipts/<int:receipt_id>/items/add/",receiving_views.goods_receipt_add_item,name="goods_receipt_add_item",),
+path("inventory/receipts/<int:receipt_id>/inspect/",receiving_views.goods_receipt_inspect,name="goods_receipt_inspect",),
+path("inventory/receipt-items/<int:item_id>/inspect/",receiving_views.goods_receipt_inspect_item,name="goods_receipt_inspect_item",),
+path("inventory/receiving-dashboard/",receiving_views.receiving_dashboard,name="receiving_dashboard",),
 
-    path("alerts/", views.alerts_view, name="alerts"),
+path("alerts/", views.alerts_view, name="alerts"),
 ]

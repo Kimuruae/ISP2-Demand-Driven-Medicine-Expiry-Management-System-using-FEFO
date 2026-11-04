@@ -215,6 +215,26 @@
                            required>
                 </div>
 
+                <!-- PRESCRIPTION DURATION -->
+               <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                 <label for="prescription_duration" class="field-label">Prescription Duration (Days)</label>
+
+                 <input type="number"
+                       id="prescription_duration"
+                       name="prescription_duration_days"
+                       class="form-control"
+                       min="1"
+                       step="1"
+                       inputmode="numeric"
+                       required
+                       placeholder="Enter prescribed treatment duration in days">
+                <p style="font-size:11px; color:#555555; margin:0; line-height:1.6;">
+                    Used to assess batch expiry eligibility against the prescribed
+                    treatment period. The pharmacist remains responsible for
+                    confirming applicable medicine-specific stability requirements.
+                </p>
+               </div>
+
                 <!-- PATIENT REFERENCE -->
                 <div style="display:flex; flex-direction:column; gap:0.5rem;">
                     <label for="patient_id" class="field-label">Patient Identifier / File Reference</label>

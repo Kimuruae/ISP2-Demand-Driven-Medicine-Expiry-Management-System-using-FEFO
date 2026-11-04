@@ -247,13 +247,19 @@ def dispense_view(request):
     if request.method == "POST":
         medicine_id = request.POST.get("medicine_id", "").strip()
         quantity_raw = request.POST.get("quantity", "").strip()
+        duration_raw = request.POST.get("prescription_duration_days", "").strip()
         patient_identifier = request.POST.get("patient_identifier", "").strip()
         selected_batch_id = request.POST.get("batch_id", "").strip() or None
         override_reason = request.POST.get("override_reason", "").strip()
 
         try:
-            if not medicine_id:
-                raise ValueError("Select a medicine.")
+            if not medicine_id:raise ValueError("Select a medicine.")
+            try:
+                duration_days = int(duration_raw)
+            except(TypeError,ValueError):
+                raise ValueError("Enter a valid prescription duration in days.")
+            if duration_days <= 0:
+                raise ValueError("Prescription duration must  be greater than zero")
 
             transactions = FEFOEngine.dispense_medicine(
                 medicine_id=medicine_id,
@@ -262,16 +268,19 @@ def dispense_view(request):
                 selected_batch_id=selected_batch_id,
                 notes=override_reason,
                 patient_identifier=patient_identifier,
+                prescription_duration_days = duration_days,
             )
             total_dispensed = sum(tx.quantity_dispensed for tx in transactions)
 
-            # Audit the completed operation only after dispensing succeeds.
+            #Auditing the completed operation after dispensing succeeds.
             AuditLog.objects.create(
                 user=request.user,
                 action="Medicine dispensed",
                 entity_type="DispensingTransaction",
-                details=(f"Medicine ID={medicine_id}; "
+                details=(
+                    f"Medicine ID={medicine_id}; "
                     f"quantity={total_dispensed}; "
+                    f"prescription_duration_days={duration_days};"
                     f"transaction IDs="
                     f"{', '.join(str(tx.pk) for tx in transactions)}"
                 ),
@@ -360,74 +369,20 @@ def pharmacist_dashboard_view(request): #displays the pharmacist's dashboard wit
 def store_manager_inventory_view(request):
     today = timezone.localdate()
     if request.method == "POST":
-        medicine_id = request.POST.get("medicine_id", "").strip()
-        batch_num = request.POST.get("batch_number", "").strip()
-        quantity_text = request.POST.get("quantity", "").strip()
-        received_date = parse_date(request.POST.get("received_date", ""))
-        expiry_date = parse_date(request.POST.get("expiry_date", ""))
-        storage_location = request.POST.get("storage_location", "").strip()
+        messages.info(request,"Stock must be received through a placed Purchase Order and Goods Receipt.")
+        return redirect("goods_receipts")
 
-        try:
-            if not medicine_id or not batch_num:raise ValueError("Select a medicine and enter a batch number.")
+    # GET: Display current inventory
+    batches = MedicineBatch.objects.select_related(
+        "medicine"
+    ).filter(
+        quantity_available__gt=0,
+        expiry_date__gt=today,
+        status="Active",
+        medicine__is_active=True
+    ).order_by("expiry_date")
 
-            quantity = int(quantity_text)
-            if quantity <= 0: raise ValueError("Quantity must be greater than zero.")
-            if not received_date or not expiry_date:raise ValueError("Enter valid received and expiry dates.")
-            if received_date > today:raise ValueError("Received date cannot be in the future.")
-            if expiry_date <= today:raise ValueError("The batch must not be expired.")
-            if expiry_date <= received_date:
-                raise ValueError("Expiry date must be after the received date.")
-
-            medicine = get_object_or_404(Medicine,id=medicine_id,is_active=True,)
-            if MedicineBatch.objects.filter(medicine=medicine,batch_number=batch_num,).exists():
-                raise ValueError("This batch number is already registered for this medicine.")
-
-            batch = MedicineBatch.objects.create(
-                medicine=medicine,
-                batch_number=batch_num,
-                quantity_received=quantity,
-                quantity_available=quantity,
-                received_date=received_date,
-                expiry_date=expiry_date,
-                storage_location=storage_location,
-                status="Active",
-            )
-
-            AuditLog.objects.create(
-                user=request.user,
-                action="Medicine batch received",
-                entity_type="MedicineBatch",
-                details=(
-                    f"Medicine: {medicine.name}; "
-                    f"Batch: {batch.batch_number}; "
-                    f"Quantity: {quantity}; "
-                    f"Expiry: {expiry_date}"
-                ),
-            )
-            messages.success(request,f"Batch {batch.batch_number} registered successfully.",)
-        except (ValueError, TypeError) as exc:messages.error(request, str(exc))
-        return redirect("inventory")
-
-    medicines = Medicine.objects.filter(is_active=True).order_by("name")
-    active_batches = (
-        MedicineBatch.objects.filter(
-            quantity_available__gt=0,
-            expiry_date__gt=today,
-            status="Active",
-            medicine__is_active=True,
-        )
-        .select_related("medicine")
-        .order_by("expiry_date", "id")
-    )
-
-    total_units = (active_batches.aggregate(total=Sum("quantity_available"))["total"] or 0)
-    context = {
-        "medicines": medicines,
-        "active_batches": active_batches,
-        "total_batches": active_batches.count(),
-        "total_units": total_units,
-        "today": today,
-    }
+    context = {"batches": batches,"today": today,}
     return render(request, "inventory.html", context)
 
 @login_required(login_url="/login/")
@@ -589,35 +544,38 @@ def procurement_dashboard_view(request):
             if not supplier_name:raise ValueError("Supplier name is required.")
 
             medicine = get_object_or_404(Medicine,id=medicine_id,is_active=True,)
+
             with transaction.atomic():
                 recommendation = None
 
                 if rec_id:
-                    recommendation = get_object_or_404( #Prevents a user from submitting an old recommendation ID manually after PO is created
-                        ProcurementRecommendation.objects.filter(
-                        id=rec_id,
-                        medicine=medicine,
-                        status=ProcurementRecommendation.Status.PENDING,
-                        purchase_order_isnull = True,
+                    recommendation = get_object_or_404(
+                        ProcurementRecommendation.objects.select_for_update().filter(
+                            id=rec_id,
+                            medicine=medicine,
+                            status=ProcurementRecommendation.Status.PENDING,
+                            purchase_order__isnull=True,
+                        )
                     )
+
+                supplier, _ = Supplier.objects.get_or_create(supplier_name=supplier_name,defaults={"name": supplier_name},)
+                PurchaseOrder.objects.create(
+                    medicine=medicine,
+                    supplier=supplier,
+                    recommendation=recommendation,
+                    quantity_ordered=quantity,
+                    raised_by=request.user,
+                    status=PurchaseOrder.Status.PENDING_ADMIN_REVIEW,
                 )
 
-            supplier, _ = Supplier.objects.get_or_create(supplier_name=supplier_name,defaults={"name": supplier_name},)
-            PurchaseOrder.objects.create(
-                medicine=medicine,
-                supplier=supplier,
-                recommendation=recommendation,
-                quantity_ordered=quantity,
-                raised_by=request.user,
-                status=PurchaseOrder.Status.PENDING_ADMIN_REVIEW,)
-            messages.success(request,f"Purchase order for {medicine.name} ""forwarded to Administration.",)
+            messages.success(request,f"Purchase order for {medicine.name} forwarded to hospital admin.",)
         except (ValueError, TypeError) as exc:messages.error(request, str(exc))
         return redirect("procurement")
 
     medicines = Medicine.objects.filter(is_active=True).order_by("name")
     recommendations = (ProcurementRecommendation.objects.filter(
         status=ProcurementRecommendation.Status.PENDING,
-        purchase_order_isnull = True,) #Recommendation disappears from pending lists once PO is placed
+        purchase_order__isnull = True,) #Recommendation disappears from pending lists once PO is placed
     .select_related("medicine", "forecast").order_by("-created_at"))
 
     # Retrieve saved forecasts for the procurement dashboard.

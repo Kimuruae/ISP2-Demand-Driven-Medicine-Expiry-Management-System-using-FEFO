@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width:1200px;margin:32px auto;padding:0 20px;color:#1e293b">
+  <h1>Goods Receipts</h1>
+  <p>Only Purchase Orders placed with suppliers can be received. Receipt items remain unavailable until inspected and accepted.</p>
+  {% if messages %}{% for message in messages %}<p>{{ message }}</p>{% endfor %}{% endif %}
+  {% if user.role.name == 'Store Manager' %}
+  <section style="padding:20px;border:1px solid #ddd;border-radius:10px;margin:20px 0">
+    <h2>Record Supplier Delivery</h2>
+    <form method="post" action="{% url 'goods_receipt_create' %}">{% csrf_token %}
+      <label>Placed Purchase Order</label><br>
+      <select name="purchase_order_id" required style="width:100%;padding:10px;margin:8px 0">
+        <option value="">Select purchase order</option>
+        {% for po in placed_orders %}<option value="{{ po.pk }}">PO-{{ po.pk }} — {{ po.medicine.name }} — {{ po.supplier.supplier_name }} — ordered {{ po.quantity_ordered }}</option>{% endfor %}
+      </select><br>
+      <label>Delivery date</label><br><input type="date" name="delivery_date" required style="padding:9px;margin:8px 0"><br>
+      <label>Delivery reference</label><br><input name="delivery_reference" maxlength="100" style="padding:9px;margin:8px 0;width:100%"><br>
+      <label>Notes</label><br><textarea name="notes" style="padding:9px;margin:8px 0;width:100%"></textarea><br>
+      <button type="submit">Create Goods Receipt</button>
+    </form>
+  </section>
+  {% endif %}
+  <h2>Recorded deliveries</h2>
+  <table style="width:100%;border-collapse:collapse">
+    <thead><tr><th>Receipt</th><th>Purchase Order</th><th>Supplier</th><th>Medicine</th><th>Delivery date</th><th>Items</th><th>Open</th></tr></thead>
+    <tbody>{% for receipt in receipts %}<tr>
+      <td>GR-{{ receipt.pk }}</td><td>PO-{{ receipt.purchase_order_id }}</td><td>{{ receipt.purchase_order.supplier.supplier_name }}</td><td>{{ receipt.purchase_order.medicine.name }}</td><td>{{ receipt.delivery_date|date:"d M Y" }}</td><td>{{ receipt.items.count }}</td>
+      <td><a href="{% url 'goods_receipt_detail' receipt.pk %}">View / inspect</a></td>
+    </tr>{% empty %}<tr><td colspan="7">No goods receipts recorded.</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width:1200px;margin:32px auto;padding:0 20px;color:#1e293b">
+  <p><a href="{% url 'goods_receipts' %}">← Goods Receipts</a></p>
+  <h1>Goods Receipt GR-{{ receipt.pk }}</h1>
+  <p><b>Purchase Order:</b> PO-{{ receipt.purchase_order_id }} | <b>Medicine:</b> {{ receipt.purchase_order.medicine.name }} | <b>Supplier:</b> {{ receipt.purchase_order.supplier.supplier_name }}</p>
+  <p><b>Delivery date:</b> {{ receipt.delivery_date }} | <b>Reference:</b> {{ receipt.delivery_reference|default:'Not supplied' }}</p>
+  {% if messages %}{% for message in messages %}<p>{{ message }}</p>{% endfor %}{% endif %}
+  {% if can_manage %}
+    <a href="{% url 'goods_receipt_inspect' receipt.id %}" style="
+            display:inline-block;
+            padding:11px 17px;
+            background:#087e8b;
+            color:white;
+            text-decoration:none;
+            border-radius:7px;
+            font-weight:700;
+            font-size:13px;">Inspect Delivered Batches →</a>
+  <section style="padding:20px;border:1px solid #ddd;border-radius:10px;margin:20px 0">
+    <h2>Add Delivered Batch</h2>
+    <form method="post" action="{% url 'goods_receipt_add_item' receipt.pk %}">{% csrf_token %}
+      <label>Batch number</label><br><input name="batch_number" maxlength="100" required><br>
+      <label>Quantity received</label><br><input type="number" name="quantity_received" min="1" required><br>
+      <label>Expiry date</label><br><input type="date" name="expiry_date" min="{{ today|date:'Y-m-d' }}" required><br>
+      <label>Storage location</label><br><input name="storage_location" maxlength="100"><br><br>
+      <button type="submit">Add item for inspection</button>
+    </form>
+  </section>
+  {% endif %}
+  <h2>Receipt items and inspection</h2>
+  <table style="width:100%;border-collapse:collapse">
+    <thead><tr><th>Batch</th><th>Qty</th><th>Expiry</th><th>Location</th><th>Inspection</th><th>Inspector</th><th>Decision</th></tr></thead>
+    <tbody>{% for item in items %}<tr>
+      <td>{{ item.batch_number }}</td><td>{{ item.quantity_received }}</td><td>{{ item.expiry_date }}</td><td>{{ item.storage_location|default:'—' }}</td><td>{{ item.get_inspection_status_display }}</td><td>{{ item.inspected_by|default:'—' }}</td>
+      <td>{% if can_manage and item.inspection_status == 'Pending' %}
+        <form method="post" action="{% url 'goods_receipt_inspect_item' item.pk %}">{% csrf_token %}
+          <select name="decision" required><option value="">Choose</option><option value="Accepted">Accept</option><option value="Rejected">Reject</option><option value="Quarantined">Quarantine</option></select>
+          <input name="inspection_notes" placeholder="Inspection notes" maxlength="1000">
+          <button type="submit" onclick="return confirm('Confirm this inspection decision?');">Save decision</button>
+        </form>
+      {% elif item.medicine_batch_id %}Added to inventory as batch {{ item.medicine_batch.batch_number }}{% else %}No usable stock created{% endif %}</td>
+    </tr>{% empty %}<tr><td colspan="7">No batch items recorded yet.</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

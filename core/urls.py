@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .views import pharmacist_dashboard_view
+from . import receiving_views
 
 urlpatterns = [
     #Public Website landing pages and authentication links
@@ -57,6 +58,43 @@ path(
     'inventory/recommendations/submit/',
     views.store_manager_recommendations_view,
     name='store_manager_recommendations'
+),
+# Store Manager - Goods Receiving
+
+path(
+    "receiving/",
+    receiving_views.receiving_dashboard,
+    name="receiving_dashboard"
+),
+
+path(
+    "receiving/receipts/",
+    receiving_views.goods_receipt_list,
+    name="goods_receipts"
+),
+
+path(
+    "receiving/receipts/create/",
+    receiving_views.goods_receipt_create,
+    name="goods_receipt_create"
+),
+
+path(
+    "receiving/receipts/<int:receipt_id>/",
+    receiving_views.goods_receipt_detail,
+    name="goods_receipt_detail"
+),
+
+path(
+    "receiving/receipts/<int:receipt_id>/add-item/",
+    receiving_views.goods_receipt_add_item,
+    name="goods_receipt_add_item"
+),
+
+path(
+    "receiving/items/<int:item_id>/inspect/",
+    receiving_views.goods_receipt_inspect_item,
+    name="goods_receipt_inspect_item"
 ),
 
     #Procurement Officer Portal

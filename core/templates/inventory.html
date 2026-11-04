@@ -1,14 +1,11 @@
-
 {% extends 'base.html' %}
 {% load static %}
-
 {% block content %}
 <div style="max-width:1400px;margin:30px auto;padding:0 20px;font-family:Arial,sans-serif;color:#1e293b;">
-
     <div style="background:linear-gradient(120deg,#123b66,#087e8b);color:white;padding:28px;border-radius:14px;margin-bottom:25px;">
         <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.85;">Store Manager Workspace</div>
         <h1 style="font-size:28px;margin:8px 0;font-weight:800;">Inventory Management</h1>
-        <p style="margin:0;font-size:14px;opacity:.9;">Register medicine batches, monitor available stock and maintain accurate inventory records.</p>
+        <p style="margin:0;font-size:14px;opacity:.9;">Monitor available medicine stock, track batch expiry dates and oversee inventory movements through controlled receiving.</p>
     </div>
 
     <style>
@@ -23,16 +20,15 @@
         .sm-stock{padding:13px;border:1px solid #e2e8f0;border-radius:9px;margin-bottom:10px;background:#f8fafc}
         @media(max-width:1000px){.sm-layout{grid-template-columns:1fr}}
     </style>
-
     <div class="sm-layout">
-
-        <!-- SIDEBAR -->
+        <!-- Sidebar Navigation -->
         <aside class="sm-card">
             <h3 style="font-size:13px;text-transform:uppercase;color:#64748b;margin:0 0 18px;">Navigation</h3>
-            <a href="{% url 'inventory' %}" class="sm-link active">📦 Inventory & Stock Intake</a>
-            <a href="{% url 'inventory_reports' %}" class="sm-link">📊 Stock Reports</a>
-            <a href="{% url 'inventory_alerts' %}" class="sm-link">🚨 Alerts Centre</a>
-            <a href="{% url 'inventory_recommendations' %}" class="sm-link">📝 Procurement Advice</a>
+            <a href="{% url 'inventory' %}" class="sm-link active">Inventory Overview</a>
+            <a href="{% url 'goods_receipts' %}" class="sm-link">Goods Receipts</a>
+            <a href="{% url 'inventory_reports' %}" class="sm-link">Stock Reports</a>
+            <a href="{% url 'inventory_alerts' %}" class="sm-link">Alerts</a>
+            <a href="{% url 'inventory_recommendations' %}" class="sm-link">Procurement Recommendation</a>
 
             <div style="margin-top:25px;padding:15px;background:#e0f2fe;border-radius:9px;">
                 <div style="font-size:11px;font-weight:800;color:#075985;text-transform:uppercase;">FEFO Reminder</div>
@@ -41,62 +37,25 @@
                 </p>
             </div>
         </aside>
-
-        <!-- STOCK INTAKE FORM -->
-        <section class="sm-card">
-            <h2 style="font-size:17px;margin:0 0 7px;color:#123b66;">Register New Stock</h2>
-            <p style="font-size:13px;color:#64748b;margin:0 0 22px;">Enter the details of the incoming medicine batch.</p>
-
-            <form method="POST" action="{% url 'inventory' %}" style="display:flex;flex-direction:column;gap:16px;">
-                {% csrf_token %}
-
-                <div>
-                    <label class="sm-label" for="medicine">Medicine</label>
-                    <select id="medicine" name="medicine_id" class="sm-input" required>
-                        <option value="">-- Select Medicine --</option>
-                        {% for med in medicines %}
-                            <option value="{{ med.id }}">{{ med.name }} ({{ med.code }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div>
-                    <label class="sm-label" for="batch_num">Batch Number</label>
-                    <input class="sm-input" type="text" id="batch_num" name="batch_number" required placeholder="e.g. BATCH-2026-001">
-                </div>
-
-                <div>
-                    <label class="sm-label" for="qty">Quantity Received</label>
-                    <input class="sm-input" type="number" id="qty" name="quantity" min="1" required placeholder="Enter quantity">
-                </div>
-
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                    <div>
-                        <label class="sm-label" for="received_date">Date Received</label>
-                        <input class="sm-input" type="date" id="received_date" name="received_date" required value="{{ today|date:'Y-m-d' }}">
-                    </div>
-                    <div>
-                        <label class="sm-label" for="exp_date">Expiry Date</label>
-                        <input class="sm-input" type="date" id="exp_date" name="expiry_date" required>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="sm-label" for="storage_location">Storage Location</label>
-                    <input class="sm-input" type="text" id="storage_location" name="storage_location" placeholder="e.g. Pharmacy Store - Shelf A3">
-                </div>
-
-                <button type="submit" class="sm-button">＋ Register Medicine Batch</button>
-            </form>
-        </section>
-
+        <!-- GOODS RECEIVING -->
+<section class="sm-card">
+    <h2 style="font-size:17px;margin:0 0 7px;color:#123b66;">Goods Receiving</h2>
+    <p style="font-size:13px;color:#64748b;margin:0 0 22px;">
+        Record supplier deliveries against placed purchase orders.
+        Each delivered batch must pass inspection before entering usable inventory.
+    </p>
+    <a href="{% url 'goods_receipts' %}" class="sm-button"
+       style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;">
+        Open Goods Receipts
+    </a>
+</section>
         <!-- CURRENT STOCK -->
         <section class="sm-card">
             <h2 style="font-size:17px;margin:0 0 7px;color:#123b66;">Available Stock</h2>
-            <p style="font-size:13px;color:#64748b;margin:0 0 20px;">Active, unexpired medicine batches.</p>
+            <p style="font-size:13px;color:#64748b;margin:0 0 20px;">Active available medicine batches quantities defined by FEFO.</p>
 
             <div style="max-height:540px;overflow-y:auto;">
-                {% for batch in active_batches %}
+                {% for batch in batches %}
                     <div class="sm-stock">
                         <div style="display:flex;justify-content:space-between;gap:10px;align-items:start;">
                             <strong style="font-size:14px;color:#1e293b;">{{ batch.medicine.name }}</strong>
