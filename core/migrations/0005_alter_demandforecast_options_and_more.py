@@ -77,6 +77,19 @@ class Migration(migrations.Migration):
                 to="core.demandforecast",
             ),
         ),
+        # Rename the index left behind when migration 0003
+        # renamed reviewed_by to raised_by. This frees the
+        # original index name for the new reviewed_by field.
+        migrations.RunSQL(
+            sql=(
+                'ALTER INDEX "core_procurementrecommendation_reviewed_by_id_65613bbb" '
+                'RENAME TO "core_proc_rec_raised_by_idx";'
+            ),
+            reverse_sql=(
+                'ALTER INDEX "core_proc_rec_raised_by_idx" '
+                'RENAME TO "core_procurementrecommendation_reviewed_by_id_65613bbb";'
+            ),
+        ),
         migrations.AddField(
             model_name="procurementrecommendation",
             name="reviewed_by",
