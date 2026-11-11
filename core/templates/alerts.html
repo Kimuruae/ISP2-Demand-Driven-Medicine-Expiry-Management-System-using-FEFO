@@ -1,162 +1,354 @@
+
 {% extends "base.html" %}
 {% load static %}
 
 {% block title %}Alerts Centre | Medicine Expiry Management System{% endblock %}
 
 {% block content %}
+
 <style>
-    .alerts-page {
-        max-width: 1500px;
-        margin: 0 auto;
-        padding: 24px;
-        color: var(--text-primary, #172033);
+    :root {
+        --alert-navy: #10243b;
+        --alert-navy-light: #193653;
+        --alert-blue: #2563eb;
+        --alert-bg: #f4f7fb;
+        --alert-card: #ffffff;
+        --alert-text: #172b42;
+        --alert-muted: #718096;
+        --alert-border: #e5ebf2;
+        --alert-shadow: 0 8px 28px rgba(15, 35, 60, .055);
     }
 
-    .alerts-header {
+    .alerts-page {
+        max-width: 1550px;
+        margin: 0 auto;
+        padding: 28px;
+        color: var(--alert-text);
+    }
+
+    /* PAGE HEADER */
+
+    .alerts-hero {
+        position: relative;
+        overflow: hidden;
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        gap: 20px;
-        flex-wrap: wrap;
-        margin-bottom: 24px;
+        align-items: center;
+        gap: 24px;
+        padding: 34px;
+        margin-bottom: 25px;
+        border-radius: 20px;
+        color: #fff;
+        background: linear-gradient(120deg, #10243b 0%, #193d60 65%, #24547c 100%);
+        box-shadow: 0 12px 30px rgba(16, 36, 59, .15);
     }
 
-    .alerts-header h1 {
-        margin: 0 0 8px;
-        font-size: clamp(1.6rem, 3vw, 2.2rem);
-        font-weight: 750;
+    .alerts-hero::after {
+        content: "";
+        position: absolute;
+        width: 290px;
+        height: 290px;
+        right: 8%;
+        top: -190px;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 50%;
+        box-shadow:
+            0 0 0 35px rgba(255,255,255,.035),
+            0 0 0 75px rgba(255,255,255,.025);
+        pointer-events: none;
     }
 
-    .alerts-subtitle {
+    .hero-content,
+    .hero-actions {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 12px;
+        color: #a9c9e8;
+        font-size: .75rem;
+        font-weight: 800;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+    }
+
+    .hero-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #53d6a0;
+        box-shadow: 0 0 0 4px rgba(83,214,160,.13);
+    }
+
+    .alerts-hero h1 {
+        margin: 0 0 9px;
+        color: #fff;
+        font-size: clamp(1.8rem, 3vw, 2.45rem);
+        font-weight: 800;
+        letter-spacing: -.045em;
+    }
+
+    .hero-description {
+        max-width: 650px;
         margin: 0;
-        color: var(--text-secondary, #64748b);
-        line-height: 1.6;
+        color: #c1d1e0;
+        font-size: .94rem;
+        line-height: 1.7;
     }
 
-    .role-label {
+    .hero-role {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        margin-top: 12px;
-        padding: 8px 12px;
-        border-radius: 8px;
-        background: var(--surface-secondary, #f1f5f9);
-        font-size: 0.85rem;
-        font-weight: 650;
+        margin-top: 19px;
+        padding: 8px 13px;
+        border: 1px solid rgba(255,255,255,.18);
+        border-radius: 9px;
+        background: rgba(255,255,255,.09);
+        color: #e5f0fa;
+        font-size: .8rem;
+        font-weight: 700;
     }
 
-    .alerts-button {
+    .hero-role span:first-child {
+        color: #7ee2b5;
+    }
+
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .hero-button {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        padding: 10px 14px;
-        border: 1px solid var(--border-color, #dbe2ea);
-        border-radius: 9px;
-        background: var(--surface, #fff);
-        color: inherit;
+        gap: 9px;
+        min-height: 43px;
+        padding: 11px 16px;
+        border: 1px solid rgba(255,255,255,.2);
+        border-radius: 10px;
+        background: rgba(255,255,255,.09);
+        color: #fff;
         text-decoration: none;
-        font: inherit;
-        font-weight: 600;
-        cursor: pointer;
+        font-size: .84rem;
+        font-weight: 700;
+        transition: .2s ease;
     }
 
-    .alerts-button:hover {
-        background: var(--surface-secondary, #f1f5f9);
-    }
-
-    .alerts-button-primary {
-        background: var(--primary-color, #1d4ed8);
-        border-color: var(--primary-color, #1d4ed8);
+    .hero-button:hover {
+        background: rgba(255,255,255,.17);
         color: #fff;
+        transform: translateY(-2px);
     }
 
-    .alerts-button-primary:hover {
-        background: #1e40af;
-        color: #fff;
+    .hero-button-primary {
+        border-color: #fff;
+        background: #fff;
+        color: var(--alert-navy);
     }
+
+    .hero-button-primary:hover {
+        background: #eaf2fa;
+        color: var(--alert-navy);
+    }
+
+    /* NOTICES */
+
+    .alerts-notice {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+        padding: 14px 17px;
+        border: 1px solid #cfe2fa;
+        border-radius: 11px;
+        background: #eff6ff;
+        color: #1e40af;
+        font-size: .9rem;
+    }
+
+    /* SUMMARY CARDS */
 
     .alerts-stats {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
+        gap: 17px;
+        margin-bottom: 26px;
     }
 
-    .alerts-stat {
-        padding: 20px;
-        border: 1px solid var(--border-color, #e2e8f0);
-        border-radius: 14px;
-        background: var(--surface, #fff);
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        min-width: 0;
+        padding: 21px;
+        border: 1px solid var(--alert-border);
+        border-radius: 15px;
+        background: var(--alert-card);
+        box-shadow: var(--alert-shadow);
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(15,35,60,.09);
+    }
+
+    .stat-icon {
+        display: grid;
+        place-items: center;
+        flex: 0 0 47px;
+        width: 47px;
+        height: 47px;
+        border-radius: 13px;
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
+
+    .stat-icon-total {
+        background: #eaf1ff;
+        color: #2458b8;
+    }
+
+    .stat-icon-critical {
+        background: #fff0ed;
+        color: #d13c35;
+    }
+
+    .stat-icon-pending {
+        background: #fff7e6;
+        color: #b7791f;
+    }
+
+    .stat-icon-resolved {
+        background: #e8f8ef;
+        color: #16834d;
+    }
+
+    .stat-info {
         min-width: 0;
     }
 
-    .alerts-stat-label {
+    .stat-label {
         display: block;
-        margin-bottom: 10px;
-        color: var(--text-secondary, #64748b);
-        font-size: 0.88rem;
+        margin: 1px 0 8px;
+        color: var(--alert-muted);
+        font-size: .79rem;
+        font-weight: 700;
     }
 
-    .alerts-stat-value {
+    .stat-value {
         display: block;
+        color: var(--alert-text);
         font-size: 1.9rem;
-        line-height: 1.2;
-        font-weight: 750;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -.04em;
     }
 
-    .alerts-stat-description {
+    .stat-description {
         display: block;
         margin-top: 7px;
-        color: var(--text-secondary, #64748b);
-        font-size: 0.8rem;
+        color: #94a0af;
+        font-size: .74rem;
     }
+
+    /* REGISTER */
 
     .alerts-panel {
         overflow: hidden;
-        border: 1px solid var(--border-color, #e2e8f0);
-        border-radius: 14px;
-        background: var(--surface, #fff);
+        border: 1px solid var(--alert-border);
+        border-radius: 17px;
+        background: var(--alert-card);
+        box-shadow: var(--alert-shadow);
     }
 
-    .alerts-panel-header {
-        padding: 20px;
-        border-bottom: 1px solid var(--border-color, #e2e8f0);
+    .panel-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        padding: 23px 25px;
+        border-bottom: 1px solid var(--alert-border);
     }
 
-    .alerts-panel-header h2 {
-        margin: 0 0 6px;
-        font-size: 1.15rem;
+    .panel-heading h2 {
+        margin: 0 0 5px;
+        color: var(--alert-text);
+        font-size: 1.13rem;
+        font-weight: 800;
     }
 
-    .alerts-panel-header p {
+    .panel-heading p {
         margin: 0;
-        color: var(--text-secondary, #64748b);
-        font-size: 0.9rem;
+        color: var(--alert-muted);
+        font-size: .84rem;
+        line-height: 1.5;
     }
+
+    .register-label {
+        padding: 7px 11px;
+        border: 1px solid #dce8f8;
+        border-radius: 8px;
+        background: #f1f6fd;
+        color: #315b8d;
+        font-size: .76rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    /* FILTERS */
 
     .alerts-filters {
         display: grid;
-        grid-template-columns: minmax(180px, 1fr) repeat(2, minmax(140px, 190px));
+        grid-template-columns: minmax(220px, 1fr) 190px 190px;
         gap: 12px;
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--border-color, #e2e8f0);
+        padding: 17px 24px;
+        border-bottom: 1px solid var(--alert-border);
+        background: #fbfcfe;
     }
 
-    .alerts-input,
-    .alerts-select {
+    .filter-field {
+        position: relative;
+    }
+
+    .filter-field input,
+    .filter-field select {
         width: 100%;
-        min-width: 0;
-        padding: 11px 12px;
-        border: 1px solid var(--border-color, #cbd5e1);
-        border-radius: 8px;
-        background: var(--surface, #fff);
-        color: inherit;
+        height: 44px;
+        padding: 0 13px;
+        border: 1px solid #dfe6ee;
+        border-radius: 9px;
+        outline: none;
+        background: #fff;
+        color: var(--alert-text);
         font: inherit;
+        font-size: .84rem;
         box-sizing: border-box;
+        transition: border-color .2s, box-shadow .2s;
     }
 
-    .alerts-table-wrapper {
+    .filter-field input:focus,
+    .filter-field select:focus {
+        border-color: #6093dc;
+        box-shadow: 0 0 0 3px rgba(37,99,235,.09);
+    }
+
+    .filter-field input::placeholder {
+        color: #a0acba;
+    }
+
+    /* TABLE */
+
+    .table-wrapper {
         overflow-x: auto;
     }
 
@@ -166,294 +358,452 @@
         text-align: left;
     }
 
-    .alerts-table th,
-    .alerts-table td {
-        padding: 15px 16px;
-        border-bottom: 1px solid var(--border-color, #e2e8f0);
-        vertical-align: top;
-    }
-
     .alerts-table th {
-        background: var(--surface-secondary, #f8fafc);
-        color: var(--text-secondary, #64748b);
-        font-size: 0.78rem;
-        font-weight: 700;
+        padding: 14px 17px;
+        border-bottom: 1px solid var(--alert-border);
+        background: #f7f9fc;
+        color: #77869a;
+        font-size: .71rem;
+        font-weight: 800;
+        letter-spacing: .075em;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
         white-space: nowrap;
     }
 
     .alerts-table td {
-        font-size: 0.9rem;
-        line-height: 1.5;
+        padding: 17px;
+        border-bottom: 1px solid #edf1f5;
+        color: #405168;
+        font-size: .84rem;
+        line-height: 1.55;
+        vertical-align: middle;
     }
 
-    .alerts-table tr:last-child td {
+    .alerts-table tbody tr {
+        transition: background .15s ease;
+    }
+
+    .alerts-table tbody tr:hover {
+        background: #f8fbff;
+    }
+
+    .alerts-table tbody tr:last-child td {
         border-bottom: none;
     }
 
     .alert-title {
         display: block;
         margin-bottom: 4px;
-        font-weight: 700;
+        color: #1d3048;
+        font-weight: 750;
     }
 
     .alert-secondary {
         display: block;
-        color: var(--text-secondary, #64748b);
-        font-size: 0.82rem;
+        color: #8794a5;
+        font-size: .76rem;
+        line-height: 1.5;
     }
+
+    .medicine-name {
+        display: block;
+        color: #263b54;
+        font-weight: 750;
+    }
+
+    .batch-number {
+        display: inline-block;
+        margin-top: 5px;
+        padding: 3px 7px;
+        border-radius: 5px;
+        background: #f0f3f7;
+        color: #68788d;
+        font-size: .72rem;
+        font-weight: 700;
+    }
+
+    /* BADGES */
 
     .alert-badge {
         display: inline-flex;
         align-items: center;
-        padding: 5px 9px;
-        border-radius: 999px;
-        font-size: 0.76rem;
-        font-weight: 700;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 7px;
+        font-size: .72rem;
+        font-weight: 800;
         white-space: nowrap;
     }
 
     .severity-critical {
-        background: #fee2e2;
-        color: #991b1b;
+        background: #fff0ef;
+        color: #c53030;
     }
 
     .severity-high {
-        background: #ffedd5;
-        color: #9a3412;
+        background: #fff3e8;
+        color: #b45309;
     }
 
     .severity-medium {
-        background: #fef3c7;
-        color: #92400e;
+        background: #fff8df;
+        color: #946b0b;
     }
 
     .severity-low {
-        background: #dbeafe;
-        color: #1e40af;
+        background: #edf4ff;
+        color: #2858a5;
     }
 
     .severity-default {
-        background: #e2e8f0;
-        color: #334155;
+        background: #edf0f4;
+        color: #526174;
     }
 
     .status-open {
-        background: #dbeafe;
-        color: #1e40af;
+        background: #edf4ff;
+        color: #2858a5;
     }
 
     .status-acknowledged {
-        background: #fef3c7;
-        color: #92400e;
+        background: #fff7e5;
+        color: #996b13;
     }
 
     .status-resolved {
-        background: #dcfce7;
-        color: #166534;
+        background: #eaf8ef;
+        color: #167344;
     }
 
-    .alert-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
     }
+
+    /* ACTION LINKS */
 
     .alert-action-link {
-        color: var(--primary-color, #1d4ed8);
-        font-weight: 650;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #2863b9;
+        font-size: .79rem;
+        font-weight: 800;
         text-decoration: none;
         white-space: nowrap;
     }
 
     .alert-action-link:hover {
+        color: #153e7b;
         text-decoration: underline;
     }
 
+    .action-arrow {
+        font-size: 1rem;
+        transition: transform .2s;
+    }
+
+    .alert-action-link:hover .action-arrow {
+        transform: translateX(3px);
+    }
+
+    /* EMPTY STATES */
+
     .alerts-empty {
-        padding: 50px 20px;
+        padding: 55px 20px;
         text-align: center;
     }
 
-    .alerts-empty-icon {
-        display: block;
-        margin-bottom: 12px;
-        font-size: 2rem;
+    .empty-icon {
+        display: grid;
+        place-items: center;
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 17px;
+        border-radius: 20px;
+        background: #eaf8ef;
+        color: #16834d;
+        font-size: 1.8rem;
     }
 
     .alerts-empty h3 {
         margin: 0 0 8px;
+        color: #263b54;
+        font-size: 1.05rem;
+        font-weight: 800;
     }
 
     .alerts-empty p {
-        margin: 0;
-        color: var(--text-secondary, #64748b);
+        max-width: 440px;
+        margin: 0 auto;
+        color: #8794a5;
+        font-size: .84rem;
+        line-height: 1.7;
     }
 
-    .alerts-pagination-note {
-        padding: 14px 20px;
-        border-top: 1px solid var(--border-color, #e2e8f0);
-        color: var(--text-secondary, #64748b);
-        font-size: 0.82rem;
+    #alertsNoResults {
+        padding: 32px 20px;
     }
 
-    .alerts-notice {
-        margin-bottom: 18px;
-        padding: 13px 16px;
-        border: 1px solid var(--border-color, #e2e8f0);
-        border-radius: 10px;
-        background: var(--surface-secondary, #f8fafc);
-        line-height: 1.5;
+    /* FOOTER */
+
+    .alerts-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 15px 24px;
+        border-top: 1px solid var(--alert-border);
+        background: #fbfcfe;
+        color: #8794a5;
+        font-size: .76rem;
+        line-height: 1.6;
     }
 
-    @media (max-width: 900px) {
+    [hidden] {
+        display: none !important;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 1050px) {
         .alerts-stats {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .alerts-filters {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .alerts-search {
-            grid-column: 1 / -1;
+        .alerts-hero {
+            align-items: flex-start;
+            flex-direction: column;
         }
     }
 
-    @media (max-width: 560px) {
+    @media (max-width: 750px) {
         .alerts-page {
-            padding: 14px;
+            padding: 16px;
+        }
+
+        .alerts-hero {
+            padding: 25px 21px;
+            border-radius: 15px;
+        }
+
+        .alerts-filters {
+            grid-template-columns: 1fr 1fr;
+            padding: 15px;
+        }
+
+        .search-field {
+            grid-column: 1 / -1;
+        }
+
+        .panel-heading {
+            padding: 19px;
+        }
+
+        .alerts-table {
+            min-width: 850px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .alerts-page {
+            padding: 11px;
         }
 
         .alerts-stats {
             gap: 10px;
         }
 
-        .alerts-stat {
-            padding: 14px;
+        .stat-card {
+            gap: 10px;
+            padding: 13px;
         }
 
-        .alerts-stat-value {
-            font-size: 1.5rem;
+        .stat-icon {
+            flex-basis: 36px;
+            width: 36px;
+            height: 36px;
+            font-size: .95rem;
+        }
+
+        .stat-value {
+            font-size: 1.55rem;
+        }
+
+        .stat-description {
+            font-size: .68rem;
         }
 
         .alerts-filters {
             grid-template-columns: 1fr;
         }
 
-        .alerts-search {
+        .search-field {
             grid-column: auto;
+        }
+
+        .alerts-footer {
+            flex-direction: column;
+            padding: 14px;
         }
     }
 </style>
 
 <div class="alerts-page">
-    <header class="alerts-header">
-        <div>
+
+    <!-- HERO HEADER -->
+
+    <header class="alerts-hero">
+        <div class="hero-content">
+            <div class="hero-eyebrow">
+                <span class="hero-dot"></span>
+                Operational monitoring
+            </div>
+
             <h1>Alerts Centre</h1>
-            <p class="alerts-subtitle">Monitor medicine expiry, stock risks and operational events relevant to your responsibilities.</p>
-            <div class="role-label">
-                <span aria-hidden="true"></span>
-                <span>
-                    Role:
-                    {% if role_name %}
-                        {{ role_name|title }}
-                    {% elif request.user.role %}
-                        {{ request.user.role.name|title }}
-                    {% elif request.user.is_superuser %}
-                        System Administrator
-                    {% else %}
-                        User
-                    {% endif %}
-                </span>
+
+            <p class="hero-description">
+                Monitor medicine expiry, inventory risks, procurement activities
+                and operational events requiring your attention.
+            </p>
+
+            <div class="hero-role">
+                <span>●</span>
+                {% if role_name %}
+                    {{ role_name|title }}
+                {% elif request.user.is_superuser %}
+                    System Administrator
+                {% elif request.user.role %}
+                    {{ request.user.role.name|title }}
+                {% else %}
+                    User
+                {% endif %}
             </div>
         </div>
 
-        <div class="alert-actions">
+        <div class="hero-actions">
             {% if request.user.is_superuser %}
-                <a href="{% url 'system_admin_dashboard' %}" class="alerts-button">
-                    System Dashboard
+                <a href="{% url 'system_admin_dashboard' %}"
+                   class="hero-button">
+                    System Dashboard →
                 </a>
             {% endif %}
 
             {% if request.user.role.name|default:""|lower == "pharmacist" %}
-                <a href="{% url 'dispense' %}" class="alerts-button alerts-button-primary">
-                    Dispense Medicine
+                <a href="{% url 'dispense' %}"
+                   class="hero-button hero-button-primary">
+                    Dispense Medicine →
                 </a>
+
             {% elif request.user.role.name|default:""|lower == "store manager" %}
-                <a href="{% url 'inventory' %}" class="alerts-button alerts-button-primary">
-                    Manage Inventory
+                <a href="{% url 'inventory' %}"
+                   class="hero-button hero-button-primary">
+                    Manage Inventory →
                 </a>
+
             {% elif request.user.role.name|default:""|lower == "procurement officer" %}
-                <a href="{% url 'procurement' %}" class="alerts-button alerts-button-primary">
-                    Procurement
+                <a href="{% url 'procurement' %}"
+                   class="hero-button hero-button-primary">
+                    Procurement →
                 </a>
+
             {% elif request.user.role.name|default:""|lower == "hospital admin" or request.user.role.name|default:""|lower == "hospital administrator" %}
-                <a href="{% url 'admin_dashboard' %}" class="alerts-button alerts-button-primary">
-                    Admin Dashboard
+                <a href="{% url 'admin_dashboard' %}"
+                   class="hero-button hero-button-primary">
+                    Admin Dashboard →
                 </a>
             {% endif %}
+
         </div>
     </header>
+
+    <!-- DJANGO MESSAGES -->
 
     {% if messages %}
         {% for message in messages %}
             <div class="alerts-notice" role="status">
+                <span aria-hidden="true">ⓘ</span>
                 {{ message }}
             </div>
         {% endfor %}
     {% endif %}
 
+    <!-- SUMMARY -->
+
     <section class="alerts-stats" aria-label="Alert summary">
-        <article class="alerts-stat">
-            <span class="alerts-stat-label">Total Alerts</span>
-            <strong class="alerts-stat-value">
-                {{ total_alerts|default:alerts|length|default:0 }}
-            </strong>
-            <span class="alerts-stat-description">Alerts available to your role</span>
+
+        <article class="stat-card">
+            <div class="stat-icon stat-icon-total">▤</div>
+            <div class="stat-info">
+                <span class="stat-label">Total Alerts</span>
+                <strong class="stat-value">
+                    {{ total_alerts|default:0 }}
+                </strong>
+                <span class="stat-description">Available to your role</span>
+            </div>
         </article>
 
-        <article class="alerts-stat">
-            <span class="alerts-stat-label">Critical / High</span>
-            <strong class="alerts-stat-value">{{ critical_alerts|default:0 }}</strong>
-            <span class="alerts-stat-description">Require prompt review</span>
+        <article class="stat-card">
+            <div class="stat-icon stat-icon-critical">!</div>
+            <div class="stat-info">
+                <span class="stat-label">Critical / High</span>
+                <strong class="stat-value">
+                    {{ critical_alerts|default:0 }}
+                </strong>
+                <span class="stat-description">Require prompt attention</span>
+            </div>
         </article>
 
-        <article class="alerts-stat">
-            <span class="alerts-stat-label">Unacknowledged</span>
-            <strong class="alerts-stat-value">{{ unacknowledged_alerts|default:0 }}</strong>
-            <span class="alerts-stat-description">Awaiting review</span>
+        <article class="stat-card">
+            <div class="stat-icon stat-icon-pending">◷</div>
+            <div class="stat-info">
+                <span class="stat-label">Unacknowledged</span>
+                <strong class="stat-value">
+                    {{ unacknowledged_alerts|default:0 }}
+                </strong>
+                <span class="stat-description">Awaiting review</span>
+            </div>
         </article>
 
-        <article class="alerts-stat">
-            <span class="alerts-stat-label">Resolved</span>
-            <strong class="alerts-stat-value">{{ resolved_alerts|default:0 }}</strong>
-            <span class="alerts-stat-description">Marked as resolved</span>
+        <article class="stat-card">
+            <div class="stat-icon stat-icon-resolved">✓</div>
+            <div class="stat-info">
+                <span class="stat-label">Resolved</span>
+                <strong class="stat-value">
+                    {{ resolved_alerts|default:0 }}
+                </strong>
+                <span class="stat-description">Marked as resolved</span>
+            </div>
         </article>
     </section>
 
+    <!-- ALERT REGISTER -->
     <section class="alerts-panel">
-        <div class="alerts-panel-header">
-            <h2>Alert Register</h2>
-            <p>
-                Review the affected medicine or batch, assess severity and follow the relevant workflow.
-            </p>
+        <div class="panel-heading">
+            <div>
+                <h2>Alert Register</h2>
+                <p>Review alerts, assess their priority and access the relevant workflow.</p>
+            </div>
+
+            <span class="register-label">
+                LIVE REGISTER
+            </span>
         </div>
 
+        <!-- FILTERS -->
         <div class="alerts-filters">
-            <div class="alerts-search">
+            <div class="filter-field search-field">
                 <input
                     type="search"
                     id="alertSearch"
-                    class="alerts-input"
                     placeholder="Search medicine, batch or alert..."
                     aria-label="Search alerts"
                 >
             </div>
 
-            <div>
-                <select id="alertSeverity" class="alerts-select" aria-label="Filter by severity">
+            <div class="filter-field">
+                <select id="alertSeverity" aria-label="Filter by severity">
                     <option value="">All severities</option>
                     <option value="critical">Critical</option>
                     <option value="high">High</option>
@@ -462,8 +812,8 @@
                 </select>
             </div>
 
-            <div>
-                <select id="alertStatus" class="alerts-select" aria-label="Filter by status">
+            <div class="filter-field">
+                <select id="alertStatus" aria-label="Filter by status">
                     <option value="">All statuses</option>
                     <option value="open">Unacknowledged</option>
                     <option value="acknowledged">Acknowledged</option>
@@ -472,32 +822,40 @@
             </div>
         </div>
 
-        <div class="alerts-table-wrapper">
+        <!-- TABLE -->
+        <div class="table-wrapper">
             <table class="alerts-table">
                 <thead>
                     <tr>
-                        <th scope="col">Alert</th>
-                        <th scope="col">Medicine / Batch</th>
-                        <th scope="col">Severity</th>
-                        <th scope="col">Date Raised</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Action</th>
+                        <th>Alert Details</th>
+                        <th>Medicine / Batch</th>
+                        <th>Priority</th>
+                        <th>Date Raised</th>
+                        <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
 
                 <tbody id="alertsTableBody">
-                    {% for alert in alerts %}
+                  {% for alert in alerts %}
                         {% with severity=alert.severity|default:"Medium"|lower %}
-                        {% with alert_status=alert.status|default:"" %}
+                        {% with alert_status=alert.status|default:""|lower %}
+
                         <tr
                             class="alert-row"
-                            data-search="{{ alert.alert_type|default:'Alert' }} {{ alert.medicine.name|default:'' }} {{ alert.batch.batch_number|default:'' }} {{ alert.batch.medicine.name|default:'' }} {{ alert.reasoning|default:'' }}"
+                            data-search="{{ alert.alert_type|default:'Alert' }} {{ alert.title|default:'' }} {{ alert.medicine.medicine_name|default:'' }} {{ alert.batch.batch_number|default:'' }} {{ alert.reasoning|default:'' }} {{ alert.message|default:'' }}"
                             data-severity="{{ severity }}"
-                            data-status="{% if alert.is_resolved or alert_status|lower == 'resolved' %}resolved{% elif alert.is_acknowledged or alert_status|lower == 'acknowledged' %}acknowledged{% else %}open{% endif %}"
+                            data-status="{% if alert.is_resolved or alert_status == 'resolved' %}resolved{% elif alert.is_acknowledged or alert_status == 'acknowledged' %}acknowledged{% else %}open{% endif %}"
                         >
+
+                            <!-- ALERT DETAILS -->
                             <td>
                                 <span class="alert-title">
-                                    {{ alert.get_alert_type_display|default:alert.alert_type|default:"System Alert" }}
+                                    {% if alert.title %}
+                                        {{ alert.title }}
+                                    {% else %}
+                                        {{ alert.get_alert_type_display|default:alert.alert_type|default:"System Alert" }}
+                                    {% endif %}
                                 </span>
 
                                 <span class="alert-secondary">
@@ -510,43 +868,47 @@
                                             {{ alert.days_to_expiry }} day(s) until expiry
                                         {% endif %}
                                     {% elif alert.reasoning %}
-                                        {{ alert.reasoning|truncatechars:100 }}
+                                        {{ alert.reasoning|truncatechars:95 }}
+                                    {% elif alert.message %}
+                                        {{ alert.message|truncatechars:95 }}
                                     {% else %}
                                         Review the alert details.
                                     {% endif %}
                                 </span>
                             </td>
 
+                            <!-- MEDICINE / BATCH -->
                             <td>
-                                <span class="alert-title">
+                                <span class="medicine-name">
                                     {% if alert.medicine %}
-                                        {{ alert.medicine.name }}
+                                        {{ alert.medicine.medicine_name }}
                                     {% elif alert.batch and alert.batch.medicine %}
-                                        {{ alert.batch.medicine.name }}
+                                        {{ alert.batch.medicine.medicine_name }}
                                     {% else %}
                                         Not specified
                                     {% endif %}
                                 </span>
 
-                                <span class="alert-secondary">
-                                    {% if alert.batch %}
+                                {% if alert.batch %}
+                                    <span class="batch-number">
                                         Batch: {{ alert.batch.batch_number }}
-                                    {% elif alert.supplier %}
+                                    </span>
+                                {% elif alert.supplier %}
+                                    <span class="alert-secondary">
                                         Supplier: {{ alert.supplier }}
-                                    {% elif alert.purchase_order %}
+                                    </span>
+                                {% elif alert.purchase_order %}
+                                    <span class="alert-secondary">
                                         Purchase order: {{ alert.purchase_order }}
-                                    {% else %}
-                                        {% if alert.alert_type == "EXPIRED" %}
-                                            Expiry risk
-                                        {% elif alert.alert_type == "NEAR" %}
-                                            Near-expiry warning
-                                        {% else %}
-                                            Operational alert
-                                        {% endif %}
-                                    {% endif %}
-                                </span>
+                                    </span>
+                                {% else %}
+                                    <span class="alert-secondary">
+                                        {{ alert.source_type|default:"Operational alert"|title }}
+                                    </span>
+                                {% endif %}
                             </td>
 
+                            <!-- SEVERITY -->
                             <td>
                                 <span class="alert-badge
                                     {% if severity == 'critical' %}severity-critical
@@ -558,91 +920,154 @@
                                 </span>
                             </td>
 
+                            <!-- DATE -->
                             <td>
                                 {% if alert.created_at %}
-                                    {{ alert.created_at|date:"d M Y, H:i" }}
+                                    {{ alert.created_at|date:"d M Y" }}
+                                    <span class="alert-secondary">
+                                        {{ alert.created_at|date:"H:i" }}
+                                    </span>
                                 {% elif alert.generated_at %}
-                                    {{ alert.generated_at|date:"d M Y, H:i" }}
+                                    {{ alert.generated_at|date:"d M Y" }}
+                                    <span class="alert-secondary">
+                                        {{ alert.generated_at|date:"H:i" }}
+                                    </span>
                                 {% else %}
                                     —
                                 {% endif %}
                             </td>
 
+                            <!-- STATUS -->
                             <td>
-                                {% if alert.is_resolved or alert_status|lower == "resolved" %}
-                                    <span class="alert-badge status-resolved">Resolved</span>
-                                {% elif alert.is_acknowledged or alert_status|lower == "acknowledged" %}
-                                    <span class="alert-badge status-acknowledged">Acknowledged</span>
+                                {% if alert.is_resolved or alert_status == "resolved" %}
+                                    <span class="alert-badge status-resolved">
+                                        <span class="status-dot"></span>
+                                        Resolved
+                                    </span>
+
+                                {% elif alert.is_acknowledged or alert_status == "acknowledged" %}
+                                    <span class="alert-badge status-acknowledged">
+                                        <span class="status-dot"></span>
+                                        Acknowledged
+                                    </span>
+
                                 {% else %}
-                                    <span class="alert-badge status-open">Unacknowledged</span>
+                                    <span class="alert-badge status-open">
+                                        <span class="status-dot"></span>
+                                        Unacknowledged
+                                    </span>
                                 {% endif %}
                             </td>
 
+                            <!-- ACTION -->
                             <td>
-                                <div class="alert-actions">
-                                    {% if alert.batch %}
-                                        {% if request.user.role.name|default:""|lower == "pharmacist" %}
-                                            <a href="{% url 'dispense' %}" class="alert-action-link">
-                                                Review dispensing
-                                            </a>
-                                        {% elif request.user.role.name|default:""|lower == "store manager" %}
-                                            <a href="{% url 'inventory' %}" class="alert-action-link">
-                                                Review stock
-                                            </a>
-                                        {% else %}
-                                            <a href="{% url 'inventory_alerts' %}" class="alert-action-link">
-                                                View inventory alerts
-                                            </a>
-                                        {% endif %}
-                                    {% elif request.user.role.name|default:""|lower == "procurement officer" %}
-                                        <a href="{% url 'procurement' %}" class="alert-action-link">
-                                            Review procurement
+                                {% if alert.action_url %}
+                                    <a href="{{ alert.action_url }}"
+                                       class="alert-action-link">
+                                        Review alert
+                                        <span class="action-arrow">→</span>
+                                    </a>
+
+                                {% elif alert.batch %}
+                                    {% if request.user.role.name|default:""|lower == "pharmacist" %}
+                                        <a href="{% url 'dispense' %}" class="alert-action-link">
+                                            Review dispensing →
                                         </a>
-                                    {% elif request.user.role.name|default:""|lower == "hospital admin" or request.user.role.name|default:""|lower == "hospital administrator" %}
-                                        <a href="{% url 'admin_dashboard' %}" class="alert-action-link">
-                                            Review approvals
-                                        </a>
-                                    {% elif request.user.is_superuser %}
-                                        <a href="{% url 'system_admin_audit_logs' %}" class="alert-action-link">
-                                            Review audit logs
+                                    {% elif request.user.role.name|default:""|lower == "store manager" %}
+                                        <a href="{% url 'inventory' %}" class="alert-action-link">
+                                            Review stock →
                                         </a>
                                     {% else %}
-                                        <span class="alert-secondary">Review details</span>
+                                        <a href="{% url 'inventory_alerts' %}" class="alert-action-link">
+                                            Review inventory →
+                                        </a>
                                     {% endif %}
-                                </div>
+
+                                {% elif request.user.role.name|default:""|lower == "procurement officer" %}
+                                    <a href="{% url 'procurement' %}" class="alert-action-link">
+                                        Review procurement →
+                                    </a>
+
+                                {% elif request.user.role.name|default:""|lower == "hospital admin" or request.user.role.name|default:""|lower == "hospital administrator" %}
+                                    <a href="{% url 'admin_dashboard' %}" class="alert-action-link">
+                                        Review approvals →
+                                    </a>
+
+                                {% elif request.user.is_superuser %}
+                                    <a href="{% url 'system_admin_audit_logs' %}" class="alert-action-link">
+                                        Review logs →
+                                    </a>
+
+                                {% else %}
+                                    <span class="alert-secondary">No action available</span>
+                                {% endif %}
                             </td>
                         </tr>
+
                         {% endwith %}
                         {% endwith %}
                     {% empty %}
+
                         <tr>
                             <td colspan="6">
                                 <div class="alerts-empty">
-                                    <span class="alerts-empty-icon" aria-hidden="true">✓</span>
-                                    <h3>No alerts available</h3>
+                                    <div class="empty-icon">✓</div>
+                                    <h3>You're all caught up</h3>
                                     <p>
-                                        There are currently no alerts to display for your role.
-                                        New alerts will appear here when detected by the system.
+                                        There are currently no alerts available for your account.
+                                        New alerts will appear here when relevant system events occur.
                                     </p>
                                 </div>
                             </td>
                         </tr>
-                    {% endfor %}
+                    <td>
+                      {% if alert.source_type == "UserAlert" %}
+                        {% if not alert.is_resolved %}
+                          {% if not alert.is_acknowledged %}
+                             <form method="POST"
+                                 action="{% url 'acknowledge_user_alert' alert.source_id %}">
+                               {% csrf_token %}
+                               <button type="submit" class="btn btn-secondary">Acknowledge</button>
+                             </form>
+                          {% endif %}
+
+                          <form method="POST"
+                            action="{% url 'resolve_user_alert' alert.source_id %}">
+                             {% csrf_token %}
+                           <button type="submit" class="btn btn-success">Resolve</button>
+                          </form>
+
+                         {% else %}
+                          <span class="status-badge">Resolved</span>
+                        {% endif %}
+                      {% endif %}
+                    </td>
+                  {% endfor %}
                 </tbody>
             </table>
         </div>
 
+        <!-- FILTER EMPTY STATE -->
         <div id="alertsNoResults" class="alerts-empty" hidden>
+            <div class="empty-icon">⌕</div>
             <h3>No matching alerts</h3>
-            <p>Change your search text or filters to see other alerts.</p>
+            <p>Try changing your search text or selecting different filters.</p>
         </div>
 
-        <div class="alerts-pagination-note">
-            Alert visibility is role-based. Acknowledging an alert does not, by itself, resolve the underlying stock or expiry issue.
+        <!-- FOOTER -->
+        <div class="alerts-footer">
+            <span>
+                Alert visibility is determined by your assigned system role.
+            </span>
+
+            <span>
+                Acknowledging an alert does not resolve the underlying issue.
+            </span>
         </div>
     </section>
 </div>
 
+<!-- SEARCH AND FILTER FUNCTIONALITY -->
 <script>
 (function () {
     "use strict";
@@ -657,6 +1082,7 @@
         const query = (searchInput.value || "").trim().toLowerCase();
         const severity = severityFilter.value.toLowerCase();
         const status = statusFilter.value.toLowerCase();
+
         let visibleCount = 0;
 
         rows.forEach(function (row) {
@@ -664,15 +1090,22 @@
             const rowSeverity = (row.dataset.severity || "").toLowerCase();
             const rowStatus = (row.dataset.status || "").toLowerCase();
 
-            const matchesSearch = !query || searchableText.includes(query);
-            const matchesSeverity = !severity || rowSeverity === severity;
-            const matchesStatus = !status || rowStatus === status;
+            const matchesSearch =
+                !query || searchableText.includes(query);
 
-            const visible = matchesSearch && matchesSeverity && matchesStatus;
+            const matchesSeverity =
+                !severity || rowSeverity === severity;
+
+            const matchesStatus =
+                !status || rowStatus === status;
+
+            const visible =
+                matchesSearch && matchesSeverity && matchesStatus;
+
             row.hidden = !visible;
 
             if (visible) {
-                visibleCount += 1;
+                visibleCount++;
             }
         });
 
@@ -681,9 +1114,12 @@
         }
     }
 
-    searchInput.addEventListener("input", applyFilters);
-    severityFilter.addEventListener("change", applyFilters);
-    statusFilter.addEventListener("change", applyFilters);
+    if (searchInput && severityFilter && statusFilter) {
+        searchInput.addEventListener("input", applyFilters);
+        severityFilter.addEventListener("change", applyFilters);
+        statusFilter.addEventListener("change", applyFilters);
+    }
+
 })();
 </script>
 {% endblock %}

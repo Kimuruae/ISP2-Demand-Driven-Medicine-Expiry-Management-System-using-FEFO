@@ -23,9 +23,11 @@
             Login
         </button>
     </form>
-    <div style="text-align: center; margin-top: 1.5rem; font-size: 12px;">
-        <span style="color: #666666;">New workstation?</span>
-        <a href="{% url 'register' %}" style="color: #000000; font-weight: bold; text-decoration: underline;">Register Station Profile</a>
+    <div style="text-align: center; margin-top: 1.25rem;">
+      <a href="{% url 'password_reset' %}"
+       style="font-size: 12px; color: #333333; text-decoration: underline; font-weight: bold;">
+        Forgot Password?
+      </a>
     </div>
 </div>
 {% endblock %}

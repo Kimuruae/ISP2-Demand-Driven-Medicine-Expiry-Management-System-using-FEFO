@@ -1,27 +1,68 @@
+
 {% extends "system_admin/base.html" %}
 
 {% block admin_content %}
 <header class="sa-header">
     <span class="eyebrow">Account Administration</span>
     <h1>User Management</h1>
-    <p>Create accounts, assign staff roles and manage account status.</p>
+    <p>Create staff accounts, assign roles and manage account status.</p>
 </header>
+
 <section class="sa-panel">
     <h2>Create User Account</h2>
-    <p class="sa-muted">New accounts created by the administrator are assigned a role immediately.</p>
-        <form method="post" action="{% url 'system_admin_dashboard' %}" class="sa-form">
+    <p class="sa-muted">
+        New accounts remain inactive until the assigned user completes email activation.
+    </p>
+
+    <form method="post" action="{% url 'system_admin_users' %}" class="sa-form">
         {% csrf_token %}
         <input type="hidden" name="action" value="create_user">
-        <input name="username" placeholder="Username" required>
-        <input name="email" type="email" placeholder="Email address" required>
-        <input name="password" type="password"
-               placeholder="Temporary password (10+ characters)"
-               minlength="10" required autocomplete="new-password">
+
+        <input
+            name="username"
+            placeholder="Username"
+            maxlength="150"
+            required
+        >
+
+        <input
+            name="first_name"
+            placeholder="First name"
+            maxlength="150"
+            required
+        >
+
+        <input
+            name="other_name"
+            placeholder="Other name (optional)"
+            maxlength="150"
+        >
+
+        <input
+            name="last_name"
+            placeholder="Last name"
+            maxlength="150"
+            required
+        >
+
+        <input
+            name="email"
+            type="email"
+            placeholder="Official email address"
+            required
+        >
+
+        <input
+            name="phone_number"
+            type="tel"
+            placeholder="Phone number"
+            maxlength="15"
+        >
 
         <select name="role_id" required>
-            <option value="">Select role</option>
+            <option value="">Select staff role</option>
             {% for role in roles %}
-            <option value="{{ role.id }}">{{ role.name }}</option>
+                <option value="{{ role.id }}">{{ role.name }}</option>
             {% endfor %}
         </select>
 
@@ -32,34 +73,47 @@
 <section class="sa-panel">
     <h2>Registered Accounts</h2>
 
-    <input class="sa-search" id="accountSearch" type="search"
-           placeholder="Search username, email, role or status..."
-           aria-label="Search accounts">
+    <input
+        class="sa-search"
+        id="accountSearch"
+        type="search"
+        placeholder="Search name, username, email, role or status..."
+        aria-label="Search accounts"
+    >
 
     <div class="sa-table-wrap">
         <table id="accountsTable">
             <thead>
                 <tr>
-                    <th>Username</th>
+                    <th>Staff Member</th>
                     <th>Email</th>
                     <th>Role</th>
                     <th>Status</th>
                     <th>Account Action</th>
                 </tr>
             </thead>
+
             <tbody>
                 {% for account in users %}
                 <tr>
                     <td>
-                        <strong>{{ account.username }}</strong>
+                        <strong>
+                            {{ account.first_name }} {{ account.other_name }}
+                            {{ account.last_name }}
+                        </strong>
+                        <br>
+                        <small>{{ account.username }}</small>
+
                         {% if account.is_superuser %}
-                        <br><small>Superuser</small>
+                            <br><small>Superuser</small>
                         {% endif %}
                     </td>
+
                     <td>{{ account.email|default:"—" }}</td>
+
                     <td>
                         {% if account.pk != request.user.pk %}
-                        <form method="post">
+                        <form method="post" class="role-update">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="update_role">
                             <input type="hidden" name="user_id" value="{{ account.id }}">
@@ -72,20 +126,28 @@
                                 </option>
                                 {% endfor %}
                             </select>
-                            <button type="submit">Save</button>
+
+                            <button
+                                type="submit"
+                                data-confirm="Are you sure you want to change this user's role?"
+                            >
+                                Save
+                            </button>
                         </form>
                         {% else %}
                             {{ account.role.name|default:"No role" }}
                             <br><small>Current account</small>
                         {% endif %}
                     </td>
+
                     <td>
                         {% if account.is_active %}
-                        <span class="status">Active</span>
+                            <span class="status">Active</span>
                         {% else %}
-                        <span class="status inactive">Inactive</span>
+                            <span class="status inactive">Inactive</span>
                         {% endif %}
                     </td>
+
                     <td>
                         {% if account.pk != request.user.pk %}
                         <form method="post" class="account-toggle">
@@ -94,29 +156,45 @@
                             <input type="hidden" name="user_id" value="{{ account.id }}">
 
                             {% if account.is_active %}
-                            <button type="submit" class="danger"
-                                    data-confirm="Deactivate this account?">
-                                Deactivate
-                            </button>
+                                <button
+                                    type="submit"
+                                    class="danger"
+                                    data-confirm="Are you sure you want to deactivate this account?"
+                                >
+                                    Deactivate
+                                </button>
                             {% else %}
-                            <button type="submit">Reactivate</button>
+                                <button
+                                    type="submit"
+                                    data-confirm="Are you sure you want to reactivate this account?"
+                                >
+                                    Reactivate
+                                </button>
                             {% endif %}
                         </form>
                         {% else %}
-                        <small>Cannot change your own status here.</small>
+                            <small>Cannot change your own status here.</small>
                         {% endif %}
                     </td>
                 </tr>
+
                 {% empty %}
-                <tr><td colspan="5" class="sa-empty">No user accounts found.</td></tr>
+                <tr>
+                    <td colspan="5" class="sa-empty">No user accounts found.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </section>
+
 <section class="sa-panel">
-    <h2>Registration Approvals</h2>
-    <p class="sa-muted">Check pending staff registrations, activate or deactivate accounts</p>
+    <h2>Account Activation</h2>
+    <p class="sa-muted">
+        Newly created accounts are inactive pending email verification
+        and password establishment. Activation functionality will be
+        implemented in the next stage.
+    </p>
 </section>
 
 <script>
@@ -134,9 +212,10 @@
         });
     }
 
-    document.querySelectorAll(".account-toggle").forEach(function (form) {
+    document.querySelectorAll(".role-update, .account-toggle").forEach(function (form) {
         form.addEventListener("submit", function (event) {
             const button = form.querySelector("[data-confirm]");
+
             if (button && !window.confirm(button.dataset.confirm)) {
                 event.preventDefault();
             }

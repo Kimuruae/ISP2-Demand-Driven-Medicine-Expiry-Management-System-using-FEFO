@@ -1,0 +1,534 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div style="max-width:1400px;margin:30px auto;padding:0 20px;font-family:Arial,sans-serif;color:#1e293b;">
+    <div style="background:linear-gradient(120deg,#123b66,#087e8b);color:white;padding:28px;border-radius:14px;margin-bottom:25px;">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.85;">Procurement Officer Workspace</div>
+        <h1 style="font-size:28px;margin:8px 0;font-weight:800;">Procurement Process</h1>
+        <p style="margin:0;font-size:14px;opacity:.9;">Monitor and review Demand Forecasts, Raise and place purchase orders .</p>
+    </div>
+<div class="procurement-page">
+    <style>
+
+.procurement-page {
+background: #F1F5F9;
+padding: 1.5rem;
+border-radius: 16px;
+    max-width: 1600px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    color: var(--text, #1E293B);
+    font-family: inherit;
+}
+
+/* PAGE HEADER */
+.station-header {
+    border-bottom: 2px solid var(--border, #E2E8F0);
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.station-header h1 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--navy, #16324F);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.station-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted, #64748B);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+}
+
+.operator-panel {
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--primary-light, #CCFBF1);
+    color: var(--primary-dark, #115E59);
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--primary, #0F766E);
+    border-radius: var(--radius-sm, 8px);
+}
+
+/* WORKSPACE LAYOUT */
+.workspace-layout-shell {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.procurement-sidebar,
+.procurement-main,
+.forecast-panel {
+    min-width: 0;
+}
+
+.procurement-sidebar,
+.procurement-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* PANELS */
+.panel {
+    border: 1px solid #CBD5E1;
+    border-radius: 12px;
+    padding: 1.5rem;
+    background: #F8FAFC;
+    box-shadow: 0 4px 12px rgba(22, 50, 79, 0.07);
+    min-width: 0;
+}
+
+.panel-heading {
+    font-size: 15px;
+    font-weight: 800;
+    color: #FFFFFF;
+    background: #16324F;
+    padding: 0.9rem 1rem;
+    border-radius: 8px;
+    margin: 0 0 1.25rem;
+    border-bottom: 3px solid #0F766E;
+}
+
+/* SIDEBAR NAVIGATION */
+.sidebar-action-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border, #E2E8F0);
+    border-radius: var(--radius-sm, 8px);
+    background: var(--surface, #FFFFFF);
+    color: var(--text, #1E293B);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.sidebar-action-link:hover,
+.sidebar-action-link.active-node {
+    background: var(--primary, #0F766E);
+    color: #FFFFFF;
+    border-color: var(--primary, #0F766E);
+}
+
+/* RECOMMENDATIONS AND FORECASTS */
+.action-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--border, #E2E8F0);
+    border-radius: 20px;
+    background: var(--surface-muted, #F8FAFC);
+    color: var(--muted, #64748B);
+}
+.recommendation-card,
+.forecast-card {
+    border: 1px solid #CBD5E1;
+    border-left: 4px solid #0F766E;
+    border-radius: 8px;
+    padding: 1rem;
+    background: #FFFFFF;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.recommendation-card p {
+    margin: 0.5rem 0;
+}
+
+.recommendation-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.recommendation-top strong,
+.forecast-card strong {
+    overflow-wrap: anywhere;
+    color: var(--navy, #16324F);
+}
+
+.forecast-card > strong {
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.muted-text {
+    font-size: 12px;
+    color: var(--muted, #64748B);
+    line-height: 1.6;
+}
+
+/* FORMS */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--navy, #16324F);
+    text-transform: uppercase;
+}
+
+.form-field input,
+.form-field select {
+    box-sizing: border-box;
+    width: 100%;
+    border: 1px solid var(--border, #E2E8F0);
+    border-radius: var(--radius-sm, 8px);
+    padding: 0.75rem;
+    font-size: 14px;
+    background: var(--surface, #FFFFFF);
+    color: var(--text, #1E293B);
+}
+
+.form-field input:focus,
+.form-field select:focus {
+    outline: none;
+    border-color: var(--primary, #0F766E);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+/* PRIMARY ACTION */
+.primary-button {
+    width: 100%;
+    background: var(--primary, #0F766E);
+    color: #FFFFFF;
+    border: 1px solid var(--primary, #0F766E);
+    border-radius: var(--radius-sm, 8px);
+    padding: 0.9rem 1rem;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.primary-button:hover {
+    background: var(--primary-dark, #115E59);
+    border-color: var(--primary-dark, #115E59);
+}
+
+/* FEEDBACK AND EMPTY STATES */
+.feedback-message {
+    border: 1px solid var(--border, #E2E8F0);
+    border-left: 4px solid var(--primary, #0F766E);
+    background: var(--primary-light, #CCFBF1);
+    color: var(--navy, #16324F);
+    border-radius: var(--radius-sm, 8px);
+    padding: 1rem 1.25rem;
+    font-size: 14px;
+    margin-bottom: 1rem;
+    overflow-wrap: anywhere;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 1.5rem;
+    border: 1px dashed var(--border, #E2E8F0);
+    border-radius: var(--radius-sm, 8px);
+    font-size: 13px;
+    color: var(--muted, #64748B);
+    background: var(--surface-muted, #F8FAFC);
+}
+
+/* SCROLLABLE LISTS */
+.scroll-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    max-height: 520px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.scroll-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scroll-list::-webkit-scrollbar-thumb {
+    background: var(--border, #E2E8F0);
+    border-radius: 10px;
+}
+
+/* RESPONSIVE LAYOUT */
+@media (min-width: 700px) {
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 1024px) {
+    .workspace-layout-shell {
+        grid-template-columns:
+            250px minmax(0, 1.8fr) minmax(0, 1.6fr);
+    }
+}
+
+@media (max-width: 699px) {
+    .procurement-page {
+        padding: 0 0.75rem;
+        margin: 1rem auto;
+    }
+
+    .station-header h1 {
+        font-size: 21px;
+    }
+
+    .operator-panel {
+        text-align: left;
+    }
+
+    .panel {
+        padding: 1rem;
+    }
+
+    .recommendation-top {
+        align-items: flex-start;
+    }
+}
+
+    </style>
+
+    <!-- Django messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="feedback-message"><strong>{{ message }}</strong></div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="workspace-layout-shell">
+        <!-- COLUMN 1: SIDEBAR -->
+        <aside class="procurement-sidebar">
+            <div class="panel" style="text-align: center; background: #E2E8F0;">
+                <span class="station-label">Procurement Engine</span>
+                <strong>Supply Planning</strong>
+            </div>
+
+            <a href="{% url 'procurement' %}" class="sidebar-action-link active-node">Review Advice &amp; Forecasts</a>
+            <a href="{% url 'alerts' %}" class="sidebar-action-link"> Alerts</a>
+            <a href="{% url 'procurement_reports' %}" class="sidebar-action-link">Purchase Order Log</a>
+        </aside>
+
+        <!-- COLUMN 2: RECOMMENDATIONS AND PURCHASE ORDER FORM -->
+        <main class="procurement-main">
+            <!-- Purchase order form -->
+            <section class="panel">
+                <h2 class="panel-heading">Draft Purchase Order</h2>
+                <p class="muted-text">
+                    Select a medicine, specify the quantity, and identify the
+                    supplier. The server must validate the submitted details
+                    before creating a purchase order.
+                </p>
+
+                <form method="POST"
+                      action="{% url 'procurement' %}"
+                      style="display: flex; flex-direction: column; gap: 1.25rem;">
+
+                    {% csrf_token %}
+                    <div class="form-field">
+                        <label for="med_select">Target Medicine</label>
+
+                        <select id="med_select" name="medicine_id" required>
+                            <option value="" disabled selected>
+                                -- Select Medicine --
+                            </option>
+
+                            {% for med in medicines %}
+                                <option value="{{ med.id }}">{{ med.name }}</option>
+                            {% empty %}
+                                <option value="" disabled>No medicines available</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label for="po_qty">Order Quantity</label>
+                            <input
+                                type="number"
+                                id="po_qty"
+                                name="quantity"
+                                min="1"
+                                step="1"
+                                required
+                            ></div>
+
+                        <div class="form-field">
+                            <label for="supplier">Supplier</label>
+                            <input
+                                type="text"
+                                id="supplier"
+                                name="supplier_name"
+                                placeholder="Enter registered supplier name"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="form-field">
+                        <label for="rec_ref">
+                            Link Recommendation ID (Optional)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="rec_ref"
+                            name="recommendation_id"
+                            min="1"
+                            placeholder="Enter recommendation ID"
+                        >
+                    </div>
+
+                    <button type="submit" class="primary-button">Submit Purchase Order for Review →</button>
+                </form>
+            </section>
+        </main>
+
+        <!-- COLUMN 3: DEMAND FORECASTS -->
+        <aside class="forecast-panel">
+            <section class="panel">
+                <h2 class="panel-heading">3-Month Moving Average Demand Forecast</h2>
+                <p class="muted-text">
+                    Review demand forecasts alongside current stock and
+                    procurement recommendations. Confirm that projected
+                    demand and available quantities support the proposed order.
+                </p>
+
+                <div class="scroll-list">
+                    {% for item in forecasts %}
+                        <article class="forecast-card">
+                            <strong style="display: block; text-transform: uppercase; margin-bottom: 0.75rem;">
+                                {{ item.medicine.medicine_name|default:item.medicine|default:"Medicine forecast" }}
+                            </strong>
+
+                            <div style="margin-bottom: 0.5rem;">
+                                Forecasted Demand:
+                                <strong>
+                                    {{ item.forecasted_demand|default_if_none:"Not recorded" }}
+                                </strong>
+                            </div>
+
+                            {% if item.forecasted_quantity != None %}
+                                <div style="margin-bottom: 0.5rem;">
+                                    Forecast Quantity:
+                                    <strong>{{ item.forecasted_quantity }}</strong>
+                                </div>
+                            {% endif %}
+
+                            {% if item.forecast_period %}
+                                <div style="margin-bottom: 0.5rem;">
+                                    Forecast Period:
+                                    {{ item.forecast_period }}
+                                </div>
+                            {% endif %}
+
+                            {% if item.forecast_date %}
+                                <div class="muted-text">
+                                    Forecast Date: {{ item.forecast_date }}
+                                </div>
+                            {% elif item.generated_at %}
+                                <div class="muted-text">
+                                    Generated: {{ item.generated_at|date:"d M Y H:i" }}
+                                </div>
+                            {% endif %}
+
+                        </article>
+                    {% empty %}
+                        <div class="empty-state">No demand forecasts are currently available.</div>
+                    {% endfor %}
+                </div>
+            </section>
+             <!-- Recommendations -->
+            <section class="panel">
+                <h2 class="panel-heading">
+                    Store Manager Replenishment Requests
+                </h2>
+
+                <div class="scroll-list" style="max-height: 320px;">
+                    {% for rec in recommendations %}
+                        <article class="recommendation-card">
+
+                            <div class="recommendation-top">
+                                <strong style="text-transform: uppercase;">
+                                    {{ rec.medicine.medicine_name|default:rec.medicine }}
+                                </strong>
+
+                                <span class="action-badge"
+                                    {% if rec.urgency_level == 'High' or rec.urgency_level == 'Critical' %}
+                                        style="background: #b00020; color: #fff;"
+                                    {% endif %}>
+                                    {{ rec.urgency_level|default:"Standard" }}
+                                </span>
+                            </div>
+
+                            <p>Suggested Quantity:<strong>{{ rec.recommended_quantity }} units</strong></p>
+
+                            <p class="muted-text">
+                                Reason:
+                                {{ rec.reasoning|default:rec.justification|default:"No explanation supplied." }}
+                            </p>
+
+                            <div style="border-top: 1px dashed #ccc; padding-top: 0.6rem; margin-top: 0.6rem; display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;">
+                                <span class="muted-text">
+                                    Raised by:
+                                    {{ rec.raised_by.username|default:"System" }}
+                                </span>
+
+                                <span class="muted-text">
+                                    Reference: #{{ rec.id }}
+                                </span>
+                            </div>
+
+                            {% if rec.status %}
+                                <p class="muted-text">
+                                    Status: {{ rec.status }}
+                                </p>
+                            {% endif %}
+
+                        </article>
+
+                    {% empty %}
+                        <div class="empty-state">
+                            No procurement recommendations are currently available.
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </aside>
+    </div>
+</div>
+{% endblock %}

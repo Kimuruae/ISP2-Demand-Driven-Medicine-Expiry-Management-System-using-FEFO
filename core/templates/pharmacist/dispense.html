@@ -1,7 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div style="max-width:1500px; margin:2rem auto; padding:0 1.5rem; font-family:Arial,Helvetica,sans-serif; color:#000000; box-sizing:border-box;">
+<div style="max-width:1400px;margin:30px auto;padding:0 20px;font-family:Arial,sans-serif;color:#1e293b;">
+    <div style="background:linear-gradient(120deg,#123b66,#087e8b);color:white;padding:28px;border-radius:14px;margin-bottom:25px;">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.85;">Procurement Officer Workspace</div>
+        <h1 style="font-size:28px;margin:8px 0;font-weight:800;">Pharmacist Medicine Dispensing Portal</h1>
+        <p style="margin:0;font-size:14px;opacity:.9;">Verify medicine, check eligible batches, dispense earliest expiry first, document any justified override.</p>
+    </div>
+
+<div class="pharmacist-dispensing-page"
+     style="max-width:1500px; margin:2rem auto; padding:0 1.5rem; font-family:Arial,Helvetica,sans-serif; box-sizing:border-box;">
     <!-- DJANGO SUCCESS AND ERROR MESSAGES -->
     {% if messages %}
         <div style="margin-bottom:1.5rem;">
@@ -17,154 +25,360 @@
     <!-- RESPONSIVE THREE-COLUMN WORKSPACE -->
     <div class="workspace-layout-shell">
 
-        <style>
-            .workspace-layout-shell {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr);
-                gap: 1.5rem;
-                align-items: start;
-            }
+<style>
+    .pharmacist-dispensing-page {
+        --primary: #0F766E;
+        --primary-dark: #115E59;
+        --primary-light: #CCFBF1;
+        --navy: #16324F;
+        --navy-light: #244766;
+        --sidebar: #0B4052;
+        --background: #F2F6FA;
+        --surface: #FFFFFF;
+        --muted: #64748B;
+        --border: #D8E5EE;
+        --success: #218653;
+        --warning: #B7791F;
+        --danger: #DC3545;
 
-            @media (min-width: 1050px) {
-                .workspace-layout-shell {
-                    grid-template-columns: 230px minmax(0, 1.5fr) minmax(0, 1fr);
-                }
-            }
+        color: var(--navy) !important;
+    }
 
-            .sidebar-action-link {
-                display: flex;
-                align-items: center;
-                gap: 0.65rem;
-                padding: 1rem;
-                border: 1px solid #000000;
-                background: #ffffff;
-                color: #000000;
-                text-decoration: none;
-                font-size: 12px;
-                font-weight: bold;
-                text-transform: uppercase;
-                letter-spacing: 0.02em;
-                transition: background-color 0.15s ease, color 0.15s ease;
-            }
+    .pharmacist-dispensing-page *,
+    .pharmacist-dispensing-page *::before,
+    .pharmacist-dispensing-page *::after {
+        box-sizing: border-box;
+    }
 
-            .sidebar-action-link:hover,
-            .sidebar-action-link.active-node {
-                background: #000000;
-                color: #ffffff;
-            }
+    /* PAGE BACKGROUND */
+    .pharmacist-dispensing-page {
+        background: var(--background);
+        padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+        border-radius: 12px;
+    }
 
-            .form-control {
-                box-sizing: border-box;
-                width: 100%;
-                border: 1px solid #000000;
-                padding: 0.85rem;
-                font-size: 14px;
-                font-family: Arial, Helvetica, sans-serif;
-                border-radius: 0;
-                background: #ffffff;
-                color: #000000;
-            }
+    /* THREE-COLUMN WORKSPACE */
+    .workspace-layout-shell {
+        display: grid;
+        grid-template-columns: 230px minmax(0, 1.5fr) minmax(0, 1fr);
+        gap: 1.25rem;
+        align-items: start;
+    }
 
-            .form-control:focus {
-                outline: 2px solid #087f68;
-                outline-offset: 2px;
-            }
+    /* LEFT NAVIGATION */
+    .pharmacist-dispensing-page aside {
+        background: var(--sidebar);
+        border-radius: 12px;
+        padding: 1rem;
+        gap: .65rem !important;
+        box-shadow: 0 5px 15px rgba(22, 50, 79, .12);
+    }
 
-            .field-label {
-                font-size: 12px;
-                font-weight: bold;
-                text-transform: uppercase;
-                letter-spacing: 0.03em;
-            }
+    .pharmacist-dispensing-page aside > div:first-child {
+        background: var(--navy) !important;
+        border: 1px solid #315B75 !important;
+        border-radius: 9px;
+        color: #FFFFFF !important;
+        padding: 1.2rem !important;
+    }
 
-            .panel-heading {
-                font-size: 15px;
-                font-weight: bold;
-                text-transform: uppercase;
-                margin: 0 0 1.25rem;
-                border-bottom: 1px solid #000000;
-                padding-bottom: 0.75rem;
-                letter-spacing: 0.02em;
-            }
+    .pharmacist-dispensing-page aside > div:first-child div {
+        color: #B9D8E5 !important;
+    }
 
-            .batch-card {
-                border: 1px solid #000000;
-                padding: 1rem;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 0.75rem;
-                font-size: 13px;
-                background: #ffffff;
-            }
+    .sidebar-action-link {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+        padding: .95rem .85rem;
+        border: 1px solid transparent !important;
+        border-radius: 8px;
+        background: transparent !important;
+        color: #FFFFFF !important;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+        transition: .2s ease;
+    }
 
-            .batch-name {
-                font-weight: bold;
-                display: block;
-                text-transform: uppercase;
-                overflow-wrap: anywhere;
-            }
+    .sidebar-action-link:hover,
+    .sidebar-action-link.active-node {
+        background: #0D8990 !important;
+        border-color: #159CA1 !important;
+        color: #FFFFFF !important;
+        transform: translateX(2px);
+    }
 
-            .panel {
-                min-width: 0;
-                border: 1px solid #000000;
-                padding: 1.5rem;
-                background: #ffffff;
-                box-sizing: border-box;
-            }
+    /* SIDEBAR GUIDANCE */
+    .pharmacist-dispensing-page aside > div:nth-last-child(2) {
+        background: #164F60 !important;
+        border: 1px solid #286A79 !important;
+        color: #FFFFFF !important;
+        border-radius: 9px;
+    }
 
-            .action-button {
-                width: 100%;
-                background: #000000;
-                color: #ffffff;
-                border: 1px solid #000000;
-                padding: 1rem;
-                font-size: 12px;
-                font-weight: bold;
-                text-transform: uppercase;
-                letter-spacing: 0.04em;
-                cursor: pointer;
-            }
+    .pharmacist-dispensing-page aside > div:last-child {
+        background: #FFF5E5 !important;
+        border: 1px solid #F0D6A6 !important;
+        color: #805B16 !important;
+        border-radius: 9px;
+    }
 
-            .action-button:hover {
-                background: #087f68;
-                border-color: #087f68;
-            }
+    /* MAIN CONTENT PANELS */
+    .pharmacist-dispensing-page .panel {
+        min-width: 0;
+        padding: 1.4rem !important;
+        background: var(--surface) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 13px !important;
+        color: var(--navy) !important;
+        box-shadow: 0 4px 14px rgba(22, 50, 79, .045);
+    }
 
-            @media (max-width: 480px) {
-                .workspace-layout-shell {
-                    gap: 1rem;
-                }
+    /* SECTION TITLES */
+    .panel-heading {
+        color: var(--navy) !important;
+        font-size: 16px;
+        font-weight: 800;
+        border-bottom: 2px solid var(--primary) !important;
+        padding-bottom: .85rem;
+        letter-spacing: .02em;
+    }
 
-                .panel {
-                    padding: 1rem;
-                }
+    .pharmacist-dispensing-page .panel p {
+        color: var(--muted) !important;
+    }
 
-                .station-title {
-                    font-size: 21px !important;
-                }
-            }
+    .pharmacist-dispensing-page .panel span[style*="color:#666666"] {
+        color: var(--primary) !important;
+    }
+
+    /* FORM LABELS */
+    .field-label {
+        color: var(--navy) !important;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .03em;
+    }
+
+    /* FORM INPUTS */
+    .form-control {
+        width: 100%;
+        padding: .9rem;
+        border: 1px solid #C9D8E2 !important;
+        border-radius: 8px !important;
+        background: #F8FAFC !important;
+        color: var(--navy) !important;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 13px;
+        transition: .2s ease;
+    }
+
+    .form-control:hover {
+        border-color: #83BDB3 !important;
+    }
+
+    .form-control:focus {
+        outline: none !important;
+        border-color: var(--primary) !important;
+        background: #FFFFFF !important;
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, .13) !important;
+    }
+
+    .form-control option {
+        color: var(--navy);
+        background: #FFFFFF;
+    }
+
+    /* BATCH LEDGER */
+    .batch-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .75rem;
+        padding: 1rem;
+        border: 1px solid var(--border) !important;
+        border-left: 4px solid var(--primary) !important;
+        border-radius: 9px;
+        background: #F8FAFC !important;
+        color: var(--navy) !important;
+        transition: .2s ease;
+    }
+
+    .batch-card:hover {
+        background: #EAF7F4 !important;
+        border-color: #9ACFC4 !important;
+        transform: translateY(-2px);
+    }
+
+    .batch-name {
+        display: block;
+        color: var(--navy) !important;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+    }
+
+    .batch-card code {
+        background: #E7EEF4;
+        color: var(--primary-dark);
+        padding: 3px 5px;
+        border-radius: 4px;
+    }
+
+    .batch-card > div:last-child {
+        min-width: 76px;
+        padding: .6rem;
+        background: #E5F5EF;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .batch-card > div:last-child strong {
+        color: var(--success) !important;
+    }
+
+    /* PRIMARY DISPENSING BUTTON */
+    .action-button {
+        width: 100%;
+        padding: 1rem;
+        border: 1px solid var(--primary-dark) !important;
+        border-radius: 8px !important;
+        background: var(--primary) !important;
+        color: #FFFFFF !important;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(15, 118, 110, .15);
+        transition: .2s ease;
+    }
+
+    .action-button:hover {
+        background: var(--navy) !important;
+        border-color: var(--navy) !important;
+        transform: translateY(-2px);
+    }
+
+    /* SAFETY INFORMATION */
+    .pharmacist-dispensing-page section.panel div[style*="background:#fafafa"] {
+        background: #EAF2F7 !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 9px;
+        color: var(--navy) !important;
+    }
+
+    .pharmacist-dispensing-page section.panel div[style*="border:1px solid #dddddd"] {
+        background: #E8F5F2 !important;
+        border: 1px solid #B8DED5 !important;
+        border-radius: 9px;
+    }
+
+    /* INVENTORY MONITOR */
+    .pharmacist-dispensing-page section.panel div[style*="border-bottom:1px solid #dddddd"] {
+        border-bottom: 2px solid var(--primary) !important;
+    }
+
+    /* DASHBOARD NAVIGATION LINK */
+    .pharmacist-dispensing-page section.panel > a {
+        display: block;
+        padding: .9rem;
+        border: 1px solid var(--navy) !important;
+        border-radius: 8px;
+        background: var(--navy) !important;
+        color: #FFFFFF !important;
+        text-align: center;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 800;
+        transition: .2s ease;
+    }
+
+    .pharmacist-dispensing-page section.panel > a:hover {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+    }
+
+    /* EMPTY BATCH STATE */
+    .pharmacist-dispensing-page li[style*="border:1px dashed"] {
+        background: #F8FAFC !important;
+        border: 1px dashed #AABBC8 !important;
+        border-radius: 9px;
+        color: var(--muted) !important;
+    }
+
+    /* DJANGO MESSAGES */
+    .pharmacist-dispensing-page [role="alert"] {
+        border-radius: 8px !important;
+        font-weight: 600;
+    }
+
+    /* FOOTER */
+    .pharmacist-dispensing-page footer {
+        border-top: 1px solid var(--border) !important;
+        color: var(--muted) !important;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1050px) {
+        .workspace-layout-shell {
+            grid-template-columns: 200px minmax(0, 1fr);
+        }
+
+        .workspace-layout-shell > section:last-child {
+            grid-column: 2;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .workspace-layout-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .workspace-layout-shell > section:last-child {
+            grid-column: auto;
+        }
+
+        .pharmacist-dispensing-page aside {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .pharmacist-dispensing-page aside > div {
+            grid-column: 1 / -1;
+        }
+
+        .pharmacist-dispensing-page .panel {
+            padding: 1rem !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .pharmacist-dispensing-page {
+            padding-left: .75rem !important;
+            padding-right: .75rem !important;
+        }
+
+        .pharmacist-dispensing-page aside {
+            display: flex !important;
+        }
+
+        .batch-card {
+            align-items: flex-start;
+        }
+    }
         </style>
 
         <!-- COLUMN 1: PHARMACIST NAVIGATION -->
         <aside style="display:flex; flex-direction:column; gap:1rem;">
-
             <div style="border:1px solid #000000; padding:1rem; background:#fafafa; text-align:center;">
                 <span style="font-size:11px; font-weight:bold; text-transform:uppercase; letter-spacing:0.05em;">Operations Control</span>
-                <div style="font-size:11px; color:#555555; margin-top:0.5rem;">Pharmacist Workspace</div>
             </div>
-
             <a href="{% url 'dispense' %}" class="sidebar-action-link active-node" aria-current="page">Dispense Medicine</a>
-            <a href="{% url 'pharmacist_dashboard' %}" class="sidebar-action-link">📊Pharmacist Dashboard</a>
-            <a href="{% url 'alerts' %}" class="sidebar-action-link"><span>⚠️</span> Alerts Centre</a>
-            <a href="{% url 'profile' %}" class="sidebar-action-link">👤 My Profile</a>
-            <div style="border:1px solid #000000; padding:1rem; margin-top:0.5rem; font-size:12px; line-height:1.8;">
-                <div style="font-weight:bold; text-transform:uppercase; margin-bottom:0.5rem;">FEFO Protocol</div>
-                <div>1. Verify medicine.</div>
-                <div>2. Check eligible batches.</div>
-                <div>3. Dispense earliest expiry first.</div>
-                <div>4. Document any justified override.</div>
-            </div>
+            <a href="{% url 'pharmacist_dashboard' %}" class="sidebar-action-link">Pharmacist Reports</a>
+            <a href="{% url 'alerts' %}" class="sidebar-action-link">Alerts</a>
+            <a href="{% url 'profile' %}" class="sidebar-action-link">My Profile</a>
 
             <div style="background:#f5f5f5; border:1px solid #dddddd; padding:1rem; font-size:11px; color:#555555; line-height:1.6;">
                 Expired, depleted or inactive batches must not be selected for dispensing.
@@ -262,7 +476,7 @@
                             <option value="{{ batch.id }}"
                                     data-medicine-id="{{ batch.medicine_id }}"
                                     data-expiry="{{ batch.expiry_date|date:'Y-m-d' }}">
-                                {{ batch.medicine.name }} |
+                                {{ batch.medicine.medicine_name }} |
                                 {{ batch.batch_number }} |
                                 Expires: {{ batch.expiry_date|date:"d M Y" }} |
                                 Available: {{ batch.quantity_available }}
@@ -344,7 +558,7 @@
 
                             <div style="min-width:0;">
                                 <span class="batch-name">
-                                    {{ batch.medicine.name }}
+                                    {{ batch.medicine.medicine_name }}
                                 </span>
 
                                 <div style="font-size:11px; color:#555555; margin-top:0.4rem; line-height:1.7;">
@@ -402,10 +616,5 @@
             </a>
         </section>
     </div>
-    <!-- FOOTER -->
-    <footer style="border-top:1px solid #dddddd; margin-top:2rem; padding:1rem 0; display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.75rem; font-size:11px; color:#666666;">
-        <span>Medicine Expiry Management System</span>
-        <span>FEFO Inventory Control Workspace</span>
-    </footer>
 </div>
 {% endblock %}

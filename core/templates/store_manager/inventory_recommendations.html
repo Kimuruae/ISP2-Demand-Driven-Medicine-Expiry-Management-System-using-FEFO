@@ -54,7 +54,7 @@
                 {% for rec in recommendations %}
                     <div class="sm-warning">
                         <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                            <strong style="font-size:14px;">{{ rec.medicine.name }}</strong>
+                            <strong style="font-size:14px;">{{ rec.medicine.medicine_name }}</strong>
                             <span style="font-size:11px;font-weight:800;color:#9a3412;background:#ffedd5;padding:5px 9px;border-radius:20px;">LOW STOCK</span>
                         </div>
                         <div style="font-size:13px;color:#475569;margin-top:8px;">
@@ -123,7 +123,7 @@
                 {% for rec in recommendation_history %}
                     <div class="sm-history">
                         <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                            <strong style="font-size:14px;">{{ rec.medicine.name }}</strong>
+                            <strong style="font-size:14px;">{{ rec.medicine.medicine_name }}</strong>
                             <span style="font-size:11px;font-weight:800;background:#dbeafe;color:#1e40af;padding:5px 9px;border-radius:20px;">
                                 {{ rec.get_status_display }}
                             </span>

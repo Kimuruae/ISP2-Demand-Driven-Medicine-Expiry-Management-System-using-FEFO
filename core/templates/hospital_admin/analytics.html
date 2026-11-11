@@ -1,0 +1,565 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hospital Analytics | Medicine Expiry Management{% endblock %}
+{% block nav_dash %}active{% endblock %}
+{% block header_title %}Hospital Analytics{% endblock %}
+
+{% block content %}
+
+<style>
+.analytics-page {
+    padding: 24px;
+    color: #1e293b;
+}
+
+.analytics-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.analytics-heading h2 {
+    margin: 0;
+    font-size: 25px;
+    font-weight: 700;
+}
+
+.analytics-heading p {
+    color: #64748b;
+    margin: 6px 0 0;
+    font-size: 13px;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 26px;
+}
+
+.analytics-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    min-width: 0;
+}
+
+.analytics-card .metric-label {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+.analytics-card .metric-value {
+    display: block;
+    font-size: 29px;
+    font-weight: 750;
+    margin-top: 10px;
+    color: #0f172a;
+}
+
+.analytics-card .metric-note {
+    color: #64748b;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.analytics-section {
+    margin-top: 28px;
+}
+
+.analytics-section h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 15px;
+}
+
+.analytics-charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.chart-panel {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    min-width: 0;
+}
+
+.chart-panel h4 {
+    margin: 0 0 18px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.chart-container {
+    position: relative;
+    height: 290px;
+}
+
+.analytics-table-wrapper {
+    overflow-x: auto;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.analytics-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 650px;
+}
+
+.analytics-table th,
+.analytics-table td {
+    padding: 13px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.analytics-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+
+.analytics-table tr:last-child td {
+    border-bottom: none;
+}
+
+.status-pill {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.status-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-neutral {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.analytics-empty {
+    padding: 24px;
+    text-align: center;
+    color: #64748b;
+}
+
+.analytics-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.analytics-button {
+    display: inline-block;
+    padding: 9px 14px;
+    border-radius: 7px;
+    background: #0f172a;
+    color: white;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.analytics-button:hover {
+    background: #334155;
+    color: white;
+}
+
+@media (max-width: 1000px) {
+    .analytics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .analytics-page {
+        padding: 14px;
+    }
+
+    .analytics-charts {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-grid {
+        gap: 10px;
+    }
+
+    .analytics-card {
+        padding: 14px;
+    }
+
+    .analytics-card .metric-value {
+        font-size: 23px;
+    }
+}
+
+@media (max-width: 420px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<div class="analytics-page">
+
+    <div class="analytics-heading">
+        <div>
+            <h2>Hospital Performance Analytics</h2>
+            <p>Inventory, medicine expiry, FEFO compliance and procurement insights.</p>
+            <p>Reporting date: {{ today|date:"d M Y" }}</p>
+        </div>
+
+        <div class="analytics-actions">
+            <a href="{% url 'admin_dashboard' %}" class="analytics-button">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI OVERVIEW -->
+    <div class="analytics-grid">
+
+        <div class="analytics-card">
+            <span class="metric-label">Registered Medicines</span>
+            <span class="metric-value">{{ total_medicines|default:0 }}</span>
+            <div class="metric-note">Medicines in the facility</div>
+        </div>
+
+        <div class="analytics-card">
+            <span class="metric-label">Total Batches</span>
+            <span class="metric-value">{{ total_batches|default:0 }}</span>
+            <div class="metric-note">Recorded medicine batches</div>
+        </div>
+
+        <div class="analytics-card">
+            <span class="metric-label">Expired Batches</span>
+            <span class="metric-value">{{ expired_count|default:0 }}</span>
+            <div class="metric-note">Batches past their expiry date</div>
+        </div>
+
+        <div class="analytics-card">
+            <span class="metric-label">Near-Expiry Batches</span>
+            <span class="metric-value">{{ near_expiry_count|default:0 }}</span>
+            <div class="metric-note">Batches approaching expiry</div>
+        </div>
+
+        <div class="analytics-card">
+            <span class="metric-label">Total Stock Volume</span>
+            <span class="metric-value">{{ total_stock_volume|default:0 }}</span>
+            <div class="metric-note">Units currently recorded</div>
+        </div>
+
+        <div class="analytics-card">
+            <span class="metric-label">Dispensing Transactions</span>
+            <span class="metric-value">{{ total_dispenses|default:0 }}</span>
+            <div class="metric-note">Recorded dispensing activity</div>
+        </div>
+
+        <div class="analytics-card">
+            <span class="metric-label">FEFO Compliant</span>
+            <span class="metric-value">{{ fefo_compliant|default:0 }}</span>
+            <div class="metric-note">Transactions following FEFO</div>
+        </div>
+
+        <div class="analytics-card">
+            <span class="metric-label">FEFO Overrides</span>
+            <span class="metric-value">{{ fefo_overrides|default:0 }}</span>
+            <div class="metric-note">Transactions requiring an override</div>
+        </div>
+
+    </div>
+
+    <!-- EXPIRY AND FEFO ANALYTICS -->
+    <section class="analytics-section">
+        <h3>Inventory and FEFO Performance</h3>
+
+        <div class="analytics-charts">
+
+            <div class="chart-panel">
+                <h4>Medicine Batch Expiry Status</h4>
+                <div class="chart-container">
+                    <canvas id="expiryAnalyticsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-panel">
+                <h4>FEFO Compliance Distribution</h4>
+                <div class="chart-container">
+                    <canvas id="fefoAnalyticsChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- PROCUREMENT ANALYTICS -->
+    <section class="analytics-section">
+        <h3>Procurement Performance</h3>
+
+        <div class="analytics-grid">
+
+            <div class="analytics-card">
+                <span class="metric-label">Pending Review</span>
+                <span class="metric-value">{{ pending_po_count|default:0 }}</span>
+                <div class="metric-note">Purchase orders awaiting review</div>
+            </div>
+
+            <div class="analytics-card">
+                <span class="metric-label">Approved Orders</span>
+                <span class="metric-value">{{ approved_po_count|default:0 }}</span>
+                <div class="metric-note">Approved purchase orders</div>
+            </div>
+
+            <div class="analytics-card">
+                <span class="metric-label">Placed Orders</span>
+                <span class="metric-value">{{ placed_po_count|default:0 }}</span>
+                <div class="metric-note">Orders placed with suppliers</div>
+            </div>
+
+            <div class="analytics-card">
+                <span class="metric-label">Rejected Orders</span>
+                <span class="metric-value">{{ rejected_po_count|default:0 }}</span>
+                <div class="metric-note">Rejected purchase orders</div>
+            </div>
+
+        </div>
+
+        <div class="chart-panel">
+            <h4>Purchase Order Status Distribution</h4>
+            <div class="chart-container">
+                <canvas id="procurementAnalyticsChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- DEMAND FORECASTING -->
+    <section class="analytics-section">
+        <h3>Demand Forecasting</h3>
+
+        <div class="analytics-table-wrapper">
+            <table class="analytics-table">
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Forecast Period</th>
+                        <th>Forecast Quantity</th>
+                        <th>Three-Period Moving Average</th>
+                        <th>Confidence</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for forecast in recent_forecasts %}
+                    <tr>
+                        <td>{{ forecast.medicine.medicine_name }}</td>
+                        <td>
+                            {{ forecast.forecast_period_start|date:"d M Y" }}
+                            –
+                            {{ forecast.forecast_period_end|date:"d M Y" }}
+                        </td>
+                        <td>{{ forecast.forecasted_quantity }}</td>
+                        <td>{{ forecast.moving_avg_3month|default:"—" }}</td>
+                        <td>
+                            {% if forecast.confidence_score != None %}
+                                {{ forecast.confidence_score }}%
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="analytics-empty">
+                            No demand forecast records are available.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- STOCK EXPIRY MONITORING -->
+    <section class="analytics-section">
+        <h3>Stock Expiry Monitoring</h3>
+
+        <div class="analytics-table-wrapper">
+            <table class="analytics-table">
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Batch Number</th>
+                        <th>Quantity Available</th>
+                        <th>Expiry Date</th>
+                        <th>Expiry Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for batch in batches %}
+                    <tr>
+                        <td>{{ batch.medicine.medicine_name }}</td>
+                        <td>{{ batch.batch_number }}</td>
+                        <td>{{ batch.quantity_available }}</td>
+                        <td>{{ batch.expiry_date|date:"d M Y" }}</td>
+                        <td>
+                            {% if batch.expiry_date < today %}
+                                <span class="status-pill status-danger">Expired</span>
+                            {% elif batch.expiry_date <= near_expiry_date %}
+                                <span class="status-pill status-warning">Near Expiry</span>
+                            {% else %}
+                                <span class="status-pill status-success">Valid</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="analytics-empty">
+                            No stock batches are available.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+{{ analytics_chart_data|json_script:"analytics-chart-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const dataElement = document.getElementById("analytics-chart-data");
+
+    if (!dataElement) {
+        return;
+    }
+
+    const data = JSON.parse(dataElement.textContent);
+
+    const expiryCanvas = document.getElementById("expiryAnalyticsChart");
+
+    if (expiryCanvas) {
+        new Chart(expiryCanvas, {
+            type: "doughnut",
+            data: {
+                labels: ["Expired", "Near Expiry", "Other Batches"],
+                datasets: [{
+                    data: [
+                        data.expired || 0,
+                        data.near_expiry || 0,
+                        data.other_batches || 0
+                    ],
+                    backgroundColor: ["#dc2626", "#f59e0b", "#16a34a"],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: "bottom" }
+                }
+            }
+        });
+    }
+
+    const fefoCanvas = document.getElementById("fefoAnalyticsChart");
+
+    if (fefoCanvas) {
+        new Chart(fefoCanvas, {
+            type: "doughnut",
+            data: {
+                labels: ["FEFO Compliant", "FEFO Overrides"],
+                datasets: [{
+                    data: [
+                        data.fefo_compliant || 0,
+                        data.fefo_overrides || 0
+                    ],
+                    backgroundColor: ["#16a34a", "#f59e0b"],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: "bottom" }
+                }
+            }
+        });
+    }
+
+    const procurementCanvas = document.getElementById("procurementAnalyticsChart");
+
+    if (procurementCanvas) {
+        new Chart(procurementCanvas, {
+            type: "bar",
+            data: {
+                labels: ["Pending", "Approved", "Placed", "Rejected"],
+                datasets: [{
+                    label: "Purchase Orders",
+                    data: [
+                        data.pending_pos || 0,
+                        data.approved_pos || 0,
+                        data.placed_pos || 0,
+                        data.rejected_pos || 0
+                    ],
+                    backgroundColor: ["#f59e0b", "#2563eb", "#16a34a", "#dc2626"],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,1143 @@
+{% extends 'base.html' %}
+{% block title %}Hospital Administration | Medicine Expiry Management{% endblock %}
+{% block nav_dash %}active{% endblock %}
+{% block header_title %}Hospital Operations{% endblock %}
+
+{% block content %}
+
+<style>
+.admin-dashboard {
+    --ink: #172b4d;
+    --muted: #718096;
+    --border: #e6ebf2;
+    --surface: #ffffff;
+    --canvas: #f5f7fa;
+    --blue: #2457a7;
+    --red: #c83e3e;
+    --amber: #a66b00;
+    --green: #218653;
+    --purple: #7547b8;
+    color: var(--ink);
+    font-family: Arial, sans-serif;
+    padding-bottom: 24px;
+}
+
+.admin-dashboard *,
+.admin-dashboard *::before,
+.admin-dashboard *::after {
+    box-sizing: border-box;
+}
+
+/* MAIN NAVIGATION */
+
+.admin-navigation {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.admin-navigation a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: #334155;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    transition: .2s ease;
+}
+
+.admin-navigation a:hover {
+    border-color: var(--blue);
+    background: #eff6ff;
+    color: var(--blue);
+    transform: translateY(-2px);
+}
+
+.admin-navigation a.active {
+    background: #eff6ff;
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.admin-navigation .nav-icon {
+    font-size: 19px;
+}
+
+.admin-navigation .nav-description {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 400;
+}
+
+/* PAGE HEADER */
+
+.admin-dashboard .page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+}
+
+.admin-dashboard .eyebrow {
+    color: var(--blue);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.admin-dashboard .page-heading h2 {
+    font-size: 25px;
+    font-weight: 800;
+    margin: 0 0 7px;
+}
+
+.admin-dashboard .page-heading p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.admin-dashboard .report-date {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 15px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.admin-dashboard .report-date strong {
+    color: var(--ink);
+    margin-left: 4px;
+}
+
+/* SECTION HEADINGS */
+
+.admin-dashboard .section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin: 29px 0 14px;
+}
+
+.admin-dashboard .section-heading h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.admin-dashboard .section-heading p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.admin-dashboard .section-meta {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+/* ATTENTION STRIP */
+
+.admin-dashboard .attention-section {
+    margin-bottom: 27px;
+}
+
+.admin-dashboard .attention-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 12px;
+}
+
+.admin-dashboard .attention-heading h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.admin-dashboard .attention-heading span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.admin-dashboard .attention-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.admin-dashboard .attention-card {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--blue);
+    border-radius: 9px;
+    padding: 15px;
+}
+
+.admin-dashboard .attention-card.critical {
+    border-left-color: var(--red);
+}
+
+.admin-dashboard .attention-card.warning {
+    border-left-color: var(--amber);
+}
+
+.admin-dashboard .attention-card.info {
+    border-left-color: var(--blue);
+}
+
+.admin-dashboard .attention-card.purple {
+    border-left-color: var(--purple);
+}
+
+.admin-dashboard .attention-icon {
+    width: 35px;
+    height: 35px;
+    flex: 0 0 35px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: #f0f3f8;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.admin-dashboard .critical .attention-icon {
+    background: #fff0ef;
+    color: var(--red);
+}
+
+.admin-dashboard .warning .attention-icon {
+    background: #fff6e5;
+    color: var(--amber);
+}
+
+.admin-dashboard .info .attention-icon {
+    background: #eaf1ff;
+    color: var(--blue);
+}
+
+.admin-dashboard .purple .attention-icon {
+    background: #f1eaff;
+    color: var(--purple);
+}
+
+.admin-dashboard .attention-copy strong {
+    display: block;
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.admin-dashboard .attention-copy span {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+/* KPI CARDS */
+
+.admin-dashboard .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.admin-dashboard .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 17px;
+}
+
+.admin-dashboard .kpi-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-dashboard .kpi-label {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.admin-dashboard .kpi-icon {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #eaf1ff;
+    color: var(--blue);
+    font-size: 15px;
+}
+
+.admin-dashboard .kpi-icon.green {
+    background: #e8f7ef;
+    color: var(--green);
+}
+
+.admin-dashboard .kpi-icon.purple {
+    background: #f1eaff;
+    color: var(--purple);
+}
+
+.admin-dashboard .kpi-value {
+    font-size: 27px;
+    font-weight: 800;
+    margin: 13px 0 5px;
+    color: var(--ink);
+}
+
+.admin-dashboard .kpi-note {
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+/* ANALYTICS PANELS */
+
+.admin-dashboard .analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.admin-dashboard .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 18px;
+    min-width: 0;
+}
+
+.admin-dashboard .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.admin-dashboard .panel-header h4 {
+    margin: 0 0 5px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.admin-dashboard .panel-header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.admin-dashboard .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 250px;
+}
+
+.admin-dashboard .chart-control {
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--ink);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.admin-dashboard .chart-control:hover {
+    background: var(--canvas);
+}
+
+.admin-dashboard .analytics-wide {
+    grid-column: 1 / -1;
+}
+
+/* TABLES */
+
+.admin-dashboard .table-panel {
+    margin-top: 17px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    overflow: hidden;
+}
+
+.admin-dashboard .table-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-dashboard .table-panel-header h4 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.admin-dashboard .table-panel-header p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.admin-dashboard .table-count {
+    border-radius: 20px;
+    padding: 5px 9px;
+    background: #eaf1ff;
+    color: var(--blue);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.admin-dashboard .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.admin-dashboard .admin-table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+}
+
+.admin-dashboard .admin-table th {
+    padding: 12px 15px;
+    background: #f8fafd;
+    color: #64748b;
+    text-align: left;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .55px;
+}
+
+.admin-dashboard .admin-table td {
+    padding: 13px 15px;
+    border-top: 1px solid #edf0f5;
+    color: #334155;
+    font-size: 11px;
+    vertical-align: middle;
+}
+
+.admin-dashboard .admin-table tbody tr:hover {
+    background: #fafcff;
+}
+
+.admin-dashboard .admin-table td strong {
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.admin-dashboard .status-pill {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 5px 9px;
+    font-size: 9px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.admin-dashboard .status-active {
+    background: #e7f7ee;
+    color: #218653;
+}
+
+.admin-dashboard .status-expired {
+    background: #ffebeb;
+    color: #c53030;
+}
+
+.admin-dashboard .status-warning {
+    background: #fff4dc;
+    color: #a66b00;
+}
+
+.admin-dashboard .status-pending {
+    background: #eaf1ff;
+    color: #2457a7;
+}
+
+.admin-dashboard .status-neutral {
+    background: #f0f2f5;
+    color: #536174;
+}
+
+.admin-dashboard .empty-state {
+    padding: 27px 15px !important;
+    text-align: center;
+    color: var(--muted) !important;
+}
+
+.admin-dashboard .dashboard-footer {
+    margin-top: 23px;
+    padding: 15px 0;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    text-align: center;
+    font-size: 10px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1050px) {
+    .admin-dashboard .attention-grid,
+    .admin-dashboard .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .admin-dashboard .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-dashboard .analytics-wide {
+        grid-column: auto;
+    }
+
+    .admin-dashboard .chart-wrap {
+        height: 225px;
+    }
+}
+
+@media (max-width: 420px) {
+    .admin-dashboard .attention-grid,
+    .admin-dashboard .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-navigation {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+</style>
+
+<!-- ADMIN NAVIGATION -->
+<nav class="admin-navigation">
+
+    <a href="{% url 'admin_dashboard' %}" class="active">
+        <span class="nav-icon">▦</span>
+        <span>
+            Dashboard
+            <small class="nav-description">Hospital overview</small>
+        </span>
+    </a>
+
+    <a href="{% url 'hospital_admin_analytics' %}">
+        <span class="nav-icon">▥</span>
+        <span>
+            Analytics
+            <small class="nav-description">Performance insights</small>
+        </span>
+    </a>
+
+    <a href="#purchase-orders">
+        <span class="nav-icon">▤</span>
+        <span>
+            Purchase Orders
+            <small class="nav-description">Review order requests</small>
+        </span>
+    </a>
+
+    <a href="#inventory-monitoring">
+        <span class="nav-icon">▧</span>
+        <span>
+            Inventory
+            <small class="nav-description">Stock and expiry status</small>
+        </span>
+    </a>
+
+    <a href="#reports">
+        <span class="nav-icon">▨</span>
+        <span>
+            Reports
+            <small class="nav-description">Hospital reporting</small>
+        </span>
+    </a>
+
+    <a href="{% url 'alerts' %}">
+        <span class="nav-icon">♧</span>
+        <span>
+            Alerts
+            <small class="nav-description">System notifications</small>
+        </span>
+    </a>
+
+</nav>
+
+<div class="admin-dashboard">
+
+    <!-- PAGE HEADER -->
+
+    <header class="page-heading">
+        <div>
+            <div class="eyebrow">Hospital Administration</div>
+            <h2>Hospital Operations Overview</h2>
+            <p>
+                Monitor medicine inventory, expiry risks, FEFO dispensing
+                and procurement activity across the facility.
+            </p>
+        </div>
+
+        <div class="report-date">
+            Reporting date:
+            <strong>{% now "d M Y" %}</strong>
+        </div>
+    </header>
+
+    <!-- PRIORITY ATTENTION -->
+
+    <section class="attention-section">
+        <div class="attention-heading">
+            <h3>Requires Attention</h3>
+            <span>Current operational exceptions</span>
+        </div>
+
+        <div class="attention-grid">
+
+            <div class="attention-card critical">
+                <div class="attention-icon">!</div>
+                <div class="attention-copy">
+                    <strong>{{ expired_count|default:0 }}</strong>
+                    <span>Expired stock batches</span>
+                </div>
+            </div>
+
+            <div class="attention-card warning">
+                <div class="attention-icon">◷</div>
+                <div class="attention-copy">
+                    <strong>{{ near_expiry_count|default:0 }}</strong>
+                    <span>Near-expiry batches</span>
+                </div>
+            </div>
+
+            <div class="attention-card info">
+                <div class="attention-icon">⚑</div>
+                <div class="attention-copy">
+                    <strong>{{ active_alerts_count|default:0 }}</strong>
+                    <span>Unresolved alerts</span>
+                </div>
+            </div>
+
+            <div class="attention-card purple">
+                <div class="attention-icon">▣</div>
+                <div class="attention-copy">
+                    <strong>{{ pending_po_count|default:0 }}</strong>
+                    <span>Purchase orders awaiting review</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- INVENTORY SUMMARY -->
+
+    <section>
+        <div class="section-heading">
+            <div>
+                <h3>Inventory Overview</h3>
+                <p>Current medicine and stock position</p>
+            </div>
+            <span class="section-meta">Hospital-wide summary</span>
+        </div>
+
+        <div class="kpi-grid">
+
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Active Medicines</span>
+                    <span class="kpi-icon">▦</span>
+                </div>
+                <div class="kpi-value">{{ total_medicines|default:0 }}</div>
+                <div class="kpi-note">Registered active medicine types</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Active Stock Batches</span>
+                    <span class="kpi-icon green">▤</span>
+                </div>
+                <div class="kpi-value">{{ total_batches|default:0 }}</div>
+                <div class="kpi-note">Recorded medicine batches</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Available Stock Units</span>
+                    <span class="kpi-icon purple">▥</span>
+                </div>
+                <div class="kpi-value">{{ total_stock_volume|default:0 }}</div>
+                <div class="kpi-note">Units currently recorded</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Dispensing Transactions</span>
+                    <span class="kpi-icon">↗</span>
+                </div>
+                <div class="kpi-value">{{ total_dispenses|default:0 }}</div>
+                <div class="kpi-note">Recorded dispensing transactions</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- OPERATIONAL ANALYTICS -->
+
+    <section>
+        <div class="section-heading">
+            <div>
+                <h3>Operational Analytics</h3>
+                <p>Expiry, procurement and dispensing performance</p>
+            </div>
+            <span class="section-meta">System-wide summary</span>
+        </div>
+
+        <div class="analytics-grid">
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h4>Medicine Expiry Analysis</h4>
+                        <p>Distribution of batches by expiry category</p>
+                    </div>
+                    <button class="chart-control" type="button"
+                        onclick="downloadChart('expiryChart', 'expiry-analysis')">
+                        Export PNG
+                    </button>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="expiryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h4>Procurement Status</h4>
+                        <p>Purchase orders by workflow status</p>
+                    </div>
+                    <button class="chart-control" type="button"
+                        onclick="downloadChart('procurementChart', 'procurement-analysis')">
+                        Export PNG
+                    </button>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="procurementChart"></canvas>
+                </div>
+            </div>
+
+            <div class="panel analytics-wide">
+                <div class="panel-header">
+                    <div>
+                        <h4>FEFO Dispensing Performance</h4>
+                        <p>Compliant transactions versus recorded overrides</p>
+                    </div>
+                    <button class="chart-control" type="button"
+                        onclick="downloadChart('fefoChart', 'fefo-performance')">
+                        Export PNG
+                    </button>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="fefoChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- PROCUREMENT REVIEW QUEUE -->
+
+    <section id="purchase-orders">
+        <div class="section-heading">
+            <div>
+                <h3>Procurement Review Queue</h3>
+                <p>Purchase orders requiring administrative attention</p>
+            </div>
+        </div>
+
+        <div class="table-panel">
+            <div class="table-panel-header">
+                <div>
+                    <h4>Purchase Orders Awaiting Review</h4>
+                    <p>Review submitted medicine and supplier details</p>
+                </div>
+                <span class="table-count">
+                    {{ pending_po_count|default:0 }} Pending
+                </span>
+            </div>
+
+            <div class="table-scroll">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Supplier</th>
+                            <th>Quantity</th>
+                            <th>Requested By</th>
+                            <th>Order Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for po in pending_pos %}
+                        <tr>
+                            <td><strong>{{ po.medicine.medicine_name }}</strong></td>
+                            <td>{{ po.supplier }}</td>
+                            <td>{{ po.quantity_ordered }}</td>
+                            <td>{{ po.raised_by }}</td>
+                            <td>{{ po.order_date|date:"d M Y" }}</td>
+                            <td>
+                                <span class="status-pill status-pending">
+                                    {{ po.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                No purchase orders are currently awaiting review.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- STOCK EXPIRY MONITORING -->
+
+    <section id="inventory-monitoring">
+        <div class="section-heading">
+            <div>
+                <h3>Stock Expiry Monitoring</h3>
+                <p>Stock batches ordered by earliest expiry date</p>
+            </div>
+            <span class="section-meta">Showing up to 10 batches</span>
+        </div>
+
+        <div class="table-panel">
+            <div class="table-scroll">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Batch Reference</th>
+                            <th>Available Units</th>
+                            <th>Expiry Date</th>
+                            <th>Stock Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for batch in batches|slice:":10" %}
+                        <tr>
+                            <td><strong>{{ batch.medicine.medicine_name }}</strong></td>
+                            <td>{{ batch.batch_number }}</td>
+                            <td>{{ batch.quantity_available }}</td>
+                            <td>{{ batch.expiry_date|date:"d M Y" }}</td>
+                            <td>
+                                {% if batch.expiry_date < today %}
+                                    <span class="status-pill status-expired">Expired</span>
+                                {% elif batch.expiry_date <= near_expiry_date %}
+                                    <span class="status-pill status-warning">Near Expiry</span>
+                                {% else %}
+                                    <span class="status-pill status-active">Active</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                No stock batches are currently available.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- REPORTS -->
+
+    <section id="reports">
+        <div class="section-heading">
+            <div>
+                <h3>Reports and Performance</h3>
+                <p>Access detailed hospital analytics and reporting</p>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h4>Detailed Hospital Analytics</h4>
+                    <p>Explore expiry trends, FEFO performance, demand forecasts and procurement insights.</p>
+                </div>
+                <a href="{% url 'hospital_admin_analytics' %}"
+                   class="chart-control"
+                   style="text-decoration:none;">
+                    Open Analytics
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- RECENT DISPENSING ACTIVITY -->
+
+    <section>
+        <div class="section-heading">
+            <div>
+                <h3>Recent Dispensing Activity</h3>
+                <p>Latest recorded transactions and FEFO override activity</p>
+            </div>
+            <span class="section-meta">Latest transactions</span>
+        </div>
+
+        <div class="table-panel">
+            <div class="table-scroll">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Batch</th>
+                            <th>Dispensed By</th>
+                            <th>Date and Time</th>
+                            <th>FEFO Override</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in global_transactions|slice:":10" %}
+                        <tr>
+                            <td><strong>{{ tx.medicine.medicine_name }}</strong></td>
+                            <td>{{ tx.batch.batch_number|default:"—" }}</td>
+                            <td>{{ tx.dispensed_by }}</td>
+                            <td>{{ tx.dispensed_at|date:"d M Y, H:i" }}</td>
+                            <td>
+                                {% if tx.is_override %}
+                                    <span class="status-pill status-expired">Override</span>
+                                {% else %}
+                                    <span class="status-pill status-active">No Override</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                No dispensing transactions recorded yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <footer class="dashboard-footer">
+        Medicine Expiry Management System
+        &nbsp;·&nbsp; Hospital Administration
+        &nbsp;·&nbsp; Operational Overview
+    </footer>
+
+</div>
+
+{{ chart_data|json_script:"hospital-chart-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const dataElement = document.getElementById("hospital-chart-data");
+
+    let chartData = {
+        expired: 0,
+        nearExpiry: 0,
+        activeBatches: 0,
+        pendingPOs: 0,
+        approvedPOs: 0,
+        placedPOs: 0,
+        rejectedPOs: 0,
+        fefoCompliant: 0,
+        fefoOverrides: 0
+    };
+
+    if (dataElement) {
+        try {
+            const serverData = JSON.parse(dataElement.textContent);
+
+            if (serverData && typeof serverData === "object") {
+                chartData = { ...chartData, ...serverData };
+            }
+        } catch (error) {
+            console.error("Hospital chart data could not be parsed.", error);
+        }
+    }
+
+    if (typeof Chart === "undefined") {
+        console.error("Chart.js could not be loaded.");
+        return;
+    }
+
+    const numeric = value => {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    };
+
+    const expired = numeric(chartData.expired);
+    const nearExpiry = numeric(chartData.nearExpiry);
+    const activeBatches = numeric(chartData.activeBatches);
+
+    const healthyBatches = Math.max(activeBatches - nearExpiry, 0);
+
+    Chart.defaults.font.family = "Arial, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = "#718096";
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: "bottom",
+                labels: {
+                    usePointStyle: true,
+                    padding: 17,
+                    boxWidth: 8
+                }
+            }
+        }
+    };
+
+    // EXPIRY ANALYSIS
+
+    new Chart(document.getElementById("expiryChart"), {
+        type: "doughnut",
+        data: {
+            labels: ["Expired", "Near Expiry", "Other Non-expired"],
+            datasets: [{
+                data: [expired, nearExpiry, healthyBatches],
+                backgroundColor: ["#c83e3e", "#e7a83e", "#36a675"],
+                borderWidth: 3,
+                borderColor: "#ffffff",
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            ...commonOptions,
+            cutout: "67%"
+        }
+    });
+
+    // PROCUREMENT STATUS
+
+    new Chart(document.getElementById("procurementChart"), {
+        type: "doughnut",
+        data: {
+            labels: ["Pending Review", "Approved", "Placed", "Rejected"],
+            datasets: [{
+                data: [
+                    numeric(chartData.pendingPOs),
+                    numeric(chartData.approvedPOs),
+                    numeric(chartData.placedPOs),
+                    numeric(chartData.rejectedPOs)
+                ],
+                backgroundColor: ["#4779c7", "#36a675", "#8b70c9", "#c83e3e"],
+                borderWidth: 3,
+                borderColor: "#ffffff",
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            ...commonOptions,
+            cutout: "67%"
+        }
+    });
+
+    // FEFO PERFORMANCE
+
+    new Chart(document.getElementById("fefoChart"), {
+        type: "bar",
+        data: {
+            labels: ["Dispensing Transactions"],
+            datasets: [
+                {
+                    label: "FEFO Compliant",
+                    data: [numeric(chartData.fefoCompliant)],
+                    backgroundColor: "#36a675",
+                    borderRadius: 5,
+                    maxBarThickness: 65
+                },
+                {
+                    label: "FEFO Overrides",
+                    data: [numeric(chartData.fefoOverrides)],
+                    backgroundColor: "#c83e3e",
+                    borderRadius: 5,
+                    maxBarThickness: 65
+                }
+            ]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                x: {
+                    stacked: true,
+                    grid: { display: false }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: { precision: 0 },
+                    grid: { color: "#edf0f5" }
+                }
+            }
+        }
+    });
+
+});
+
+function downloadChart(canvasId, filename) {
+    const canvas = document.getElementById(canvasId);
+
+    if (!canvas) {
+        console.error("Chart canvas not found:", canvasId);
+        return;
+    }
+
+    const link = document.createElement("a");
+    link.download = filename + ".png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+}
+</script>
+
+{% endblock %}

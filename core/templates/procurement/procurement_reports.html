@@ -46,7 +46,7 @@
                 {% for po in purchase_orders %}
                 <tr>
                     <td style="padding: 10px;">#{{ po.id }}</td>
-                    <td style="padding: 10px;">{{ po.medicine.name|default:"—" }}</td>
+                    <td style="padding: 10px;">{{ po.medicine.medicine_name|default:"—" }}</td>
                     <td style="padding: 10px;">{{ po.supplier.supplier_name|default:"—" }}</td>
                     <td style="padding: 10px;">{{ po.quantity_ordered }}</td>
                     <td style="padding: 10px;">{{ po.order_date|date:"d M Y"|default:"—" }}</td>

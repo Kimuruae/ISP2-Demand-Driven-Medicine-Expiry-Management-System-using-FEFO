@@ -141,7 +141,7 @@
                             {% for entry in outstanding_orders %}
                             <tr>
                                 <td><strong>PO-{{ entry.order.pk }}</strong></td>
-                                <td>{{ entry.order.medicine.name }}</td>
+                                <td>{{ entry.order.medicine.medicine_name }}</td>
                                 <td>{{ entry.order.supplier.supplier_name }}</td>
                                 <td>{{ entry.order.quantity_ordered }}</td>
                                 <td>{{ entry.received }}</td>
@@ -190,7 +190,7 @@
                             <tr>
                                 <td><strong>GR-{{ receipt.pk }}</strong></td>
                                 <td>PO-{{ receipt.purchase_order_id }}</td>
-                                <td>{{ receipt.purchase_order.medicine.name }}</td>
+                                <td>{{ receipt.purchase_order.medicine.medicine_name }}</td>
                                 <td>{{ receipt.purchase_order.supplier.supplier_name }}</td>
                                 <td>{{ receipt.delivery_date|date:"Y-m-d" }}</td>
                                 <td>

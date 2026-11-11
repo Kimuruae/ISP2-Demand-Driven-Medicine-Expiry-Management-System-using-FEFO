@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+
 <style>
     .sa {
         --primary: #0F766E;
@@ -487,7 +488,7 @@
                    class="{% if request.resolver_match.url_name == 'system_admin_health' %}active{% endif %}">
                     System Health
                 </a>
-                <a href="{% url 'alerts' %}" class="sidebar-action-link"><span>⚠️</span> Alerts Centre</a>
+                <a href="{% url 'alerts' %}" class="sidebar-action-link">Alerts</a>
             </nav>
         </aside>
         <main class="sa-main">{% block admin_content %}{% endblock admin_content %}</main>

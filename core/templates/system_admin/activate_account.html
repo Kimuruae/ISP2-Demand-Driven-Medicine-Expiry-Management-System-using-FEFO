@@ -1,0 +1,49 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 480px; margin: 60px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+
+    <h2>Activate Your Account</h2>
+
+    <p>
+        Establish your password to activate your Medicine FEFO System account.
+    </p>
+
+    <p>
+        <strong>Email:</strong> {{ target_user.email }}
+    </p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div style="margin-bottom: 18px;">
+            <label for="password">New Password</label>
+            <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                autocomplete="new-password"
+                style="display:block; width:100%; padding:12px; margin-top:6px;"
+            >
+        </div>
+
+        <div style="margin-bottom: 18px;">
+            <label for="confirm_password">Confirm Password</label>
+            <input
+                id="confirm_password"
+                name="confirm_password"
+                type="password"
+                required
+                autocomplete="new-password"
+                style="display:block; width:100%; padding:12px; margin-top:6px;"
+            >
+        </div>
+
+        <button type="submit" style="padding:12px 20px; cursor:pointer;">
+            Establish Password and Activate Account
+        </button>
+    </form>
+</div>
+{% endblock %}

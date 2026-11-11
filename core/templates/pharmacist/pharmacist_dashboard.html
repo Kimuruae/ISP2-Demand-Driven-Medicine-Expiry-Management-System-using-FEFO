@@ -212,7 +212,7 @@
                                     <tr>
                                         <td style="padding:12px 8px; border-bottom:1px solid #edf2f7;">
                                             <div style="font-weight:700; color:#234665;">
-                                                {{ batch.medicine.name }}
+                                                {{ batch.medicine.medicine_name }}
                                             </div>
 
                                             <div style="font-size:10px; color:#7a8da0; margin-top:4px;">
@@ -353,7 +353,7 @@
 
                                     <td style="padding:12px 9px; border-bottom:1px solid #edf2f7;">
                                         {% if tx.medicine %}
-                                            {{ tx.medicine.name }}
+                                            {{ tx.medicine.medicine_name }}
                                         {% else %}
                                             Medicine unavailable
                                         {% endif %}

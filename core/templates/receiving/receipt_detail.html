@@ -3,7 +3,7 @@
 <div style="max-width:1200px;margin:32px auto;padding:0 20px;color:#1e293b">
   <p><a href="{% url 'goods_receipts' %}">← Goods Receipts</a></p>
   <h1>Goods Receipt GR-{{ receipt.pk }}</h1>
-  <p><b>Purchase Order:</b> PO-{{ receipt.purchase_order_id }} | <b>Medicine:</b> {{ receipt.purchase_order.medicine.name }} | <b>Supplier:</b> {{ receipt.purchase_order.supplier.supplier_name }}</p>
+  <p><b>Purchase Order:</b> PO-{{ receipt.purchase_order_id }} | <b>Medicine:</b> {{ receipt.purchase_order.medicine.medicine_name }} | <b>Supplier:</b> {{ receipt.purchase_order.supplier.supplier_name }}</p>
   <p><b>Delivery date:</b> {{ receipt.delivery_date }} | <b>Reference:</b> {{ receipt.delivery_reference|default:'Not supplied' }}</p>
   {% if messages %}{% for message in messages %}<p>{{ message }}</p>{% endfor %}{% endif %}
   {% if can_manage %}
