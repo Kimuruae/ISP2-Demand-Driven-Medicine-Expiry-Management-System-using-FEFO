@@ -22,11 +22,12 @@
   {% endif %}
   <h2>Recorded deliveries</h2>
   <table style="width:100%;border-collapse:collapse">
-    <thead><tr><th>Receipt</th><th>Purchase Order</th><th>Supplier</th><th>Medicine</th><th>Delivery date</th><th>Items</th><th>Open</th></tr></thead>
+    <thead><tr><th>Receipt</th><th>Purchase Order</th><th>Supplier</th><th>Medicine</th><th>Delivery date</th>
+      <th>Received by</th><th>Items</th><th>Open</th></tr></thead>
     <tbody>{% for receipt in receipts %}<tr>
-      <td>GR-{{ receipt.pk }}</td><td>PO-{{ receipt.purchase_order_id }}</td><td>{{ receipt.purchase_order.supplier.supplier_name }}</td><td>{{ receipt.purchase_order.medicine.medicine_name }}</td><td>{{ receipt.delivery_date|date:"d M Y" }}</td><td>{{ receipt.items.count }}</td>
+      <td>GR-{{ receipt.pk }}</td><td>PO-{{ receipt.purchase_order_id }}</td><td>{{ receipt.purchase_order.supplier.supplier_name }}</td><td>{{ receipt.purchase_order.medicine.medicine_name }}</td><td>{{ receipt.delivery_date|date:"d M Y" }}</td><td>{{ receipt.received_by.username|default:'—' }}</td><td>{{ receipt.items.count }}</td>
       <td><a href="{% url 'goods_receipt_detail' receipt.pk %}">View / inspect</a></td>
-    </tr>{% empty %}<tr><td colspan="7">No goods receipts recorded.</td></tr>{% endfor %}</tbody>
+    </tr>{% empty %}<tr><td colspan="8">No goods receipts recorded.</td></tr>{% endfor %}</tbody>
   </table>
 </div>
 {% endblock %}
