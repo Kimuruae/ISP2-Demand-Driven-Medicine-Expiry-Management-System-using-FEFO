@@ -196,8 +196,16 @@ class ForecastingEngine:
         # separately once the model contains a reliable lead-time field.
         target_stock = cls._round_units(Decimal(moving_average)* Decimal(cls.PERIOD_DAYS + safety_days)/ Decimal(cls.PERIOD_DAYS))
 
-        # Replenishment is the shortfall against target inventory.
-        recommended_quantity = max(0,target_stock - eligible_stock,)
+        # Incoming stock is not yet calculated by this engine.
+        # Do not count unverified purchase orders as available stock.
+        incoming_stock = 0
+
+        # Project the stock position after the next forecast period's demand.
+        projected_stock_position = (eligible_stock + incoming_stock - moving_average)
+
+        # Replenishment covers the gap between target stock and
+        # eligible stock plus confirmed incoming stock.
+        recommended_quantity = max(0,target_stock - eligible_stock - incoming_stock,)
 
         # Determine whether the current inventory is below target.
         needs_replenishment = recommended_quantity > 0
@@ -236,6 +244,14 @@ class ForecastingEngine:
                 "recommended_quantity": recommended_quantity,
                 "urgency_level": urgency,
                 "reasoning": " ".join(reasons),
+
+                # Persist the inventory and forecasting calculations.
+                "forecast_demand_quantity": moving_average,
+                "eligible_stock_quantity": eligible_stock,
+                "incoming_stock_quantity": 0,
+                "projected_stock_position": eligible_stock - moving_average,
+                "lead_time_days": 7,
+                "target_stock_quantity": target_stock,
             }
 
             # Update an existing pending recommendation rather than
