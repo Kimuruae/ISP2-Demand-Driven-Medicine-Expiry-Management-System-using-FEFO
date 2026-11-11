@@ -4,25 +4,14 @@ from django.utils import timezone
 from django.db import models
 from django.db.models import Q
 from django.conf import settings
+from django.core.validators import MinValueValidator
 
 class Role(models.Model):
     SUPPORTED_ROLES = {"system administrator": ("System Administrator", "Manage accounts, application roles, settings and audit logs.",),
-        "hospital admin": (
-            "Hospital Admin",
-            "Oversee hospital-level activity and approve purchase orders.",
-        ),
-        "hospital administrator": (
-            "Hospital Administrator",
-            "Oversee hospital-level activity and approve purchase orders.",
-        ),
-        "pharmacist": (
-            "Pharmacist",
-            "Dispense medicines using FEFO and review dispensing alerts and reports.",
-        ),
-        "store manager": (
-            "Store Manager",
-            "Maintain stock batches, monitor expiry and raise procurement recommendations.",
-        ),
+        "hospital admin": ("Hospital Admin","Oversee hospital-level activity and approve purchase orders.",),
+        "hospital administrator": ("Hospital Administrator","Oversee hospital-level operations and approve purchase orders.",),
+        "pharmacist": ("Pharmacist","Dispense medicines using FEFO and review dispensing alerts and reports.",),
+        "store manager": ("Store Manager","Maintain stock batches, monitor expiry and raise procurement recommendations.",),
         "procurement officer": ("Procurement Officer","Review forecasts, recommendations and purchase orders.",),
     }
     PORTAL_URLS = {
@@ -36,12 +25,16 @@ class Role(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True)
 
-@property
-def portal_url_name(self): return self.PORTAL_URLS.get( (self.name or "").strip().casefold(), "")
+    @property
+    def portal_url_name(self):
+        return self.PORTAL_URLS.get( (self.name or "").strip().casefold(), "")
 
-@property
-def is_system_administrator(self): return ((self.name or "").strip().casefold()== "system administrator")
-def __str__(self): return self.name
+    @property
+    def is_system_administrator(self):
+        return (
+                (self.name or "").strip().casefold()== "system administrator")
+    def __str__(self):
+      return self.name
 
 class user(AbstractUser):
     other_name = models.CharField(max_length=150, blank=True)
@@ -52,22 +45,17 @@ class user(AbstractUser):
         return f"{self.username} - {self.role.name if self.role else 'No Role'}"
 
 class Medicine(models.Model):
-    id: int
-    name = models.CharField(max_length=255)
-    medicine_name = models.CharField(max_length=255, blank=True)
+    medicine_id = models.CharField(max_length=20,unique=True,null=True,blank=True)
+    medicine_name = models.CharField(max_length=255, unique=True)
     generic_name = models.CharField(max_length=255, blank=True)
     category = models.CharField(max_length=100, default="General")
     dosage_form = models.CharField(max_length=50)
     reorder_level = models.IntegerField(default=30)
     safety_stock_days = models.IntegerField(default=30)
     is_active = models.BooleanField(default=True)
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.name and not self.medicine_name:
-            self.medicine_name = self.name
 
-    # FIXED: Indentation shifted fully outside __init__ structure boundaries
-    def __str__(self):return self.name
+    def __str__(self):
+        return self.medicine_name
 
     def get_fefo_batches(self):
         return MedicineBatch.objects.filter(
@@ -75,10 +63,10 @@ class Medicine(models.Model):
             quantity_available__gt=0,
             expiry_date__gt=date.today(),
             status="Active"
-        ).order_by('expiry_date')
+        ).order_by('expiry_date', 'batch_id')
 
 class MedicineBatch(models.Model):
-    id: int
+    batch_id = models.CharField(max_length=20,unique=True,null=True,blank=True)
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
     batch_number = models.CharField(max_length=100)
     quantity_received = models.IntegerField()
@@ -89,43 +77,49 @@ class MedicineBatch(models.Model):
     status = models.CharField(max_length=50, default="Active")
 
     class Meta:
-        ordering = ['expiry_date']
+        ordering = ['expiry_date','batch_id']
         verbose_name_plural = "Medicine Batches"
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(quantity_available__lte=models.F("quantity_received")),
+                name="batch_available_lte_received"
+            )
+        ]
 
     # FIXED: Indentation fixed to attach method to class model block cleanly
-    def __str__(self):return f"{self.medicine.name} (Batch: {self.batch_number}) - Exp: {self.expiry_date}"
+    def __str__(self):
+        return f"{self.medicine.medicine_name} (Batch: {self.batch_number}) - Exp: {self.expiry_date}"
 
 class Supplier(models.Model):
+    supplier_id = models.CharField( max_length=20,unique=True,null=True,blank=True)
     supplier_name = models.CharField(max_length=255, unique=True)
-    name = models.CharField(max_length=255, blank=True)
     contact_person = models.CharField(max_length=255, blank=True)
     email = models.EmailField(blank=True)
     phone_number = models.CharField(max_length=15, blank=True)
-    phone = models.CharField(max_length=15, blank=True)
     address = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.supplier_name and not self.name:
-            self.name = self.supplier_name
-        if self.phone_number and not self.phone:
-            self.phone = self.phone_number
+    delivery_lead_time_days = models.PositiveIntegerField(
+        default=7,
+        validators=[MinValueValidator(1)],
+        help_text="Expected number of calendar days between placing an order and delivery."
+    )
 
-    def __str__(self):return self.supplier_name
+    def __str__(self):
+        return self.supplier_name
 
 class DispensingTransaction(models.Model):
-    id: int
+    transaction_id = models.CharField(max_length=20,unique=True, null=True,blank=True,)
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE, null=True, blank=True)
     batch = models.ForeignKey(MedicineBatch, on_delete=models.CASCADE)
-    dispensed_by = models.ForeignKey(user, on_delete=models.SET_NULL, null=True)
+    dispensed_by = models.ForeignKey(user, on_delete=models.SET_NULL, null=True, blank=True)
     quantity_dispensed = models.IntegerField()
-    dispensed_date = models.DateTimeField(auto_now_add=True)
-    dispensed_at = models.DateTimeField(auto_now_add=True)
+    #dispensed_date = models.DateTimeField(auto_now_add=True)
+    dispensed_at = models.DateTimeField(default=timezone.now)
     is_override = models.BooleanField(default=False)
     patient_identifier = models.CharField(max_length=100, blank=True)
     notes = models.TextField(blank=True)
-    def __str__(self):return f"Transaction {self.id} - {self.medicine.name if self.medicine else 'Unknown'}"
+    def __str__(self):return f"Transaction {self.transaction_id} - {self.medicine.medicine_name if self.medicine else 'Unknown'}"
 
 class ExpiryAlert(models.Model):
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE, null=True, blank=True)
@@ -135,9 +129,37 @@ class ExpiryAlert(models.Model):
     severity = models.CharField(max_length=50, default="Medium")
     is_resolved = models.BooleanField(default=False)
     is_acknowledged = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    #created_at = models.DateTimeField(auto_now_add=True)
     generated_at = models.DateTimeField(auto_now_add=True)
-    def __str__(self):return f"Alert ({self.alert_type}) - Batch {self.batch.batch_number}"
+    def __str__(self):
+        return f"Alert ({self.alert_type}) - Batch {self.batch.batch_number}"
+
+class UserAlert(models.Model):
+#Specific user receives personalized alert
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="user_alerts")
+
+    # Alert information displayed in the shared alerts page.
+    alert_type = models.CharField(max_length=50)
+    title = models.CharField(max_length=255)
+    message = models.TextField(blank=True)
+    severity = models.CharField(max_length=20, default="Medium")
+
+    # Identifies the business record that triggered the alert.
+    source_type = models.CharField(max_length=50, blank=True)
+    source_id = models.CharField(max_length=20,null=True,blank=True)
+
+    # Each recipient manages their own alert status.
+    is_read = models.BooleanField(default=False)
+    is_resolved = models.BooleanField(default=False)
+
+    action_url = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["recipient", "is_read"],name="useralert_recipient_read_idx")]
+    def __str__(self):
+          return f"{self.title} - {self.recipient.username}"
 
 class DemandForecast(models.Model):
     """
@@ -147,6 +169,9 @@ class DemandForecast(models.Model):
     """
 
     class ForecastMethod(models.TextChoices): MOVING_AVERAGE = "MOVING_AVERAGE", "Three-Period Moving Average"
+
+    source_forecast_id = models.CharField(max_length=30, unique=True,null=True,blank=True,editable=False,
+                    help_text="Original forecast identifier from the synthetic dataset.")
     medicine = models.ForeignKey("Medicine",on_delete=models.CASCADE,related_name="demand_forecasts",)
 
     # The period for which demand is being predicted.
@@ -169,8 +194,9 @@ class DemandForecast(models.Model):
     # Optional error metrics, populated only after comparing a forecast
     # against actual consumption for the same forecast period.
     actual_demand_quantity = models.PositiveIntegerField(null=True,blank=True,)
-    absolute_error = models.PositiveIntegerField(null=True,blank=True,)
-    generated_at = models.DateTimeField(auto_now_add=True)
+    absolute_error = models.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True,
+    help_text = "Absolute forecast error against actual demand normalized to a 30-day equivalent."                                )
+    generated_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ["-generated_at"]
@@ -194,7 +220,7 @@ class DemandForecast(models.Model):
 
     def __str__(self):
         return (
-            f"{self.medicine.name}: "
+            f"{self.medicine.medicine_name}: "
             f"{self.forecasted_demand_quantity} units "
             f"({self.forecast_period_start} to {self.forecast_period_end})"
         )
@@ -218,15 +244,10 @@ class ProcurementRecommendation(models.Model):
         MEDIUM = "MEDIUM", "Medium"
         HIGH = "HIGH", "High"
 
+    source_recommendation_id = models.CharField(max_length=30,unique=True, null=True,blank=True,editable=False,
+        help_text="Original recommendation identifier from the synthetic dataset.")
     medicine = models.ForeignKey("Medicine",on_delete=models.CASCADE,related_name="procurement_recommendations",)
-    forecast = models.ForeignKey(
-        DemandForecast,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="procurement_recommendations",
-    )
-
+    forecast = models.ForeignKey(DemandForecast,on_delete=models.SET_NULL,null=True,blank=True,related_name="procurement_recommendations",)
     recommended_quantity = models.PositiveIntegerField()
     urgency_level = models.CharField(max_length=20,choices=Urgency.choices,default=Urgency.MEDIUM,)
 
@@ -250,16 +271,57 @@ class ProcurementRecommendation(models.Model):
         blank=True,
         related_name="procurement_recommendations_reviewed",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
+
+    forecast_demand_quantity = models.PositiveIntegerField(
+        default=0,
+        help_text="Forecasted demand over the standard 30-day forecast period."
+    )
+
+    eligible_stock_quantity = models.PositiveIntegerField(
+        default=0,
+        help_text="Current stock eligible for dispensing under FEFO rules."
+    )
+
+    incoming_stock_quantity = models.PositiveIntegerField(
+        default=0,
+        help_text="Usable stock expected from outstanding purchase orders."
+    )
+
+    projected_stock_position = models.IntegerField(
+        default=0,
+        help_text="Projected inventory position after accounting for incoming stock and expected demand during lead time."
+    )
+
+    lead_time_days = models.PositiveIntegerField(
+        default=7,
+        validators=[MinValueValidator(1)],
+        help_text="Lead-time assumption used when calculating this recommendation."
+    )
+
+    target_stock_quantity = models.PositiveIntegerField(
+        default=0,
+        help_text="Target inventory required for lead time, review period and safety-stock coverage."
+    )
 
     class Meta:
         ordering = ["-created_at"]
-        indexes = [models.Index( fields=["medicine", "status"],name="recommend_med_status_idx",),]
-        constraints = [models.CheckConstraint(condition=Q(recommended_quantity__gte=0),name="recommend_qty_nonnegative",),]
+        indexes = [
+            models.Index(
+                fields=["medicine", "status"],
+                name="recommend_med_status_idx",
+            ),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(recommended_quantity__gte=0),
+                name="recommend_qty_nonnegative",
+            ),
+        ]
 
     def __str__(self):return (
-            f"{self.medicine.name} - "
+            f"{self.medicine.medicine_name} - "
             f"{self.recommended_quantity} units ({self.status})"
         )
 
@@ -271,31 +333,27 @@ class PurchaseOrder(models.Model):
         REJECTED = "Rejected", "Rejected"
         PLACED_WITH_SUPPLIER = "Placed with Supplier", "Placed with Supplier"
 
-    id: int
+    purchase_order_id = models.CharField(max_length=20,unique=True,null=True,blank=True)
     medicine = models.ForeignKey(Medicine,on_delete=models.CASCADE, null=True,blank=True,)
     supplier = models.ForeignKey(Supplier,on_delete=models.CASCADE,)
     recommendation = models.OneToOneField(ProcurementRecommendation,on_delete=models.SET_NULL,null=True,blank=True,related_name="purchase_order",)
     quantity_ordered = models.IntegerField(default=0)
-    total_amount = models.DecimalField(max_digits=12,decimal_places=2,default=0.00,)
-    order_date = models.DateTimeField(auto_now_add=True)
+    #total_amount = models.DecimalField(max_digits=12,decimal_places=2,default=0.00,)
+    order_date = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=30,choices=Status.choices,default=Status.PENDING_ADMIN_REVIEW,)
     total_cost = models.DecimalField(max_digits=12,decimal_places=2,default=0.00,)
     raised_by = models.ForeignKey( user,on_delete=models.SET_NULL,null=True,blank=True,)
 
-    def __str__(self): return f"PO-{self.id}"
+    def __str__(self): return f"PO-{self.purchase_order_id}"
 
 class GoodsReceipt(models.Model): #Records physical delivery against approved purchase orders that have been placed with the supplier.
+        source_goods_receipt_id = models.CharField(max_length=30,unique=True,null=True,blank=True,
+           editable=False,help_text="Original goods receipt identifier from the synthetic dataset.")
         purchase_order = models.ForeignKey(PurchaseOrder,on_delete=models.PROTECT, related_name="goods_receipts",)
-        received_by = models.ForeignKey(
-            settings.AUTH_USER_MODEL,
-            on_delete=models.SET_NULL,
-            null=True,
-            blank=True,
-            related_name="goods_receipts_recorded",
-        )
-
+        received_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,null=True,blank=True,
+                 related_name="goods_receipts_recorded",)
         delivery_date = models.DateField(default=timezone.localdate)
-        received_at = models.DateTimeField(auto_now_add=True)
+        received_at = models.DateTimeField(default=timezone.now)
         delivery_reference = models.CharField(max_length=100,blank=True,)
         notes = models.TextField(blank=True)
 
@@ -309,58 +367,32 @@ class GoodsReceiptItem(models.Model):
         ACCEPTED = "Accepted", "Accepted"
         REJECTED = "Rejected", "Rejected"
         QUARANTINED = "Quarantined", "Quarantined"
-
-    goods_receipt = models.ForeignKey(
-        GoodsReceipt,
-        on_delete=models.PROTECT,
-        related_name="items"
-    )
-
+    goods_receipt = models.ForeignKey( GoodsReceipt,on_delete=models.PROTECT, related_name="items")
+    source_receipt_item_id = models.CharField(max_length=30,unique=True, null=True,blank=True,
+        editable=False,help_text="Original receipt item identifier from the synthetic dataset.")
     batch_number = models.CharField(max_length=100)
     quantity_received = models.PositiveIntegerField()
     expiry_date = models.DateField()
     storage_location = models.CharField(max_length=100,blank=True)
-    inspection_status = models.CharField(
-        max_length=20,
-        choices=InspectionStatus.choices,
-        default=InspectionStatus.PENDING
-    )
+    inspection_status = models.CharField(max_length=20, choices=InspectionStatus.choices,default=InspectionStatus.PENDING)
 
     inspected_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="goods_receipt_items_inspected"
-    )
+        settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True,blank=True, related_name="goods_receipt_items_inspected")
 
-    inspected_at = models.DateTimeField(
-        null=True,
-        blank=True
-    )
-
+    inspected_at = models.DateTimeField(null=True,blank=True)
     inspection_notes = models.TextField(blank=True)
     medicine_batch = models.OneToOneField(
-        MedicineBatch,
-        on_delete=models.PROTECT,
-        related_name="goods_receipt_item",
-        null = True,
-        blank = True
-    )
+        MedicineBatch,on_delete=models.PROTECT,related_name="goods_receipt_item", null = True,blank = True)
 
     class Meta:
         ordering = ["expiry_date"]
-        constraints = [
-            models.CheckConstraint(
-                condition=models.Q(quantity_received__gt=0),
-                name="goods_receipt_qty_positive"
-            ),
-        ]
+        constraints = [ models.CheckConstraint( condition=models.Q(quantity_received__gt=0),name="goods_receipt_qty_positive"),]
 
     def __str__(self):
         return f"{self.batch_number} - {self.quantity_received} units"
 
 class SystemSetting(models.Model):
+    setting_id = models.CharField(max_length=20,unique=True,null=True,blank=True)
     key = models.CharField(max_length=100, unique=True)
     setting_key = models.CharField(max_length=100, blank=True)
     value = models.CharField(max_length=255)
@@ -370,18 +402,20 @@ class SystemSetting(models.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.key and not self.setting_key:
-            self.setting_key = self.key
-        if self.value and not self.setting_value:
-            self.setting_value = self.value
+        if self.key and not self.setting_key:self.setting_key = self.key
+        if self.value and not self.setting_value:self.setting_value = self.value
     def __str__(self):return self.key
 
+import uuid
+def generate_audit_log_id():
+    return f"AL{uuid.uuid4().hex[:18].upper()}"
+
 class AuditLog(models.Model):
-    id: int
+    audit_log_id = models.CharField(max_length=20,unique=True,null=True,blank=True,default=generate_audit_log_id)
     user = models.ForeignKey(user, on_delete=models.SET_NULL, null=True, blank=True)
     action = models.CharField(max_length=255)
     entity_type = models.CharField(max_length=100, blank=True, default="System")
     created_at = models.DateTimeField(auto_now_add=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     details = models.TextField(blank=True)
-    def __str__(self):return f"AuditLog {self.id}"
+    def __str__(self):return f"AuditLog {self.audit_log_id}"
