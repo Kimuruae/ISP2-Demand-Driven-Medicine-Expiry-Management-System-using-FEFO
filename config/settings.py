@@ -1,6 +1,11 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 #Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -108,3 +113,14 @@ AUTH_USER_MODEL = "core.User"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+# EMAIL CONFIGURATION - DEVELOPMENT
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "Medicine FEFO System <noreply@medfefo.local>"
+
+# ACTIVATION LINK EXPIRY: 24 HOURS
+PASSWORD_RESET_TIMEOUT = 86400
+
+# Password Reset Email Configuration (Development)
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "FEFO Expiry Management System <noreply@fefo.local>"
