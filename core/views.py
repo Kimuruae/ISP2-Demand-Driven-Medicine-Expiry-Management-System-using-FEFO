@@ -15,13 +15,18 @@ from django.db import transaction
 from django.db.models import Count, Sum, Q
 from decimal import Decimal, InvalidOperation
 from functools import wraps
-from datetime import timedelta
+from datetime import date,timedelta
 from django.views.decorators.http import require_POST
 from .fefo_engine import FEFOEngine
 from .forecasting_engine import ForecastingEngine
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .models import (AuditLog,DemandForecast,DispensingTransaction,ExpiryAlert,Medicine,MedicineBatch,
-                     ProcurementRecommendation,PurchaseOrder,Role,Supplier,SystemSetting,)
+from .models import (AuditLog,DemandForecast,DispensingTransaction,ExpiryAlert,UserAlert,Medicine,MedicineBatch,
+                     ProcurementRecommendation,PurchaseOrder,Role,Supplier,SystemSetting)
 
 def route_user_by_role(user):
     if user.is_superuser:return redirect("system_admin_dashboard")
@@ -30,7 +35,7 @@ def route_user_by_role(user):
 
     destinations = {
         "system administrator": "system_admin_dashboard",
-        "pharmacist": "dispense",
+        "pharmacist": "pharmacist_dashboard",
         "store manager": "inventory",
         "procurement officer": "procurement",
         "hospital admin": "admin_dashboard",
@@ -116,76 +121,68 @@ def is_hospital_admin(user):
     role_name = ( getattr(role, "name", "") or "").strip().casefold()
     return role_name in {"hospital admin","hospital administrator",}
 
-def register_view(request):
-        user = get_user_model()
-        if request.user.is_authenticated:
-            return route_user_by_role(request.user)
+# USER ACCOUNT EMAIL ACTIVATION
+def activate_account_view(request, uidb64, token):
+    user = get_user_model()
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        target_user = user.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, user.DoesNotExist):
+        target_user = None
 
-        if request.method == "POST":
-            first_name = request.POST.get("first_name", "").strip()
-            last_name = request.POST.get("last_name", "").strip()
-            other_name = request.POST.get("other_name", "").strip()
-            phone_number = request.POST.get("phone_number", "").strip()
-            email = request.POST.get("email", "").strip().lower()
-            username = request.POST.get("username", "").strip()
-            password = request.POST.get("password", "")
-            password_confirm = request.POST.get("password_confirm", "")
+    if target_user is None:
+        messages.error(request, "Invalid account activation link.")
+        return redirect("public/login.html")
 
-            form_data = {
-                "first_name": first_name,
-                "last_name": last_name,
-                "other_name": other_name,
-                "phone_number": phone_number,
-                "email": email,
-                "username": username,
-            }
-            errors = []
+    if target_user.is_active:
+        messages.info(request, "This account has already been activated.")
+        return redirect("public/login.html")
 
-            if not first_name: errors.append("First name is required.")
-            if not last_name: errors.append("Surname is required.")
-            if not phone_number:errors.append("Phone number is required.")
-            if not username: errors.append("Username is required.")
-            if not email:errors.append("Email address is required.")
-            if not password: errors.append("Password is required.")
+    if not default_token_generator.check_token(target_user, token):
+        messages.error(
+            request,
+            "This activation link is invalid or has expired. "
+            "Contact your System Administrator."
+        )
+        return redirect("public/login.html")
 
-            elif password != password_confirm: errors.append("The passwords do not match.")
-            if username and user.objects.filter(username__iexact=username).exists():
-                errors.append("That username is already registered.")
+    if request.method == "POST":
+        password = request.POST.get("password", "")
+        confirm_password = request.POST.get("confirm_password", "")
 
-            if email and user.objects.filter(email__iexact=email).exists():
-                errors.append("That email address is already registered.")
+        if not password or not confirm_password:
+            messages.error(request, "Both password fields are required.")
 
-            if phone_number and len(phone_number) > 15:
-                errors.append("Phone number must not exceed 15 characters.")
+        elif password != confirm_password:
+            messages.error(request, "The passwords do not match.")
 
-            if not errors and password:
-                candidate = user( username=username,first_name=first_name,last_name=last_name, email=email,phone_number=phone_number,other_name=other_name,)
+        else:
+            try:
+                validate_password(password, target_user)
 
-                try:
-                    validate_password(password, user=candidate)
-                except ValidationError as exc:
-                    errors.extend(exc.messages)
+                target_user.set_password(password)
+                target_user.is_active = True
+                target_user.save(update_fields=["password", "is_active"])
 
-            if errors:
-                for error in errors: messages.error(request, error)
-                return render( request,"core/register.html",{"form_data": form_data},)
+                AuditLog.objects.create(
+                    user=target_user,
+                    action="Account activated",
+                    entity_type="User",
+                    details=(
+                        f"User {target_user.username} "
+                        "completed email activation."
+                    ),
+                    ip_address=request.META.get("REMOTE_ADDR"),
+                )
 
-            new_user = user(
-                username=username,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                phone_number=phone_number,
-                other_name=other_name,
-                role=None,
-                is_active=False,
-            )
-            new_user.set_password(password)
-            new_user.save()
+                messages.success(request,"Your account has been activated. You can now log in.")
+                return redirect("public/login.html")
 
-            messages.success(request,"Registration submitted successfully. Awaiting System Administrator approval ")
-            return redirect("login")
-        return render(request, "core/register.html", {"form_data": {}})
+            except ValidationError as exc:
+                for error in exc.messages:messages.error(request, error)
+
+    return render(
+        request,"system_admin/activate_account.html",{"target_user": target_user},)
 
 @ensure_csrf_cookie
 @csrf_protect
@@ -202,16 +199,11 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 request.session.set_expiry(0)
-
-                print("LOGIN CHECK:", {
-                    "authenticated": request.user.is_authenticated,
-                    "user_id": user.pk,
-                    "session_key": request.session.session_key,
-                })
                 messages.success(request,f"Welcome, {user.username}. Login successful.")
+
                 return route_user_by_role(user)  #Redirect according to the user's role.
             messages.error(request,"Invalid username or password credentials.")
-        return render(request, "core/login.html")
+        return render(request, "public/login.html")
 
 @require_POST
 @login_required(login_url="/login/")
@@ -231,16 +223,16 @@ def logout_view(request):
 
 def home_redirect(request):
     if request.user.is_authenticated: return route_user_by_role(request.user)
-    return render(request, 'core/index.html')
+    return render(request, 'public/index.html')
 
 def about(request):
-    return render(request, 'core/about.html')
+    return render(request, 'public/about.html')
 
 def features(request):
-    return render(request, 'core/features.html')
+    return render(request, 'public/features.html')
 
 def contact(request):
-    return render(request, 'core/contact.html')
+    return render(request, 'public/contact.html')
 
 @role_required("pharmacist")
 def dispense_view(request):
@@ -288,10 +280,10 @@ def dispense_view(request):
             messages.success(request,f"Dispensing completed: {total_dispensed} units recorded.",)
         except (ValueError, TypeError) as exc: messages.error(request, str(exc))
         except Medicine.DoesNotExist: messages.error(request, "The selected medicine was not found.")
-        return redirect("dispense")
+        return redirect("pharmacist/dispense.html")
 
     today = timezone.localdate()
-    medicines = Medicine.objects.filter(is_active=True).order_by("name")
+    medicines = Medicine.objects.filter(is_active=True).order_by("medicine_name")
     batches = (MedicineBatch.objects.filter(
         quantity_available__gt=0,
         status="Active",
@@ -300,7 +292,7 @@ def dispense_view(request):
         .select_related("medicine")
         .order_by("expiry_date", "id")
     )
-    return render(request,"dispense.html",{"medicines": medicines,"batches": batches,},)
+    return render(request,"pharmacist/dispense.html",{"medicines": medicines,"batches": batches,},)
 
 @login_required(login_url="/login/")
 def pharmacist_dashboard_view(request): #displays the pharmacist's dashboard with stock eligibilty, expiry risk, FEFO ques and recent dispensing activities
@@ -363,7 +355,27 @@ def pharmacist_dashboard_view(request): #displays the pharmacist's dashboard wit
         "recent_transactions": recent_transactions,
     }
 
-    return render(request, "pharmacist_dashboard.html", context)
+    return render(request, "pharmacist/pharmacist_dashboard.html", context)
+
+# PHARMACIST DISPENSING REPORTS
+@login_required(login_url="/login/")
+@role_required("Pharmacist")
+def dispense_reports_view(request):
+    transactions = (
+        DispensingTransaction.objects
+        .select_related("medicine", "batch", "dispensed_by")
+        .order_by("-dispensed_at")
+    )
+
+    context = {
+        "transactions": transactions,
+        "total_transactions": transactions.count(),
+        "total_quantity_dispensed": (
+            transactions.aggregate(total=Sum("quantity_dispensed"))["total"] or 0
+        ),
+        "fefo_overrides": transactions.filter(is_override=True).count(),
+    }
+    return render(request,"pharmacist/dispense_reports.html",context,)
 
 @role_required("Store Manager")
 def store_manager_inventory_view(request):
@@ -383,13 +395,13 @@ def store_manager_inventory_view(request):
     ).order_by("expiry_date")
 
     context = {"batches": batches,"today": today,}
-    return render(request, "inventory.html", context)
+    return render(request, "store_manager/inventory.html", context)
 
 @login_required(login_url="/login/")
 @role_required("Store Manager")
 def inventory_reports_view(request):
     today = timezone.localdate()
-    all_batches = (MedicineBatch.objects.select_related("medicine").order_by("expiry_date", "medicine__name"))
+    all_batches = (MedicineBatch.objects.select_related("medicine").order_by("expiry_date", "medicine__medicine_name"))
     total_units = (all_batches.filter(quantity_available__gt=0).aggregate(total=Sum("quantity_available"))["total"] or 0)
     context = {
         "all_batches": all_batches,
@@ -399,7 +411,7 @@ def inventory_reports_view(request):
         "expiring_soon": all_batches.filter(expiry_date__gte=today,expiry_date__lte=today + timedelta(days=30),quantity_available__gt=0,).count(),
         "today": today,
     }
-    return render(request, "inventory_reports.html", context)
+    return render(request, "store_manager/inventory_reports.html", context)
 
 @login_required(login_url="/login/")
 @role_required("Store Manager")
@@ -408,11 +420,9 @@ def inventory_alerts_view(request):
     warning_date = today + timedelta(days=30)
 
     context = {
-        "expired_batches": (
-            MedicineBatch.objects.filter(
-                expiry_date__lte=today,
-                quantity_available__gt=0,
-            )
+        "inventory_alerts_mode": True,
+        "role_name": "Store Manager",
+        "expired_batches": (MedicineBatch.objects.filter(expiry_date__lte=today,quantity_available__gt=0,)
             .select_related("medicine")
             .order_by("expiry_date")
         ),
@@ -434,18 +444,14 @@ def inventory_alerts_view(request):
         ),
         "today": today,
     }
-
-    return render(request, "inventory_alerts.html", context)
+    return render(request, "alerts.html", context)
 
 @login_required(login_url="/login/")
 @role_required("Store Manager")
 def inventory_recommendations_view(request):
     today = timezone.localdate()
     recommendations = []
-
-    medicines = Medicine.objects.filter(
-        is_active=True
-    ).order_by("name")
+    medicines = Medicine.objects.filter(is_active=True).order_by("medicine_name")
 
     for medicine in medicines:
         available_stock = (
@@ -482,7 +488,7 @@ def inventory_recommendations_view(request):
         "low_stock_threshold": 30,
         "today": today,
     }
-    return render(request,"inventory_recommendations.html",context,)
+    return render(request,"store_manager/inventory_recommendations.html",context,)
 
 @login_required(login_url="/login/")
 @role_required("Store Manager")
@@ -519,12 +525,12 @@ def store_manager_recommendations_view(request):
             entity_type="ProcurementRecommendation",
             details=(
                 f"Recommendation ID: {recommendation.id}; "
-                f"Medicine: {medicine.name}; "
+                f"Medicine: {medicine.medicine_name}; "
                 f"Quantity: {quantity}; "
                 f"Urgency: {urgency}"
             ),
         )
-        messages.success(request,f"Recommendation for {medicine.name} submitted to Procurement.",)
+        messages.success(request,f"Recommendation for {medicine.medicine_name} submitted to Procurement.",)
     except (ValueError, TypeError) as exc:messages.error(request, str(exc))
     return redirect("inventory_recommendations")
 
@@ -550,7 +556,7 @@ def procurement_dashboard_view(request):
 
                 if rec_id:
                     recommendation = get_object_or_404(
-                        ProcurementRecommendation.objects.select_for_update().filter(
+                        ProcurementRecommendation.objects.select_for_update(of=("self",)).filter(
                             id=rec_id,
                             medicine=medicine,
                             status=ProcurementRecommendation.Status.PENDING,
@@ -558,7 +564,7 @@ def procurement_dashboard_view(request):
                         )
                     )
 
-                supplier, _ = Supplier.objects.get_or_create(supplier_name=supplier_name,defaults={"name": supplier_name},)
+                supplier, _ = Supplier.objects.get_or_create(supplier_name=supplier_name,)
                 PurchaseOrder.objects.create(
                     medicine=medicine,
                     supplier=supplier,
@@ -568,11 +574,11 @@ def procurement_dashboard_view(request):
                     status=PurchaseOrder.Status.PENDING_ADMIN_REVIEW,
                 )
 
-            messages.success(request,f"Purchase order for {medicine.name} forwarded to hospital admin.",)
+            messages.success(request,f"Purchase order for {medicine.medicine_name} forwarded to hospital admin.",)
         except (ValueError, TypeError) as exc:messages.error(request, str(exc))
-        return redirect("procurement")
+        return redirect("procurement/procurement.html")
 
-    medicines = Medicine.objects.filter(is_active=True).order_by("name")
+    medicines = Medicine.objects.filter(is_active=True).order_by("medicine_name")
     recommendations = (ProcurementRecommendation.objects.filter(
         status=ProcurementRecommendation.Status.PENDING,
         purchase_order__isnull = True,) #Recommendation disappears from pending lists once PO is placed
@@ -595,7 +601,7 @@ def procurement_dashboard_view(request):
             "avg_monthly_dispensed": forecast.moving_avg_3month,
             "forecasted_demand": forecast.forecasted_demand_quantity,
         })
-    return render(request,"procurement.html",{"medicines": medicines,"recommendations": recommendations,"forecasts": forecasts,},)
+    return render(request,"procurement/procurement.html",{"medicines": medicines,"recommendations": recommendations,"forecasts": forecasts,},)
 
 @login_required(login_url="/login/")
 @role_required("Procurement Officer")
@@ -604,8 +610,7 @@ def place_supplier_order_view(request, po_id):
         messages.error(request,"Supplier orders must be submitted using POST.",)
         return redirect("procurement")
 
-    po = get_object_or_404(
-        PurchaseOrder.objects.select_related("supplier"),id=po_id,status=PurchaseOrder.Status.APPROVED,)
+    po = get_object_or_404(PurchaseOrder.objects.select_related("supplier"),id=po_id,status=PurchaseOrder.Status.APPROVED,)
     po.status = PurchaseOrder.Status.PLACED_WITH_SUPPLIER
     po.save(update_fields=["status"])
 
@@ -711,7 +716,119 @@ def hospital_admin_dashboard_view(request):
         "global_transactions": global_transactions,
         "batches": batches,
     }
-    return render(request, "admin_dashboard.html", context)
+    return render(request, "hospital_admin/dashboard.html", context)
+
+@login_required
+def hospital_admin_analytics_view(request):
+    today = date.today()
+    near_expiry_date = today + timedelta(days=30)
+
+    # Inventory overview
+    total_medicines = Medicine.objects.count()
+    total_batches = MedicineBatch.objects.count()
+
+    total_stock_volume = (
+        MedicineBatch.objects.aggregate(
+            total=Sum("quantity_available")
+        )["total"] or 0
+    )
+
+    # Only batches with stock are included in expiry analytics
+    stock_batches = MedicineBatch.objects.filter(
+        quantity_available__gt=0
+    )
+
+    expired_count = stock_batches.filter(
+        expiry_date__lt=today
+    ).count()
+
+    near_expiry_count = stock_batches.filter(
+        expiry_date__gte=today,
+        expiry_date__lte=near_expiry_date
+    ).count()
+
+    other_batches_count = stock_batches.filter(
+        expiry_date__gt=near_expiry_date
+    ).count()
+
+    # Dispensing and FEFO
+    total_dispenses = DispensingTransaction.objects.count()
+
+    fefo_overrides = DispensingTransaction.objects.filter(
+        is_override=True
+    ).count()
+
+    fefo_compliant = total_dispenses - fefo_overrides
+
+    # Procurement status
+    pending_po_count = PurchaseOrder.objects.filter(
+        Q(status="Pending Admin Review") | Q(status="PENDING")
+    ).count()
+
+    approved_po_count = PurchaseOrder.objects.filter(
+        status="Approved"
+    ).count()
+
+    placed_po_count = PurchaseOrder.objects.filter(
+        status="Placed with Supplier"
+    ).count()
+
+    rejected_po_count = PurchaseOrder.objects.filter(
+        status="Rejected"
+    ).count()
+
+    # Recent demand forecasts
+    recent_forecasts = (
+        DemandForecast.objects
+        .select_related("medicine")
+        .order_by("-forecast_period_start")[:10]
+    )
+
+    # Stock batches for expiry monitoring
+    batches = (
+        MedicineBatch.objects
+        .select_related("medicine")
+        .filter(quantity_available__gt=0)
+        .order_by("expiry_date")[:20]
+    )
+
+    analytics_chart_data = {
+        "expired": expired_count,
+        "near_expiry": near_expiry_count,
+        "other_batches": other_batches_count,
+        "fefo_compliant": fefo_compliant,
+        "fefo_overrides": fefo_overrides,
+        "pending_pos": pending_po_count,
+        "approved_pos": approved_po_count,
+        "placed_pos": placed_po_count,
+        "rejected_pos": rejected_po_count,
+    }
+
+    context = {
+        "today": today,
+        "near_expiry_date": near_expiry_date,
+
+        "total_medicines": total_medicines,
+        "total_batches": total_batches,
+        "total_stock_volume": total_stock_volume,
+        "expired_count": expired_count,
+        "near_expiry_count": near_expiry_count,
+
+        "total_dispenses": total_dispenses,
+        "fefo_compliant": fefo_compliant,
+        "fefo_overrides": fefo_overrides,
+
+        "pending_po_count": pending_po_count,
+        "approved_po_count": approved_po_count,
+        "placed_po_count": placed_po_count,
+        "rejected_po_count": rejected_po_count,
+
+        "recent_forecasts": recent_forecasts,
+        "batches": batches,
+        "analytics_chart_data": analytics_chart_data,
+    }
+
+    return render(request,"hospital_admin/analytics.html",context)
 
 @role_required('Hospital Admin', 'Hospital Administrator')
 def hospital_admin_process_po_view(request, po_id, action):
@@ -726,7 +843,7 @@ def hospital_admin_process_po_view(request, po_id, action):
 
     with transaction.atomic():
         po = get_object_or_404(
-            PurchaseOrder.objects.select_for_update().select_related(
+            PurchaseOrder.objects.select_for_update(of=("self",)).select_related(
                 "recommendation"
             ),
             id=po_id,
@@ -775,7 +892,7 @@ def hospital_admin_process_po_view(request, po_id, action):
         )
     if normalized_action == "approve": messages.success(request, success_message)
     else:messages.warning(request, success_message)
-    return redirect("admin_dashboard")
+    return redirect("hospital_admin/purchase_orders.html")
 
 @login_required(login_url="/login/")
 @role_required("Procurement Officer")
@@ -794,7 +911,7 @@ def procurement_reports_view(request):
         "selected_status": status_filter,
         "total_orders": purchase_orders.count(),
     }
-    return render(request,"procurement_reports.html",context,)
+    return render(request,"procurement/procurement_reports.html",context,)
 
 #System admin views based on their roles ( Access control, user's management, system settings,audit logs*,System health)
 @login_required(login_url="/login/")
@@ -808,29 +925,9 @@ def system_admin_dashboard_view(request):
     if request.method == "POST":
         action = request.POST.get("action", "").strip()
         try:
-            #Create new user
-            if action == "create_user":
-                username = request.POST.get("username", "").strip()
-                email = request.POST.get("email", "").strip()
-                password = request.POST.get("password", "")
-                role_id = request.POST.get("role_id", "").strip()
-
-                if not username or not email or len(password) < 10: raise ValueError( "Enter a username, email, and password of at least 10 characters.")
-                if user.objects.filter(username=username).exists(): raise ValueError("That username already exists.")
-
-                assigned_role = get_object_or_404(Role, pk=role_id)
-                new_user = user(username=username,email=email,role=assigned_role,is_active=True,)
-                new_user.set_password(password)
-                new_user.save()
-
-                AuditLog.objects.create(user=request.user,action="User account created",entity_type="User",
-                    details=( f"Created account {username} with role "
-                              f"{assigned_role.name}."),
-                )
-                messages.success( request,f"Account {username} created and assigned to "f"{assigned_role.name}.",)
 
             #Updating user's role
-            elif action == "update_role":
+            if action == "update_role":
                 target = get_object_or_404( user,pk=request.POST.get("user_id"),)
 
                 if target.pk == request.user.pk:raise ValueError("Use another System Administrator to change your own role.")
@@ -965,92 +1062,192 @@ def _require_system_admin(request):
     if not (request.user.is_superuser or role_name == "system administrator"
     ): raise PermissionDenied("Only System Administrators may access this page.")
 
-#SYSTEM ADMINISTRATOR USER MANAGEMENT
+# SYSTEM ADMINISTRATOR USER MANAGEMENT
+@transaction.atomic
 @login_required(login_url="/login/")
 def system_admin_users_view(request):
-        _require_system_admin(request)
-        user = get_user_model()
+    _require_system_admin(request)
+    user = get_user_model()
 
-        if request.method == "POST":
-            action = request.POST.get("action", "").strip()
+    if request.method == "POST":
+        action = request.POST.get("action", "").strip()
 
-            try:
-                target = get_object_or_404(
-                    user,
-                    pk=request.POST.get("user_id"),
+        try:
+            # CREATE USER ACCOUNT
+            if action == "create_user":
+                username = request.POST.get("username", "").strip()
+                first_name = request.POST.get("first_name", "").strip()
+                last_name = request.POST.get("last_name", "").strip()
+                other_name = request.POST.get("other_name", "").strip()
+                email = request.POST.get("email", "").strip()
+                phone_number = request.POST.get("phone_number", "").strip()
+                role_id = request.POST.get("role_id", "").strip()
+
+                if not all([
+                    username, first_name, last_name,
+                    email, phone_number, role_id
+                ]):
+                    raise ValueError(
+                        "Username, first name, surname, email, "
+                        "phone number and role are required."
+                    )
+
+                if not phone_number or len(phone_number) >15:
+                    raise ValueError("Enter a valid phone number")
+
+                if user.objects.filter(username__iexact=username).exists():
+                    raise ValueError("That username already exists.")
+
+                if user.objects.filter(email__iexact=email).exists():
+                    raise ValueError("That email address is already registered.")
+
+                assigned_role = get_object_or_404(Role, pk=role_id)
+                new_user = user(
+                    username=username,
+                    first_name=first_name,
+                    last_name=last_name,
+                    other_name=other_name,
+                    email=email,
+                    phone_number=phone_number,
+                    role=assigned_role,
+                    is_active=False,
+                )
+                new_user.set_unusable_password()
+                new_user.save()
+
+                # GENERATE ACCOUNT ACTIVATION LINK
+                uid = urlsafe_base64_encode(force_bytes(new_user.pk))
+                token = default_token_generator.make_token(new_user)
+
+                activation_url = request.build_absolute_uri(
+                    reverse(
+                        "activate_account",
+                        kwargs={
+                            "uidb64": uid,
+                            "token": token,
+                        },
+                    )
                 )
 
-                if action == "toggle_active":
-                    if target.pk == request.user.pk:
-                        raise ValueError("You cannot deactivate your own account.")
+                # SEND ACTIVATION EMAIL
+                send_mail(
+                    subject="Activate Your Medicine FEFO System Account",
+                    message=(
+                        f"Hello {new_user.first_name},\n\n"
+                        "A System Administrator has created an account for you.\n\n"
+                        "Use the link below to establish your password and activate "
+                        "your account:\n\n"
+                        f"{activation_url}\n\n"
+                        "This link expires after 24 hours and can only be used once.\n\n"
+                        "If you were not expecting this account, contact your "
+                        "System Administrator."
+                    ),
+                    from_email=None,
+                    recipient_list=[new_user.email],
+                    fail_silently=False,
+                )
 
-                    is_system_admin = (target.role is not None and target.role.name.strip().casefold()== "system administrator")
-                    if target.is_active and is_system_admin:
-                        active_admins = user.objects.filter(is_active=True,role__name__iexact="System Administrator",).count()
+                AuditLog.objects.create(
+                    user=request.user,
+                    action="User account created",
+                    entity_type="User",
+                    details=(
+                        f"Created inactive account {username}; "
+                        f"email={email}; role={assigned_role.name}."
+                    ),
+                    ip_address=request.META.get("REMOTE_ADDR"),
+                )
 
-                        if active_admins <= 1:
-                            raise ValueError(
-                                "The last active System Administrator "
-                                "cannot be deactivated. Activate another "
-                                "administrator first."
-                            )
+                messages.success(request,f"Account for {username} created successfully. "
+                    "The account is inactive pending activation."
+                )
+                return redirect("system_admin/users")
 
-                    target.is_active = not target.is_active
-                    target.save(update_fields=["is_active"])
-                    AuditLog.objects.create(
-                        user=request.user,
-                        action=("User account activated" if target.is_active else "User account deactivated"),
-                        entity_type="User",
-                        details=(f"Account {target.username}; " f"active={target.is_active}."
-                        ),
-                    )
-                    messages.success(request,f"Account {target.username} is now " f"{'active' if target.is_active else 'inactive'}.",)
+            # EXISTING ACCOUNT MANAGEMENT
+            target = get_object_or_404(user, pk=request.POST.get("user_id"),)
 
-                elif action == "update_role":
-                    if target.pk == request.user.pk:
-                        raise ValueError("Use another System Administrator to change your own role.")
-                    assigned_role = get_object_or_404(Role,pk=request.POST.get("role_id"),)
-                    old_role = (target.role.name if target.role else "No Role")
-                    new_role = assigned_role.name
-                    removing_admin_role = (target.is_active
-                            and old_role.strip().casefold() == "system administrator" and new_role.strip().casefold() != "system administrator")
+            # ACTIVATE OR DEACTIVATE ACCOUNT
+            if action == "toggle_active":
+                if target.pk == request.user.pk:
+                    raise ValueError("You cannot deactivate your own account.")
 
-                    if removing_admin_role:
-                        active_admins = user.objects.filter(is_active=True, role__name__iexact="System Administrator",).count()
+                is_system_admin = (target.role is not None and target.role.name.strip().casefold() == "system administrator")
 
-                        if active_admins <= 1:
-                            raise ValueError(
-                                "The last active System Administrator "
-                                "cannot be reassigned. Assign another "
-                                "administrator first."
-                            )
+                if target.is_active and is_system_admin:
+                    active_admins = user.objects.filter(is_active=True,role__name__iexact="System Administrator",).count()
 
-                    target.role = assigned_role
-                    target.save(update_fields=["role"])
+                    if active_admins <= 1:
+                        raise ValueError(
+                            "The last active System Administrator "
+                            "cannot be deactivated. Activate another "
+                            "administrator first."
+                        )
 
-                    AuditLog.objects.create(
-                        user=request.user,
-                        action="User role changed",
-                        entity_type="User",
-                        details=(
-                            f"Account {target.username}: "
-                            f"{old_role} -> {new_role}."
-                        ),
-                    )
-                    messages.success(request,f"Role updated for {target.username}.",)
+                target.is_active = not target.is_active
+                target.save(update_fields=["is_active"])
 
-                else: messages.error(request,"Invalid user management action.",)
-            except ValueError as exc: messages.error(request, str(exc))
-            return redirect("system_admin_users")
+                AuditLog.objects.create(
+                    user=request.user,
+                    action=("User account activated"if target.is_active else "User account deactivated"),
+                    entity_type="User",
+                    details=(
+                        f"Account {target.username}; "
+                        f"active={target.is_active}."),
+                    ip_address=request.META.get("REMOTE_ADDR"),
+                )
+                messages.success( request,f"Account {target.username} is now " f"{'active' if target.is_active else 'inactive'}.", )
 
-        context = {
-            "users": user.objects.select_related("role").order_by("username"),
-            "roles": Role.objects.order_by("name"),
-            "total_users": user.objects.count(),
-            "active_users": user.objects.filter(is_active=True).count(),
-            "inactive_users": user.objects.filter(is_active=False).count(),
-        }
-        return render(request, "system_admin/users.html", context)
+            # UPDATE USER ROLE
+            elif action == "update_role":
+                if target.pk == request.user.pk:
+                    raise ValueError("Use another System Administrator to change your own role.")
+
+                assigned_role = get_object_or_404(Role,pk=request.POST.get("role_id"),)
+                old_role = ( target.role.name if target.role else "No Role")
+                new_role = assigned_role.name
+
+                removing_admin_role = (target.is_active and old_role.strip().casefold()
+                    == "system administrator" and new_role.strip().casefold() != "system administrator")
+
+                if removing_admin_role:
+                    active_admins = user.objects.filter(is_active=True,role__name__iexact="System Administrator",).count()
+
+                    if active_admins <= 1:
+                        raise ValueError(
+                            "The last active System Administrator "
+                            "cannot be reassigned. Assign another "
+                            "administrator first."
+                        )
+
+                target.role = assigned_role
+                target.save(update_fields=["role"])
+
+                AuditLog.objects.create(
+                    user=request.user,
+                    action="User role changed",
+                    entity_type="User",
+                    details=(
+                        f"Account {target.username}: "
+                        f"{old_role} -> {new_role}."
+                    ),
+                    ip_address=request.META.get("REMOTE_ADDR"),
+                )
+                messages.success(request,f"Role updated for {target.username}.",)
+
+            else:
+                messages.error( request,"Invalid user management action.",)
+
+        except ValueError as exc: messages.error(request, str(exc))
+        return redirect("system_admin_users")
+
+    context = {
+        "users": user.objects.select_related("role").order_by("username"),
+        "roles": Role.objects.order_by("name"),
+        "total_users": user.objects.count(),
+        "active_users": user.objects.filter(is_active=True).count(),
+        "inactive_users": user.objects.filter(is_active=False).count(),
+    }
+    return render(request, "system_admin/users.html", context)
 
 #SYSTEM ADMINISTRATOR ROLES AND ACCESS CONTROL
 @login_required(login_url="/login/")
@@ -1136,9 +1333,30 @@ def alerts_view(request): #Role based alerts definitions
             "action_url": action_url,
         })
 
+    # Retrieve alerts assigned specifically to the logged-in user.
+    personal_alerts = UserAlert.objects.filter(recipient=request.user).order_by("-created_at")
+    for user_alert in personal_alerts:
+        if user_alert.is_resolved: alert_status = "Resolved"
+        elif user_alert.is_read: alert_status = "Acknowledged"
+        else: alert_status = "Open"
+
+        add_alert(
+            alert_type=user_alert.alert_type,
+            title=user_alert.title,
+            severity=user_alert.severity,
+            created_at=user_alert.created_at,
+            status=alert_status,
+            is_resolved=user_alert.is_resolved,
+            is_acknowledged=user_alert.is_read,
+            reasoning=user_alert.message,
+            source_id=user_alert.source_id,
+            source_type="UserAlert",
+            action_url=user_alert.action_url,
+        )
+
     #Existing persistent expiry alerts
     expiry_alerts = ExpiryAlert.objects.select_related("medicine", "batch", "batch__medicine"
-    ).filter(Q(medicine__isnull=False) | Q(batch__isnull=False)).order_by("-created_at")
+    ).filter(Q(medicine__isnull=False) | Q(batch__isnull=False)).order_by("-generated_at")
 
     for item in expiry_alerts:
         batch = item.batch
@@ -1151,8 +1369,7 @@ def alerts_view(request): #Role based alerts definitions
         if item.alert_type == "EXPIRED":
             title = "Expired medicine batch"
             severity = "Critical"
-        else:
-            title = "Medicine nearing expiry"
+        else: title = "Medicine nearing expiry"
 
         # Only roles responsible for clinical stock and oversight see
         # medicine expiry alerts.
@@ -1175,9 +1392,9 @@ def alerts_view(request): #Role based alerts definitions
             alert_type=item.alert_type,
             title=title,
             severity=severity,
-            medicine={"name": medicine.name,} if medicine else None,
+            medicine={"name": medicine.medicine_name,} if medicine else None,
             batch={"batch_number": batch.batch_number,"expiry_date": batch.expiry_date,} if batch else None,
-            created_at=item.created_at,
+            created_at=item.generated_at,
             days_to_expiry=days,
             status=status,
             reasoning=f"Expiry alert for batch {batch.batch_number}" if batch else "Medicine expiry alert.",
@@ -1200,21 +1417,18 @@ def alerts_view(request): #Role based alerts definitions
 
         for batch in batches:
             medicine = batch.medicine
-
             if not medicine: continue
 
             # An expired batch with remaining stock needs review.
             if (batch.expiry_date <= today
                     and batch.quantity_available > 0):
+
                 add_alert(
                     alert_type="EXPIRED",
                     title="Expired stock requires review",
                     severity="Critical",
-                    medicine={"name": medicine.name},
-                    batch={
-                        "batch_number": batch.batch_number,
-                        "expiry_date": batch.expiry_date,
-                    },
+                    medicine={"name": medicine.medicine_name},
+                    batch={"batch_number": batch.batch_number,"expiry_date": batch.expiry_date,},
                     created_at=None,
                     days_to_expiry=(batch.expiry_date - today).days,
                     reasoning="Remaining stock must not be dispensed. "
@@ -1236,15 +1450,9 @@ def alerts_view(request): #Role based alerts definitions
                 add_alert(
                     alert_type="NEAR",
                     title="Medicine nearing expiry",
-                    severity=(
-                        "High" if days_left <= 30
-                        else "Medium"
-                    ),
-                    medicine={"name": medicine.name},
-                    batch={
-                        "batch_number": batch.batch_number,
-                        "expiry_date": batch.expiry_date,
-                    },
+                    severity=("High" if days_left <= 30 else "Medium"),
+                    medicine={"name": medicine.medicine_name},
+                    batch={"batch_number": batch.batch_number,"expiry_date": batch.expiry_date,},
                     created_at=None,
                     days_to_expiry=days_left,
                     reasoning=f"Batch expires in {days_left} days.",
@@ -1270,12 +1478,9 @@ def alerts_view(request): #Role based alerts definitions
                     alert_type="STOCK_DEPLETED",
                     title="Batch stock depleted",
                     severity="Medium",
-                    medicine={"name": medicine.name},
+                    medicine={"name": medicine.medicine_name},
                     batch={"batch_number": batch.batch_number},
-                    reasoning=(
-                        "This batch has no available stock. Check other "
-                        "eligible batches before declaring a medicine stock-out."
-                    ),
+                    reasoning=("This batch has no available stock. Check other eligible batches before declaring a medicine stock-out."),
                     source_id=batch.pk,
                     source_type="batch",
                     action_url="/inventory/",
@@ -1289,19 +1494,14 @@ def alerts_view(request): #Role based alerts definitions
         "system administrator",
         "system admin",
     }:
-        recommendations = ProcurementRecommendation.objects.select_related(
-            "medicine"
-        ).filter(
+        recommendations = ProcurementRecommendation.objects.select_related("medicine").filter(
             Q(status__iexact="Pending")
             | Q(is_actioned=False)
         ).order_by("-created_at")
 
         for recommendation in recommendations:
             medicine = recommendation.medicine
-            urgency = (
-                getattr(recommendation, "urgency_level", "Medium")
-                or "Medium"
-            )
+            urgency = (getattr(recommendation, "urgency_level", "Medium") or "Medium")
             urgency_key = str(urgency).casefold()
 
             severity = (
@@ -1314,7 +1514,7 @@ def alerts_view(request): #Role based alerts definitions
                 alert_type="PROCUREMENT",
                 title="Pending procurement recommendation",
                 severity=severity,
-                medicine={"name": medicine.name} if medicine else None,
+                medicine={"name": medicine.medicine_name} if medicine else None,
                 created_at=getattr(
                     recommendation, "created_at", None
                 ) or getattr(recommendation, "generated_at", None),
@@ -1343,16 +1543,12 @@ def alerts_view(request): #Role based alerts definitions
             status_text = (po.status or "").strip()
             status_key = status_text.casefold()
 
-            if status_key in {"completed", "received", "cancelled", "rejected"}:
-                continue
+            if status_key in {"completed", "received", "cancelled", "rejected"}: continue
 
             # Procurement users handle orders; hospital administrators
-            # see orders requiring their review.
             if role in {"hospital admin", "hospital administrator"}:
-                if not any(
-                    marker in status_key
-                    for marker in ("pending admin", "awaiting approval","pending approval", "review")
-                ):
+                if not any(marker in status_key
+                    for marker in ("pending admin", "awaiting approval","pending approval", "review")):
                     continue
 
             add_alert(
@@ -1360,7 +1556,7 @@ def alerts_view(request): #Role based alerts definitions
                 title="Purchase order requires attention",
                 severity="High" if "approval" in status_key or "review" in status_key
                 else "Medium",
-                medicine={"name": po.medicine.name,} if po.medicine else None,
+                medicine={"name": po.medicine.medicine_name,} if po.medicine else None,
                 created_at=po.order_date,
                 status="Open",
                 reasoning=(
@@ -1368,7 +1564,7 @@ def alerts_view(request): #Role based alerts definitions
                     f"Supplier: {po.supplier.supplier_name if po.supplier else 'Not assigned'}."),
                 source_id=po.pk,
                 source_type="purchase_order",
-                action_url=("/dashboard/" if role in {"hospital admin", "hospital administrator"}
+                action_url=("/hospital_admin/dashboard/" if role in {"hospital admin", "hospital administrator"}
                     else "/procurement/"
                 ),
             )
@@ -1410,3 +1606,26 @@ def alerts_view(request): #Role based alerts definitions
         "resolved_alerts": resolved_alerts,
     }
     return render(request, "alerts.html", context)
+
+@login_required(login_url="/login/")
+@require_POST
+def acknowledge_user_alert(request, alert_id):
+    alert = get_object_or_404(UserAlert,pk=alert_id,recipient=request.user)
+
+    if not alert.is_resolved:
+        alert.is_read = True
+        alert.save(update_fields=["is_read"])
+
+    messages.success(request, "Alert acknowledged successfully.")
+    return redirect("/alerts/")
+
+@login_required(login_url="/login/")
+@require_POST
+def resolve_user_alert(request, alert_id):
+    alert = get_object_or_404(UserAlert,pk=alert_id,recipient=request.user)
+    alert.is_read = True
+    alert.is_resolved = True
+    alert.save(update_fields=["is_read", "is_resolved"])
+
+    messages.success(request, "Alert marked as resolved.")
+    return redirect("/alerts/")

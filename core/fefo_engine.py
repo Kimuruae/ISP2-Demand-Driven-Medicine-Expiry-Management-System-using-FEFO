@@ -124,8 +124,7 @@ class FEFOEngine:
 
             if selected_batch is None:
                 raise ValueError(
-                    "The selected batch is unavailable or does not "
-                    "meet the prescription-period validity requirements."
+                    "The selected batch is unavailable or does not meet the prescription-period validity requirements."
                 )
             override = selected_batch.pk != recommended_batch.pk
 

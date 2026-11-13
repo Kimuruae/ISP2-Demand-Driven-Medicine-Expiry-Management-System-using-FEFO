@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import (
     Role, Supplier, Medicine, MedicineBatch, DispensingTransaction,
     ExpiryAlert, DemandForecast, ProcurementRecommendation, PurchaseOrder,
-    SystemSetting, AuditLog
+    SystemSetting, AuditLog,user
 )
 
 # Fetch the active customized user model reference safe matrix
@@ -14,11 +14,8 @@ User = get_user_model()
 class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'email', 'role', 'is_staff', 'is_active')
     list_filter = ('role', 'is_staff', 'is_active')
-    fieldsets = BaseUserAdmin.fieldsets + (
-        ('Department Role Details', {'fields': ('role', 'phone_number')}),
-    )
-    add_fieldsets = BaseUserAdmin.add_fieldsets + (('Department Role Details', {'fields': ('role', 'phone_number')}),
-    )
+    fieldsets = BaseUserAdmin.fieldsets + (('Department Role Details', {'fields': ('role', 'phone_number')}),)
+    add_fieldsets = BaseUserAdmin.add_fieldsets + (('Department Role Details', {'fields': ('role', 'phone_number')}),)
 
 # Registering remaining transactional inventory tables cleanly
 admin.site.register(Role)
