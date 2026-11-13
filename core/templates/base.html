@@ -673,7 +673,7 @@
         <a href="{% if request.user.is_authenticated %}
          {% if request.user.is_superuser or request.user.role.name == 'System Administrator' %}{% url 'system_admin_dashboard' %}
         {% elif request.user.role.name == 'Hospital Admin' or request.user.role.name == 'Hospital Administrator' %}{% url 'admin_dashboard' %}
-        {% elif request.user.role.name == 'Pharmacist' %}{% url 'dispense' %}
+        {% elif request.user.role.name == 'Pharmacist' %}{% url 'pharmacist_dashboard' %}
         {% elif request.user.role.name == 'Store Manager' %}{% url 'inventory' %}
         {% elif request.user.role.name == 'Procurement Officer' %}{% url 'procurement' %}
         {% else %}{% url 'index' %}

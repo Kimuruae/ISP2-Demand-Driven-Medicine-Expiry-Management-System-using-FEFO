@@ -499,6 +499,57 @@
         color: #153e7b;
         text-decoration: underline;
     }
+    /* INDIVIDUAL ALERT ACTIONS */
+
+.alert-row-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 110px;
+}
+
+.alert-inline-form {
+    display: inline-flex;
+    margin: 0;
+}
+
+.alert-control-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 105px;
+    padding: 8px 11px;
+    border: 0;
+    border-radius: 7px;
+    font-size: .73rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.acknowledge-button {
+    background: #eaf1ff;
+    color: #2458b8;
+}
+
+.acknowledge-button:hover {
+    background: #d7e5ff;
+}
+
+.resolve-button {
+    background: #e8f8ef;
+    color: #167344;
+}
+
+.resolve-button:hover {
+    background: #d0f0dc;
+}
+
+.alert-control-button:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, .25);
+    outline-offset: 2px;
+}
 
     .action-arrow {
         font-size: 1rem;
@@ -778,17 +829,31 @@
         </article>
     </section>
 
-    <!-- ALERT REGISTER -->
+    <!-- ROLE-SPECIFIC ALERT REGISTER -->
     <section class="alerts-panel">
         <div class="panel-heading">
             <div>
-                <h2>Alert Register</h2>
-                <p>Review alerts, assess their priority and access the relevant workflow.</p>
+                <h2>
+                   {% if request.user.role.name|default:""|lower == "store manager" %}
+                     Store Manager Alerts
+                    {% elif request.user.role.name|default:""|lower == "pharmacist" %}
+                      Pharmacist Alerts
+                    {% elif request.user.role.name|default:""|lower == "procurement officer" %}
+                      Procurement Alerts
+                    {% elif request.user.role.name|default:""|lower == "hospital admin" or request.user.role.name|default:""|lower == "hospital administrator" %}
+                      Hospital Administration Alerts
+                    {% elif request.user.is_superuser %}
+                      System Administration Alerts
+                    {% else %}
+                      My Alerts
+                   {% endif %}
+                </h2>
+                <p>
+                    Review alerts assigned to your role, monitor their status
+                    and take the appropriate operational action.
+                </p>
             </div>
-
-            <span class="register-label">
-                LIVE REGISTER
-            </span>
+            <span class="register-label">PERSONAL ALERT REGISTER</span>
         </div>
 
         <!-- FILTERS -->
@@ -837,213 +902,251 @@
                 </thead>
 
                 <tbody id="alertsTableBody">
-                  {% for alert in alerts %}
-                        {% with severity=alert.severity|default:"Medium"|lower %}
-                        {% with alert_status=alert.status|default:""|lower %}
 
-                        <tr
-                            class="alert-row"
-                            data-search="{{ alert.alert_type|default:'Alert' }} {{ alert.title|default:'' }} {{ alert.medicine.medicine_name|default:'' }} {{ alert.batch.batch_number|default:'' }} {{ alert.reasoning|default:'' }} {{ alert.message|default:'' }}"
-                            data-severity="{{ severity }}"
-                            data-status="{% if alert.is_resolved or alert_status == 'resolved' %}resolved{% elif alert.is_acknowledged or alert_status == 'acknowledged' %}acknowledged{% else %}open{% endif %}"
-                        >
+    {% for alert in alerts %}
+        {% with severity=alert.severity|default:"Medium"|lower %}
+        {% with alert_status=alert.status|default:""|lower %}
 
-                            <!-- ALERT DETAILS -->
-                            <td>
-                                <span class="alert-title">
-                                    {% if alert.title %}
-                                        {{ alert.title }}
-                                    {% else %}
-                                        {{ alert.get_alert_type_display|default:alert.alert_type|default:"System Alert" }}
-                                    {% endif %}
-                                </span>
+        <tr
+            class="alert-row"
+            data-search="{{ alert.alert_type|default:'Alert' }} {{ alert.title|default:'' }} {{ alert.medicine.medicine_name|default:'' }} {{ alert.batch.batch_number|default:'' }} {{ alert.reasoning|default:'' }} {{ alert.message|default:'' }}"
+            data-severity="{{ severity }}"
+            data-status="{% if alert.is_resolved or alert_status == 'resolved' %}resolved{% elif alert.is_acknowledged or alert_status == 'acknowledged' %}acknowledged{% else %}open{% endif %}"
+        >
 
-                                <span class="alert-secondary">
-                                    {% if alert.days_to_expiry != None %}
-                                        {% if alert.days_to_expiry < 0 %}
-                                            Expired {{ alert.days_to_expiry|stringformat:"d"|slice:"1:" }} day(s) ago
-                                        {% elif alert.days_to_expiry == 0 %}
-                                            Expires today
-                                        {% else %}
-                                            {{ alert.days_to_expiry }} day(s) until expiry
-                                        {% endif %}
-                                    {% elif alert.reasoning %}
-                                        {{ alert.reasoning|truncatechars:95 }}
-                                    {% elif alert.message %}
-                                        {{ alert.message|truncatechars:95 }}
-                                    {% else %}
-                                        Review the alert details.
-                                    {% endif %}
-                                </span>
-                            </td>
+            <!-- ALERT DETAILS -->
+            <td>
+                <span class="alert-title">
+                    {% if alert.title %}
+                        {{ alert.title }}
+                    {% else %}
+                        {{ alert.get_alert_type_display|default:alert.alert_type|default:"System Alert" }}
+                    {% endif %}
+                </span>
 
-                            <!-- MEDICINE / BATCH -->
-                            <td>
-                                <span class="medicine-name">
-                                    {% if alert.medicine %}
-                                        {{ alert.medicine.medicine_name }}
-                                    {% elif alert.batch and alert.batch.medicine %}
-                                        {{ alert.batch.medicine.medicine_name }}
-                                    {% else %}
-                                        Not specified
-                                    {% endif %}
-                                </span>
-
-                                {% if alert.batch %}
-                                    <span class="batch-number">
-                                        Batch: {{ alert.batch.batch_number }}
-                                    </span>
-                                {% elif alert.supplier %}
-                                    <span class="alert-secondary">
-                                        Supplier: {{ alert.supplier }}
-                                    </span>
-                                {% elif alert.purchase_order %}
-                                    <span class="alert-secondary">
-                                        Purchase order: {{ alert.purchase_order }}
-                                    </span>
-                                {% else %}
-                                    <span class="alert-secondary">
-                                        {{ alert.source_type|default:"Operational alert"|title }}
-                                    </span>
-                                {% endif %}
-                            </td>
-
-                            <!-- SEVERITY -->
-                            <td>
-                                <span class="alert-badge
-                                    {% if severity == 'critical' %}severity-critical
-                                    {% elif severity == 'high' %}severity-high
-                                    {% elif severity == 'medium' %}severity-medium
-                                    {% elif severity == 'low' %}severity-low
-                                    {% else %}severity-default{% endif %}">
-                                    {{ alert.severity|default:"Medium"|title }}
-                                </span>
-                            </td>
-
-                            <!-- DATE -->
-                            <td>
-                                {% if alert.created_at %}
-                                    {{ alert.created_at|date:"d M Y" }}
-                                    <span class="alert-secondary">
-                                        {{ alert.created_at|date:"H:i" }}
-                                    </span>
-                                {% elif alert.generated_at %}
-                                    {{ alert.generated_at|date:"d M Y" }}
-                                    <span class="alert-secondary">
-                                        {{ alert.generated_at|date:"H:i" }}
-                                    </span>
-                                {% else %}
-                                    —
-                                {% endif %}
-                            </td>
-
-                            <!-- STATUS -->
-                            <td>
-                                {% if alert.is_resolved or alert_status == "resolved" %}
-                                    <span class="alert-badge status-resolved">
-                                        <span class="status-dot"></span>
-                                        Resolved
-                                    </span>
-
-                                {% elif alert.is_acknowledged or alert_status == "acknowledged" %}
-                                    <span class="alert-badge status-acknowledged">
-                                        <span class="status-dot"></span>
-                                        Acknowledged
-                                    </span>
-
-                                {% else %}
-                                    <span class="alert-badge status-open">
-                                        <span class="status-dot"></span>
-                                        Unacknowledged
-                                    </span>
-                                {% endif %}
-                            </td>
-
-                            <!-- ACTION -->
-                            <td>
-                                {% if alert.action_url %}
-                                    <a href="{{ alert.action_url }}"
-                                       class="alert-action-link">
-                                        Review alert
-                                        <span class="action-arrow">→</span>
-                                    </a>
-
-                                {% elif alert.batch %}
-                                    {% if request.user.role.name|default:""|lower == "pharmacist" %}
-                                        <a href="{% url 'dispense' %}" class="alert-action-link">
-                                            Review dispensing →
-                                        </a>
-                                    {% elif request.user.role.name|default:""|lower == "store manager" %}
-                                        <a href="{% url 'inventory' %}" class="alert-action-link">
-                                            Review stock →
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'inventory_alerts' %}" class="alert-action-link">
-                                            Review inventory →
-                                        </a>
-                                    {% endif %}
-
-                                {% elif request.user.role.name|default:""|lower == "procurement officer" %}
-                                    <a href="{% url 'procurement' %}" class="alert-action-link">
-                                        Review procurement →
-                                    </a>
-
-                                {% elif request.user.role.name|default:""|lower == "hospital admin" or request.user.role.name|default:""|lower == "hospital administrator" %}
-                                    <a href="{% url 'admin_dashboard' %}" class="alert-action-link">
-                                        Review approvals →
-                                    </a>
-
-                                {% elif request.user.is_superuser %}
-                                    <a href="{% url 'system_admin_audit_logs' %}" class="alert-action-link">
-                                        Review logs →
-                                    </a>
-
-                                {% else %}
-                                    <span class="alert-secondary">No action available</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-
-                        {% endwith %}
-                        {% endwith %}
-                    {% empty %}
-
-                        <tr>
-                            <td colspan="6">
-                                <div class="alerts-empty">
-                                    <div class="empty-icon">✓</div>
-                                    <h3>You're all caught up</h3>
-                                    <p>
-                                        There are currently no alerts available for your account.
-                                        New alerts will appear here when relevant system events occur.
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
-                    <td>
-                      {% if alert.source_type == "UserAlert" %}
-                        {% if not alert.is_resolved %}
-                          {% if not alert.is_acknowledged %}
-                             <form method="POST"
-                                 action="{% url 'acknowledge_user_alert' alert.source_id %}">
-                               {% csrf_token %}
-                               <button type="submit" class="btn btn-secondary">Acknowledge</button>
-                             </form>
-                          {% endif %}
-
-                          <form method="POST"
-                            action="{% url 'resolve_user_alert' alert.source_id %}">
-                             {% csrf_token %}
-                           <button type="submit" class="btn btn-success">Resolve</button>
-                          </form>
-
-                         {% else %}
-                          <span class="status-badge">Resolved</span>
+                <span class="alert-secondary">
+                    {% if alert.days_to_expiry != None %}
+                        {% if alert.days_to_expiry < 0 %}
+                            Expired {{ alert.days_to_expiry|stringformat:"d"|slice:"1:" }} day(s) ago
+                        {% elif alert.days_to_expiry == 0 %}
+                            Expires today
+                        {% else %}
+                            {{ alert.days_to_expiry }} day(s) until expiry
                         {% endif %}
-                      {% endif %}
-                    </td>
-                  {% endfor %}
-                </tbody>
+                    {% elif alert.reasoning %}
+                        {{ alert.reasoning|truncatechars:95 }}
+                    {% elif alert.message %}
+                        {{ alert.message|truncatechars:95 }}
+                    {% else %}
+                        Review the alert details.
+                    {% endif %}
+                </span>
+            </td>
+
+            <!-- MEDICINE / BATCH -->
+            <td>
+                <span class="medicine-name">
+                    {% if alert.medicine %}
+                        {{ alert.medicine.medicine_name }}
+                    {% elif alert.batch and alert.batch.medicine %}
+                        {{ alert.batch.medicine.medicine_name }}
+                    {% else %}
+                        Not specified
+                    {% endif %}
+                </span>
+
+                {% if alert.batch %}
+                    <span class="batch-number">
+                        Batch: {{ alert.batch.batch_number }}
+                    </span>
+                {% elif alert.supplier %}
+                    <span class="alert-secondary">
+                        Supplier: {{ alert.supplier }}
+                    </span>
+                {% elif alert.purchase_order %}
+                    <span class="alert-secondary">
+                        Purchase order: {{ alert.purchase_order }}
+                    </span>
+                {% else %}
+                    <span class="alert-secondary">
+                        {{ alert.source_type|default:"Operational alert"|title }}
+                    </span>
+                {% endif %}
+            </td>
+
+            <!-- SEVERITY -->
+            <td>
+                <span class="alert-badge
+                    {% if severity == 'critical' %}severity-critical
+                    {% elif severity == 'high' %}severity-high
+                    {% elif severity == 'medium' %}severity-medium
+                    {% elif severity == 'low' %}severity-low
+                    {% else %}severity-default{% endif %}">
+                    {{ alert.severity|default:"Medium"|title }}
+                </span>
+            </td>
+
+            <!-- DATE RAISED -->
+            <td>
+                {% if alert.created_at %}
+                    {{ alert.created_at|date:"d M Y" }}
+                    <span class="alert-secondary">
+                        {{ alert.created_at|date:"H:i" }}
+                    </span>
+                {% elif alert.generated_at %}
+                    {{ alert.generated_at|date:"d M Y" }}
+                    <span class="alert-secondary">
+                        {{ alert.generated_at|date:"H:i" }}
+                    </span>
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+
+            <!-- STATUS -->
+            <td>
+                {% if alert.is_resolved or alert_status == "resolved" %}
+                    <span class="alert-badge status-resolved">
+                        <span class="status-dot"></span>
+                        Resolved
+                    </span>
+
+                {% elif alert.is_acknowledged or alert_status == "acknowledged" %}
+                    <span class="alert-badge status-acknowledged">
+                        <span class="status-dot"></span>
+                        Acknowledged
+                    </span>
+
+                {% else %}
+                    <span class="alert-badge status-open">
+                        <span class="status-dot"></span>
+                        Unacknowledged
+                    </span>
+                {% endif %}
+            </td>
+
+            <!-- INDIVIDUAL ALERT ACTIONS -->
+            <td>
+                <div class="alert-row-actions">
+
+                    {% if alert.source_type == "UserAlert" %}
+
+                        {% if alert.is_resolved or alert_status == "resolved" %}
+
+                            <span class="alert-secondary">
+                                No further action required
+                            </span>
+
+                        {% else %}
+
+                            {% if not alert.is_acknowledged and alert_status != "acknowledged" %}
+                                <form
+                                    method="POST"
+                                    action="{% url 'acknowledge_user_alert' alert.source_id %}"
+                                    class="alert-inline-form"
+                                >
+                                    {% csrf_token %}
+                                    <button
+                                        type="submit"
+                                        class="alert-control-button acknowledge-button"
+                                    >
+                                        Acknowledge
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            <form
+                                method="POST"
+                                action="{% url 'resolve_user_alert' alert.source_id %}"
+                                class="alert-inline-form"
+                            >
+                                {% csrf_token %}
+                                <button
+                                    type="submit"
+                                    class="alert-control-button resolve-button"
+                                >
+                                    Resolve
+                                </button>
+                            </form>
+
+                        {% endif %}
+
+                    {% elif alert.action_url %}
+
+                        <a href="{{ alert.action_url }}" class="alert-action-link">
+                            Review alert →
+                        </a>
+
+                    {% elif alert.batch %}
+
+                        {% if request.user.role.name|default:""|lower == "pharmacist" %}
+                            <a href="{% url 'dispense' %}" class="alert-action-link">
+                                Review dispensing →
+                            </a>
+
+                        {% elif request.user.role.name|default:""|lower == "store manager" %}
+                            <a href="{% url 'inventory' %}" class="alert-action-link">
+                                Review stock →
+                            </a>
+
+                        {% else %}
+                            <a href="{% url 'inventory_alerts' %}" class="alert-action-link">
+                                Review inventory →
+                            </a>
+                        {% endif %}
+
+                    {% elif request.user.role.name|default:""|lower == "procurement officer" %}
+
+                        <a href="{% url 'procurement' %}" class="alert-action-link">
+                            Review procurement →
+                        </a>
+
+                    {% elif request.user.role.name|default:""|lower == "hospital admin" or request.user.role.name|default:""|lower == "hospital administrator" %}
+
+                        <a href="{% url 'admin_dashboard' %}" class="alert-action-link">
+                            Review approvals →
+                        </a>
+
+                    {% elif request.user.is_superuser %}
+
+                        <a href="{% url 'system_admin_audit_logs' %}" class="alert-action-link">
+                            Review logs →
+                        </a>
+
+                    {% else %}
+
+                        <span class="alert-secondary">
+                            No action available
+                        </span>
+
+                    {% endif %}
+
+                </div>
+            </td>
+
+        </tr>
+
+        {% endwith %}
+        {% endwith %}
+
+    {% empty %}
+
+        <tr>
+            <td colspan="6">
+                <div class="alerts-empty">
+                    <div class="empty-icon">✓</div>
+                    <h3>You're all caught up</h3>
+                    <p>
+                        There are currently no alerts available for your account.
+                        New alerts will appear here when relevant system events occur.
+                    </p>
+                </div>
+            </td>
+        </tr>
+
+    {% endfor %}
+
+</tbody>
             </table>
         </div>
 

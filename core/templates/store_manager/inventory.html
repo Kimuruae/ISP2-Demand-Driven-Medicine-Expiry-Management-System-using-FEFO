@@ -1,85 +1,1044 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div style="max-width:1400px;margin:30px auto;padding:0 20px;font-family:Arial,sans-serif;color:#1e293b;">
-    <div style="background:linear-gradient(120deg,#123b66,#087e8b);color:white;padding:28px;border-radius:14px;margin-bottom:25px;">
-        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.85;">Store Manager Workspace</div>
-        <h1 style="font-size:28px;margin:8px 0;font-weight:800;">Inventory Management</h1>
-        <p style="margin:0;font-size:14px;opacity:.9;">Monitor available medicine stock, track batch expiry dates and oversee inventory movements through controlled receiving.</p>
-    </div>
+
+<div class="sm-page">
+    <!-- HEADER -->
+    <header class="sm-header">
+        <div class="sm-eyebrow">STORE MANAGER WORKSPACE</div>
+        <h1>Inventory Management Centre</h1>
+        <p>Demand-driven medicine inventory control, expiry monitoring and FEFO stock management.</p>
+    </header>
 
     <style>
-        .sm-layout{display:grid;grid-template-columns:240px 1.3fr 1fr;gap:20px;align-items:start}
-        .sm-card{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:22px;box-shadow:0 3px 12px rgba(15,23,42,.05)}
-        .sm-link{display:block;padding:13px 15px;border-radius:8px;text-decoration:none;color:#334155;font-size:13px;font-weight:700;background:#f1f5f9;margin-bottom:9px;transition:.2s}
-        .sm-link:hover,.sm-link.active{background:#123b66;color:white}
-        .sm-input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:7px;font-size:14px;background:#fff}
-        .sm-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;color:#475569;margin-bottom:7px}
-        .sm-button{width:100%;border:0;border-radius:8px;background:#087e8b;color:white;padding:14px;font-size:13px;font-weight:800;text-transform:uppercase;cursor:pointer}
-        .sm-button:hover{background:#06636d}
-        .sm-stock{padding:13px;border:1px solid #e2e8f0;border-radius:9px;margin-bottom:10px;background:#f8fafc}
-        @media(max-width:1000px){.sm-layout{grid-template-columns:1fr}}
-    </style>
-    <div class="sm-layout">
-        <!-- Sidebar Navigation -->
-        <aside class="sm-card">
-            <h3 style="font-size:13px;text-transform:uppercase;color:#64748b;margin:0 0 18px;">Navigation</h3>
-            <a href="{% url 'inventory' %}" class="sm-link active">Inventory Overview</a>
-            <a href="{% url 'goods_receipts' %}" class="sm-link">Goods Receipts</a>
-            <a href="{% url 'inventory_reports' %}" class="sm-link">Stock Reports</a>
-            <a href="{% url 'inventory_alerts' %}" class="sm-link">Alerts</a>
-            <a href="{% url 'inventory_recommendations' %}" class="sm-link">Procurement Recommendation</a>
+        .sm-page {
+            max-width: 1450px;
+            margin: 30px auto;
+            padding: 0 20px 40px;
+            font-family: Arial, sans-serif;
+            color: #1e293b;
+        }
 
-            <div style="margin-top:25px;padding:15px;background:#e0f2fe;border-radius:9px;">
-                <div style="font-size:11px;font-weight:800;color:#075985;text-transform:uppercase;">FEFO Reminder</div>
-                <p style="font-size:12px;line-height:1.6;color:#334155;margin:7px 0 0;">
-                    Stock with the earliest expiry date should be prioritised during dispensing.
+        .sm-header {
+            background: linear-gradient(120deg,#123b66,#087e8b);
+            color: white;
+            padding: 28px;
+            border-radius: 14px;
+            margin-bottom: 22px;
+        }
+
+        .sm-eyebrow {
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: .85;
+        }
+
+        .sm-header h1 {
+            font-size: 28px;
+            margin: 9px 0;
+            font-weight: 800;
+        }
+
+        .sm-header p {
+            margin: 0;
+            font-size: 13px;
+            opacity: .9;
+            line-height: 1.6;
+        }
+
+        .sm-layout {
+            display: grid;
+            grid-template-columns: 225px minmax(0,1fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .sm-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 21px;
+            box-shadow: 0 3px 12px rgba(15,23,42,.05);
+            min-width: 0;
+        }
+
+        .sm-sidebar {
+            position: sticky;
+            top: 20px;
+        }
+
+        .sm-sidebar-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #64748b;
+            margin: 0 0 17px;
+            letter-spacing: .5px;
+        }
+
+        .sm-link {
+            display: block;
+            padding: 13px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 700;
+            background: #f1f5f9;
+            margin-bottom: 9px;
+            transition: .2s;
+        }
+
+        .sm-link:hover,
+        .sm-link.active {
+            background: #123b66;
+            color: white;
+        }
+
+        .sm-fefo-reminder {
+            margin-top: 22px;
+            padding: 15px;
+            background: #e0f2fe;
+            border-radius: 9px;
+        }
+
+        .sm-fefo-reminder strong {
+            color: #075985;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .sm-fefo-reminder p {
+            font-size: 11px;
+            line-height: 1.7;
+            color: #334155;
+            margin: 7px 0 0;
+        }
+
+        .sm-main {
+            display: flex;
+            flex-direction: column;
+            gap: 19px;
+            min-width: 0;
+        }
+
+        /* KPI CARDS */
+        /* INVENTORY SUMMARY - FIVE COMPACT KPIs */
+.sm-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 22px;
+    width: 100%;
+}
+
+.sm-kpi {
+    min-width: 0;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 15px;
+    box-shadow: 0 2px 7px rgba(15, 23, 42, 0.04);
+}
+
+.sm-kpi-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.sm-kpi-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.sm-kpi-icon {
+    font-size: 13px;
+    font-weight: 800;
+    color: #087e8b;
+}
+
+.sm-kpi-value {
+    font-size: 25px;
+    font-weight: 800;
+    color: #123b66;
+    line-height: 1.2;
+    margin-top: 9px;
+}
+
+.sm-kpi-note {
+    font-size: 10px;
+    color: #94a3b8;
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+/* Responsive layout */
+@media (max-width: 1050px) {
+    .sm-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .sm-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+        /* SECTION HEADINGS */
+
+        .sm-section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .sm-section-title {
+            font-size: 16px;
+            color: #123b66;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .sm-section-description {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0 0 15px;
+        }
+
+        .sm-count {
+            font-size: 10px;
+            font-weight: 800;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 6px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        /* RISK MONITORING */
+
+        .sm-risk-grid {
+            display: grid;
+            grid-template-columns: repeat(2,minmax(0,1fr));
+            gap: 17px;
+        }
+
+        .sm-risk-panel {
+            height: 390px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sm-scroll-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 7px;
+        }
+
+        .sm-item {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            background: #f8fafc;
+            margin-bottom: 9px;
+        }
+
+        .sm-item-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .sm-item-title strong {
+            font-size: 12px;
+            color: #1e293b;
+        }
+
+        .sm-item-details {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-top: 9px;
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        .sm-status {
+            display: inline-block;
+            padding: 5px 8px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .sm-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .sm-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .sm-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .sm-neutral {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .sm-empty {
+            padding: 28px 13px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        /* FEFO */
+
+        .sm-fefo-card {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sm-fefo-list {
+            max-height: 330px;
+            overflow-y: auto;
+            padding-right: 7px;
+        }
+
+        .sm-fefo-item {
+            display: grid;
+            grid-template-columns: 36px minmax(0,1fr) auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            margin-bottom: 9px;
+            background: #f8fafc;
+        }
+
+        .sm-priority {
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            border-radius: 8px;
+            background: #dbeafe;
+            color: #123b66;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .sm-fefo-name {
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .sm-fefo-meta {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 5px;
+            line-height: 1.6;
+        }
+
+        /* QUICK ACTIONS */
+
+        .sm-action-grid {
+            display: grid;
+            grid-template-columns: repeat(4,minmax(0,1fr));
+            gap: 11px;
+        }
+
+        .sm-action {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 105px;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            text-decoration: none;
+            background: #f8fafc;
+            transition: .2s;
+        }
+
+        .sm-action:hover {
+            border-color: #087e8b;
+            background: #f0fdfa;
+            transform: translateY(-2px);
+        }
+
+        .sm-action strong {
+            font-size: 11px;
+            color: #123b66;
+        }
+
+        .sm-action p {
+            font-size: 10px;
+            line-height: 1.5;
+            color: #64748b;
+            margin: 7px 0;
+        }
+
+        .sm-action span {
+            font-size: 16px;
+            color: #087e8b;
+            font-weight: 800;
+            align-self: flex-end;
+        }
+
+        /* GOODS RECEIVING */
+
+        .sm-receiving {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            background: #f0fdfa;
+            border: 1px solid #99f6e4;
+        }
+
+        .sm-receiving h2 {
+            font-size: 15px;
+            color: #115e59;
+            margin: 0 0 6px;
+        }
+
+        .sm-receiving p {
+            color: #475569;
+            font-size: 11px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .sm-button {
+            display: inline-block;
+            text-decoration: none;
+            background: #087e8b;
+            color: white;
+            padding: 11px 16px;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .sm-button:hover {
+            background: #06636d;
+        }
+
+        .sm-scroll-list::-webkit-scrollbar,
+        .sm-fefo-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sm-scroll-list::-webkit-scrollbar-thumb,
+        .sm-fefo-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        @media(max-width:1100px) {
+            .sm-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sm-sidebar {
+                position: static;
+            }
+
+            .sm-sidebar nav {
+                display: grid;
+                grid-template-columns: repeat(2,minmax(0,1fr));
+                gap: 8px;
+            }
+
+            .sm-link {
+                margin: 0;
+            }
+
+            .sm-fefo-reminder {
+                display: none;
+            }
+        }
+
+        @media(max-width:750px) {
+            .sm-kpi-grid {
+                grid-template-columns: repeat(2,minmax(0,1fr));
+            }
+
+            .sm-risk-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sm-risk-panel {
+                height: 350px;
+            }
+
+            .sm-action-grid {
+                grid-template-columns: repeat(2,minmax(0,1fr));
+            }
+        }
+
+        @media(max-width:450px) {
+            .sm-page {
+                padding: 0 12px 25px;
+            }
+
+            .sm-header {
+                padding: 21px;
+            }
+
+            .sm-header h1 {
+                font-size: 23px;
+            }
+
+            .sm-card {
+                padding: 15px;
+            }
+        }
+    </style>
+
+    <div class="sm-layout">
+        <!-- SIDEBAR -->
+        <aside class="sm-card sm-sidebar">
+            <h3 class="sm-sidebar-title">Navigation</h3>
+
+            <nav>
+                <a href="{% url 'inventory' %}" class="sm-link active">Inventory Overview</a>
+                <a href="{% url 'goods_receipts' %}" class="sm-link">Incoming Delivery</a>
+                <a href="{% url 'inventory_reports' %}" class="sm-link">Inventory Reports</a>
+                <a href="{% url 'inventory_alerts' %}" class="sm-link">Inventory Alerts</a>
+                <a href="{% url 'inventory_recommendations' %}" class="sm-link">Procurement Recommendations</a>
+            </nav>
+
+            <div class="sm-fefo-reminder">
+                <strong>FEFO Control Principle</strong>
+                <p>
+                    Eligible stock with the earliest expiry date should be prioritised.
+                    Expired and depleted batches must not be treated as usable stock.
                 </p>
             </div>
         </aside>
-        <!-- GOODS RECEIVING -->
-<section class="sm-card">
-    <h2 style="font-size:17px;margin:0 0 7px;color:#123b66;">Goods Receiving</h2>
-    <p style="font-size:13px;color:#64748b;margin:0 0 22px;">
-        Record supplier deliveries against placed purchase orders.
-        Each delivered batch must pass inspection before entering usable inventory.
-    </p>
-    <a href="{% url 'goods_receipts' %}" class="sm-button"
-       style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;">
-        Open Goods Receipts
-    </a>
-</section>
-        <!-- CURRENT STOCK -->
-        <section class="sm-card">
-            <h2 style="font-size:17px;margin:0 0 7px;color:#123b66;">Available Stock</h2>
-            <p style="font-size:13px;color:#64748b;margin:0 0 20px;">Active available medicine batches quantities defined by FEFO.</p>
 
-            <div style="max-height:540px;overflow-y:auto;">
-                {% for batch in batches %}
-                    <div class="sm-stock">
-                        <div style="display:flex;justify-content:space-between;gap:10px;align-items:start;">
-                            <strong style="font-size:14px;color:#1e293b;">{{ batch.medicine.medicine_name }}</strong>
-                            <span style="font-size:11px;background:#dcfce7;color:#166534;padding:5px 8px;border-radius:20px;font-weight:800;">ACTIVE</span>
-                        </div>
-                        <div style="font-size:12px;color:#64748b;margin-top:9px;">
-                            Batch: <strong>{{ batch.batch_number }}</strong>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;margin-top:9px;font-size:12px;">
-                            <span>Available: <strong style="color:#087e8b;">{{ batch.quantity_available }} units</strong></span>
-                            <span>Expires: <strong>{{ batch.expiry_date|date:"Y-m-d" }}</strong></span>
-                        </div>
-                        <div style="font-size:11px;color:#64748b;margin-top:7px;">
-                            Location: {{ batch.storage_location|default:"Not specified" }}
-                        </div>
+        <!-- MAIN DASHBOARD -->
+        <main class="sm-main">
+            <!-- INVENTORY SUMMARY -->
+            <section class="sm-kpi-grid">
+                <div class="sm-kpi">
+                    <div class="sm-kpi-top">
+                        <span class="sm-kpi-label">Usable Stock Units</span>
+                        <span class="sm-kpi-icon"></span>
                     </div>
-                {% empty %}
-                    <div style="padding:35px 15px;text-align:center;background:#f8fafc;border-radius:9px;color:#64748b;font-size:13px;">
-                        No active stock batches have been registered.
-                    </div>
-                {% endfor %}
-            </div>
-        </section>
+                    <div class="sm-kpi-value" id="totalStockUnits">0</div>
+                    <div class="sm-kpi-note">Across eligible displayed batches</div>
+                </div>
 
+                <div class="sm-kpi">
+                    <div class="sm-kpi-top">
+                        <span class="sm-kpi-label">Low Stock Medicines</span>
+                        <span class="sm-kpi-icon">!</span>
+                    </div>
+                    <div class="sm-kpi-value" id="lowStockMedicines">0</div>
+                    <div class="sm-kpi-note">At or below reorder level</div>
+                </div>
+
+                <div class="sm-kpi">
+                    <div class="sm-kpi-top">
+                        <span class="sm-kpi-label">Near-Expiry Batches</span>
+                        <span class="sm-kpi-icon"></span>
+                    </div>
+                    <div class="sm-kpi-value" id="nearExpiryBatches">0</div>
+                    <div class="sm-kpi-note">Expiring within 30 days</div>
+                </div>
+
+                <div class="sm-kpi">
+                    <div class="sm-kpi-top">
+                        <span class="sm-kpi-label">Expired Batches</span>
+                        <span class="sm-kpi-icon"></span>
+                    </div>
+                    <div class="sm-kpi-value" id="expiredBatches">0</div>
+                    <div class="sm-kpi-note">Excluded from usable stock</div>
+                </div>
+
+                <div class="sm-kpi">
+                    <div class="sm-kpi-top">
+                        <span class="sm-kpi-label">Recorded Batches</span>
+                        <span class="sm-kpi-icon"></span>
+                    </div>
+                    <div class="sm-kpi-value" id="batchCount">0</div>
+                    <div class="sm-kpi-note">Batches registered in this view</div>
+                </div>
+            </section>
+
+            <!-- INVENTORY RISK MONITORING -->
+            <section class="sm-risk-grid">
+                <!-- LOW STOCK -->
+                <div class="sm-card sm-risk-panel">
+                    <div class="sm-section-heading">
+                        <h2 class="sm-section-title">Low Stock Monitoring</h2>
+                        <span class="sm-count" id="lowStockCount">0 medicines</span>
+                    </div>
+
+                    <p class="sm-section-description">
+                        Medicines whose usable stock has reached or fallen below the configured reorder level.
+                    </p>
+
+                    <div class="sm-scroll-list" id="lowStockList">
+                        <div class="sm-empty">Preparing stock monitoring...</div>
+                    </div>
+
+                    <a href="{% url 'inventory_recommendations' %}" class="sm-button" style="text-align:center;margin-top:12px;">
+                        Review Procurement Recommendations →
+                    </a>
+                </div>
+
+                <!-- EXPIRY RISK -->
+                <div class="sm-card sm-risk-panel">
+                    <div class="sm-section-heading">
+                        <h2 class="sm-section-title">Expiry Risk Monitoring</h2>
+                        <span class="sm-count" id="expiryRiskCount">0 batches</span>
+                    </div>
+
+                    <p class="sm-section-description">
+                        Expired batches and batches approaching expiry within 30 days.
+                    </p>
+
+                    <div class="sm-scroll-list" id="expiryRiskList">
+                        <div class="sm-empty">Preparing expiry monitoring...</div>
+                    </div>
+
+                    <a href="{% url 'inventory_alerts' %}" class="sm-button" style="text-align:center;margin-top:12px;">
+                        View Inventory Alerts →
+                    </a>
+                </div>
+            </section>
+
+            <!-- CURRENT STOCK REGISTER -->
+            <section class="sm-card">
+                <div class="sm-section-heading">
+                    <h2 class="sm-section-title">Current Stock Register</h2>
+                    <span class="sm-count">{{ batches|length }} displayed batches</span>
+                </div>
+
+                <p class="sm-section-description">
+                    Review the individual medicine batches currently made available to this page.
+                </p>
+
+                <div style="display:flex;gap:10px;margin-bottom:13px;flex-wrap:wrap;">
+                    <input
+                        type="search"
+                        id="stockSearch"
+                        placeholder="Search medicine or batch number..."
+                        style="flex:1;min-width:180px;padding:10px;border:1px solid #cbd5e1;border-radius:7px;font-size:11px;"
+                    >
+                </div>
+
+                <div style="max-height:380px;overflow:auto;border:1px solid #e2e8f0;border-radius:9px;">
+                    <table style="width:100%;min-width:700px;border-collapse:collapse;font-size:11px;">
+                        <thead>
+                            <tr style="background:#123b66;color:white;position:sticky;top:0;">
+                                <th style="padding:12px;text-align:left;">Medicine</th>
+                                <th style="padding:12px;text-align:left;">Batch</th>
+                                <th style="padding:12px;text-align:left;">Available</th>
+                                <th style="padding:12px;text-align:left;">Expiry Date</th>
+                                <th style="padding:12px;text-align:left;">Location</th>
+                                <th style="padding:12px;text-align:left;">Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="currentStockBody">
+                            {% for batch in batches %}
+                            <tr
+                                class="sm-stock-row"
+                                data-medicine="{{ batch.medicine.medicine_name|escape }}"
+                                data-batch="{{ batch.batch_number|escape }}"
+                                data-available="{{ batch.quantity_available }}"
+                                data-reorder="{{ batch.medicine.reorder_level|default:30 }}"
+                                data-expiry="{{ batch.expiry_date|date:'Y-m-d' }}"
+                                data-received="{{ batch.received_date|date:'Y-m-d' }}"
+                            >
+                                <td style="padding:12px;border-bottom:1px solid #e2e8f0;">
+                                    <strong>{{ batch.medicine.medicine_name }}</strong>
+                                </td>
+                                <td style="padding:12px;border-bottom:1px solid #e2e8f0;">
+                                    {{ batch.batch_number }}
+                                </td>
+                                <td style="padding:12px;border-bottom:1px solid #e2e8f0;">
+                                    {{ batch.quantity_available }} units
+                                </td>
+                                <td style="padding:12px;border-bottom:1px solid #e2e8f0;">
+                                    {{ batch.expiry_date|date:"Y-m-d" }}
+                                </td>
+                                <td style="padding:12px;border-bottom:1px solid #e2e8f0;">
+                                    {{ batch.storage_location|default:"Not specified" }}
+                                </td>
+                                <td class="sm-row-status" style="padding:12px;border-bottom:1px solid #e2e8f0;">
+                                    —
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" style="padding:30px;text-align:center;color:#64748b;">
+                                    No active stock batches have been registered.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <p id="stockSearchCount" style="font-size:10px;color:#64748b;margin:10px 0 0;">
+                    Showing stock records.
+                </p>
+            </section>
+
+        </main>
     </div>
 </div>
+
+<!-- FRONTEND-ONLY INVENTORY CALCULATIONS -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const rows = Array.from(
+        document.querySelectorAll(".sm-stock-row")
+    );
+
+    const stockSearch = document.getElementById("stockSearch");
+    const searchCount = document.getElementById("stockSearchCount");
+
+    function parseLocalDate(value) {
+        if (!value) return null;
+
+        const parts = value.split("-").map(Number);
+
+        if (parts.length !== 3 || parts.some(Number.isNaN)) {
+            return null;
+        }
+
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+
+    function daysRemaining(value) {
+        const expiry = parseLocalDate(value);
+
+        if (!expiry) return null;
+
+        const now = new Date();
+
+        const today = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+        );
+
+        return Math.round(
+            (expiry - today) / (1000 * 60 * 60 * 24)
+        );
+    }
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, function (char) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char];
+        });
+    }
+
+    const batches = rows.map(function (row) {
+
+        const d = row.dataset;
+
+        const batch = {
+            medicine: d.medicine,
+            batch: d.batch,
+            available: Number(d.available) || 0,
+            reorder: Number(d.reorder) || 30,
+            expiry: d.expiry,
+            received: d.received
+        };
+
+        batch.days = daysRemaining(batch.expiry);
+
+        if (batch.days === null) {
+            batch.status = "unknown";
+        } else if (batch.days < 0) {
+            batch.status = "expired";
+        } else if (batch.days <= 30) {
+            batch.status = "soon";
+        } else {
+            batch.status = "valid";
+        }
+
+        const statusCell = row.querySelector(".sm-row-status");
+
+        if (statusCell) {
+            if (batch.status === "expired") {
+                statusCell.innerHTML =
+                    '<span class="sm-status sm-danger">Expired</span>';
+            } else if (batch.status === "soon") {
+                statusCell.innerHTML =
+                    '<span class="sm-status sm-warning">Near Expiry</span>';
+            } else if (batch.status === "valid") {
+                statusCell.innerHTML =
+                    '<span class="sm-status sm-success">Valid</span>';
+            } else {
+                statusCell.textContent = "Unknown";
+            }
+        }
+
+        return batch;
+    });
+
+    // 1. SUMMARY CALCULATIONS
+    const medicineMap = new Map();
+
+    let totalUsableUnits = 0;
+    let expiredCount = 0;
+    let nearExpiryCount = 0;
+
+    batches.forEach(function (batch) {
+
+        if (!medicineMap.has(batch.medicine)) {
+            medicineMap.set(batch.medicine, {
+                medicine: batch.medicine,
+                available: 0,
+                reorder: batch.reorder
+            });
+        }
+
+        const medicine = medicineMap.get(batch.medicine);
+
+        medicine.reorder = Math.max(
+            medicine.reorder,
+            batch.reorder
+        );
+
+        if (batch.status === "expired") {
+            expiredCount++;
+        } else if (batch.available > 0) {
+            medicine.available += batch.available;
+            totalUsableUnits += batch.available;
+        }
+
+        if (batch.status === "soon") {
+            nearExpiryCount++;
+        }
+    });
+
+    const medicines = Array.from(medicineMap.values());
+
+    const lowStock = medicines
+        .filter(function (medicine) {
+            return medicine.available <= medicine.reorder;
+        })
+        .sort(function (a, b) {
+            return a.available - b.available;
+        });
+
+    document.getElementById("totalStockUnits").textContent =
+        totalUsableUnits.toLocaleString();
+
+    document.getElementById("lowStockMedicines").textContent =
+        lowStock.length;
+
+    document.getElementById("nearExpiryBatches").textContent =
+        nearExpiryCount;
+
+    document.getElementById("expiredBatches").textContent =
+        expiredCount;
+
+    document.getElementById("medicineCount").textContent =
+        medicines.length;
+
+    document.getElementById("batchCount").textContent =
+        batches.length;
+
+    // 2. LOW STOCK MONITORING
+    document.getElementById("lowStockCount").textContent =
+        lowStock.length + " medicines";
+
+    const lowStockList = document.getElementById("lowStockList");
+
+    if (lowStock.length === 0) {
+        lowStockList.innerHTML =
+            '<div class="sm-empty">No medicines in the displayed records are at or below their reorder levels.</div>';
+    } else {
+        lowStockList.innerHTML = lowStock.map(function (medicine) {
+            return `
+                <div class="sm-item">
+                    <div class="sm-item-title">
+                        <strong>${escapeHTML(medicine.medicine)}</strong>
+                        <span class="sm-status sm-danger">Low Stock</span>
+                    </div>
+                    <div class="sm-item-details">
+                        <span>Usable stock: <strong>${medicine.available}</strong></span>
+                        <span>Reorder level: <strong>${medicine.reorder}</strong></span>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    // 3. EXPIRY RISK MONITORING
+    const expiryRisk = batches
+        .filter(function (batch) {
+            return batch.status === "expired" || batch.status === "soon";
+        })
+        .sort(function (a, b) {
+            return a.days - b.days;
+        });
+
+    document.getElementById("expiryRiskCount").textContent =
+        expiryRisk.length + " batches";
+
+    const expiryList = document.getElementById("expiryRiskList");
+
+    if (expiryRisk.length === 0) {
+        expiryList.innerHTML =
+            '<div class="sm-empty">No expired or near-expiry batches were found in the displayed records.</div>';
+    } else {
+        expiryList.innerHTML = expiryRisk.map(function (batch) {
+
+            const expired = batch.status === "expired";
+
+            const status = expired
+                ? '<span class="sm-status sm-danger">Expired</span>'
+                : '<span class="sm-status sm-warning">Near Expiry</span>';
+
+            const time = expired
+                ? Math.abs(batch.days) + " days overdue"
+                : batch.days + " days remaining";
+
+            return `
+                <div class="sm-item">
+                    <div class="sm-item-title">
+                        <strong>${escapeHTML(batch.medicine)}</strong>
+                        ${status}
+                    </div>
+                    <div class="sm-item-details">
+                        <span>Batch: ${escapeHTML(batch.batch)}</span>
+                        <span>Available: ${batch.available} units</span>
+                    </div>
+                    <div class="sm-item-details">
+                        <span>Expiry: ${escapeHTML(batch.expiry)}</span>
+                        <strong>${time}</strong>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    // 4. FEFO PRIORITY QUEUE
+    // Only non-expired batches with available quantities are eligible.
+    const fefoBatches = batches
+        .filter(function (batch) {
+            return batch.status === "valid" || batch.status === "soon";
+        })
+        .filter(function (batch) {
+            return batch.available > 0;
+        })
+        .sort(function (a, b) {
+            return a.days - b.days;
+        });
+
+    document.getElementById("fefoCount").textContent =
+        fefoBatches.length + " eligible batches";
+
+    const fefoList = document.getElementById("fefoPriorityList");
+
+    if (fefoBatches.length === 0) {
+        fefoList.innerHTML =
+            '<div class="sm-empty">No eligible unexpired batches with available quantities were found.</div>';
+    } else {
+        fefoList.innerHTML = fefoBatches.slice(0, 15).map(function (batch, index) {
+
+            const status = batch.days <= 30
+                ? '<span class="sm-status sm-warning">Near Expiry</span>'
+                : '<span class="sm-status sm-success">Eligible</span>';
+
+            return `
+                <div class="sm-fefo-item">
+                    <div class="sm-priority">${index + 1}</div>
+
+                    <div>
+                        <div class="sm-fefo-name">
+                            ${escapeHTML(batch.medicine)}
+                        </div>
+                        <div class="sm-fefo-meta">
+                            Batch: ${escapeHTML(batch.batch)}
+                            · Expiry: ${escapeHTML(batch.expiry)}
+                            · ${batch.days} days remaining
+                        </div>
+                    </div>
+
+                    <div style="text-align:right;">
+                        ${status}
+                        <div style="font-size:10px;color:#64748b;margin-top:6px;">
+                            ${batch.available} units
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    // 5. SEARCH CURRENT STOCK REGISTER
+    stockSearch.addEventListener("input", function () {
+
+        const term = this.value.toLowerCase().trim();
+        let visible = 0;
+
+        rows.forEach(function (row) {
+
+            const medicine = row.dataset.medicine.toLowerCase();
+            const batch = row.dataset.batch.toLowerCase();
+
+            const matches =
+                medicine.includes(term) || batch.includes(term);
+
+            row.style.display = matches ? "" : "none";
+
+            if (matches) visible++;
+        });
+
+        searchCount.textContent =
+            "Showing " + visible + " of " + rows.length + " stock records.";
+    });
+
+    searchCount.textContent =
+        "Showing " + rows.length + " stock records.";
+
+});
+</script>
+
 {% endblock %}

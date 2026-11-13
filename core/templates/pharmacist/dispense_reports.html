@@ -1,0 +1,1429 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+/* =========================================================
+   PHARMACIST DISPENSING & ANALYTICS REPORT
+========================================================= */
+
+.ph-report {
+    --ink: #172b3a;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --surface: #ffffff;
+    --canvas: #f4f7fb;
+    --navy: #12334a;
+    --blue: #2563eb;
+    --green: #16845b;
+    --amber: #b7791f;
+    --red: #c0392b;
+
+    max-width: 1500px;
+    margin: 25px auto;
+    padding: 0 22px 40px;
+    color: var(--ink);
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.ph-report *,
+.ph-report *::before,
+.ph-report *::after {
+    box-sizing: border-box;
+}
+
+.ph-report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--navy);
+    margin-bottom: 24px;
+}
+
+.ph-report-eyebrow {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: var(--blue);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.ph-report-header h1 {
+    font-size: 27px;
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: -0.7px;
+}
+
+.ph-report-header p {
+    margin: 7px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ph-operator {
+    padding: 12px 16px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    min-width: 210px;
+}
+
+.ph-operator small {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.ph-operator strong {
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+/* Main layout */
+
+.ph-report-layout {
+    display: grid;
+    grid-template-columns: 230px minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+
+.ph-sidebar {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 15px;
+    position: sticky;
+    top: 20px;
+}
+
+.ph-sidebar-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    padding: 5px 8px 13px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 12px;
+}
+
+.ph-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ph-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 10px;
+    color: #475569;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 5px;
+    transition: .15s ease;
+}
+
+.ph-nav a:hover {
+    background: #edf3f9;
+    color: var(--navy);
+}
+
+.ph-nav a.active {
+    background: var(--navy);
+    color: #ffffff;
+}
+
+.ph-nav-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 16px;
+}
+
+/* Report content */
+
+.ph-report-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.ph-section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 13px;
+}
+
+.ph-section-heading h2 {
+    font-size: 15px;
+    margin: 0;
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.ph-section-heading p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.ph-section-tag {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+}
+
+/* KPI cards */
+
+.ph-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.ph-kpi {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 17px;
+    min-width: 0;
+    position: relative;
+}
+
+.ph-kpi::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--blue);
+}
+
+.ph-kpi.green::before {
+    background: var(--green);
+}
+
+.ph-kpi.amber::before {
+    background: var(--amber);
+}
+
+.ph-kpi.red::before {
+    background: var(--red);
+}
+
+.ph-kpi-label {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    line-height: 1.4;
+}
+
+.ph-kpi-value {
+    font-size: 27px;
+    font-weight: 800;
+    margin: 10px 0 5px;
+    color: var(--navy);
+    overflow-wrap: anywhere;
+}
+
+.ph-kpi-note {
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+/* General panels */
+
+.ph-panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 19px;
+    min-width: 0;
+}
+
+.ph-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.ph-panel-heading h3 {
+    font-size: 13px;
+    margin: 0;
+    font-weight: 800;
+}
+
+.ph-panel-heading p {
+    color: var(--muted);
+    font-size: 11px;
+    margin: 5px 0 0;
+}
+
+/* Analytics grid */
+
+.ph-analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.ph-chart-area {
+    min-height: 205px;
+}
+
+.ph-chart-empty {
+    min-height: 170px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+    border: 1px dashed var(--line);
+    padding: 20px;
+}
+
+/* Daily activity chart */
+
+.ph-activity-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 165px;
+    padding: 15px 5px 0;
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+}
+
+.ph-day-column {
+    min-width: 35px;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+}
+
+.ph-day-bar {
+    width: 70%;
+    min-height: 3px;
+    background: #3478c7;
+    border-radius: 3px 3px 0 0;
+    transition: height .2s ease;
+}
+
+.ph-day-value {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.ph-day-label {
+    font-size: 9px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+/* Medicine consumption ranking */
+
+.ph-ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.ph-ranking-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ph-ranking-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 11px;
+}
+
+.ph-ranking-info strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ph-ranking-info span {
+    color: var(--muted);
+    white-space: nowrap;
+    font-weight: 700;
+}
+
+.ph-ranking-track {
+    height: 8px;
+    background: #edf1f5;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ph-ranking-fill {
+    height: 100%;
+    background: #3478c7;
+    border-radius: 10px;
+}
+
+/* FEFO analysis */
+
+.ph-fefo-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+}
+
+.ph-fefo-score {
+    text-align: center;
+    padding: 15px;
+    border: 1px solid var(--line);
+}
+
+.ph-fefo-score strong {
+    display: block;
+    font-size: 35px;
+    color: var(--green);
+    margin-bottom: 5px;
+}
+
+.ph-fefo-score span {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.ph-fefo-progress {
+    height: 12px;
+    display: flex;
+    overflow: hidden;
+    background: #edf1f5;
+    border-radius: 10px;
+    margin: 14px 0;
+}
+
+.ph-fefo-compliant {
+    background: var(--green);
+    width: 0%;
+}
+
+.ph-fefo-override {
+    background: var(--amber);
+    width: 0%;
+}
+
+.ph-fefo-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.ph-legend-dot {
+    width: 9px;
+    height: 9px;
+    display: inline-block;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.ph-fefo-note {
+    background: #f5f8fc;
+    border-left: 3px solid var(--blue);
+    padding: 12px;
+    font-size: 11px;
+    color: #475569;
+    line-height: 1.6;
+}
+
+/* Transaction table */
+
+.ph-table-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-bottom: 14px;
+}
+
+.ph-filter {
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: #ffffff;
+    color: var(--ink);
+    font-size: 11px;
+    outline: none;
+}
+
+.ph-filter:focus {
+    border-color: var(--blue);
+}
+
+.ph-search {
+    flex: 1;
+    min-width: 180px;
+}
+
+.ph-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+}
+
+.ph-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+    font-size: 11px;
+}
+
+.ph-table th {
+    padding: 12px 11px;
+    background: #f3f6fa;
+    color: #475569;
+    text-align: left;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--line);
+}
+
+.ph-table td {
+    padding: 12px 11px;
+    border-bottom: 1px solid #edf0f4;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.ph-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.ph-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ph-medicine-name {
+    font-weight: 800;
+    color: var(--navy);
+}
+
+.ph-status {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.ph-status.compliant {
+    color: #126343;
+    background: #e7f5ee;
+}
+
+.ph-status.override {
+    color: #94620d;
+    background: #fff4d9;
+}
+
+.ph-table-empty {
+    text-align: center;
+    padding: 35px !important;
+    color: var(--muted) !important;
+}
+
+.ph-table-footer {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 12px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+/* Operational interpretation */
+
+.ph-insight-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.ph-insight {
+    padding: 14px;
+    border: 1px solid var(--line);
+    background: #ffffff;
+}
+
+.ph-insight h4 {
+    font-size: 11px;
+    margin: 0 0 7px;
+    color: var(--navy);
+}
+
+.ph-insight p {
+    font-size: 11px;
+    line-height: 1.6;
+    margin: 0;
+    color: var(--muted);
+}
+
+.ph-report-footer {
+    border-top: 1px solid var(--line);
+    padding-top: 13px;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+    .ph-report-layout {
+        grid-template-columns: 190px minmax(0, 1fr);
+    }
+
+    .ph-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .ph-report {
+        padding: 0 12px 30px;
+    }
+
+    .ph-report-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ph-sidebar {
+        position: static;
+    }
+
+    .ph-nav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ph-analytics-grid,
+    .ph-fefo-grid,
+    .ph-insight-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ph-report-header h1 {
+        font-size: 21px;
+    }
+}
+
+@media (max-width: 450px) {
+    .ph-kpi-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .ph-kpi {
+        padding: 12px;
+    }
+
+    .ph-kpi-value {
+        font-size: 22px;
+    }
+
+    .ph-nav {
+        grid-template-columns: 1fr;
+    }
+
+    .ph-panel {
+        padding: 13px;
+    }
+}
+</style>
+
+<div class="ph-report">
+
+    <!-- REPORT HEADER -->
+
+    <header class="ph-report-header">
+        <div>
+            <span class="ph-report-eyebrow">
+                Clinical Operations / Performance Intelligence
+            </span>
+
+            <h1>Pharmacist Dispensing Analytics</h1>
+
+            <p>
+                Dispensing activity, medicine consumption and FEFO compliance
+                monitoring.
+            </p>
+        </div>
+
+        <div class="ph-operator">
+            <small>REPORTING OPERATOR</small>
+            <strong>{{ request.user.username }}</strong>
+            <div style="font-size:10px;color:#64748b;margin-top:5px;">
+                PHARMACIST WORKSPACE
+            </div>
+        </div>
+    </header>
+
+    <div class="ph-report-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="ph-sidebar">
+            <div class="ph-sidebar-label">
+                PHARMACIST WORKSPACE
+            </div>
+
+            <nav class="ph-nav" aria-label="Pharmacist navigation">
+
+                <a href="{% url 'pharmacist_dashboard' %}">
+                    <span class="ph-nav-icon">⌂</span>
+                    Dashboard
+                </a>
+
+                <a href="{% url 'dispense' %}">
+                    <span class="ph-nav-icon">＋</span>
+                    Dispense Medicines
+                </a>
+
+                <a href="{% url 'dispense_reports' %}"
+                   class="active"
+                   aria-current="page">
+                    <span class="ph-nav-icon">▤</span>
+                    Pharmacist Reports
+                </a>
+
+                <a href="{% url 'alerts' %}">
+                    <span class="ph-nav-icon">⚑</span>
+                    Alerts Centre
+                </a>
+
+                <a href="{% url 'profile' %}">
+                    <span class="ph-nav-icon">◎</span>
+                    My Profile
+                </a>
+            </nav>
+        </aside>
+
+        <!-- MAIN REPORT -->
+        <main class="ph-report-main">
+            <!-- 1. PERFORMANCE SUMMARY -->
+            <section>
+
+                <div class="ph-section-heading">
+                    <div>
+                        <h2>Dispensing Performance Overview</h2>
+                        <p>
+                            Summary of recorded dispensing transactions.
+                        </p>
+                    </div>
+
+                    <span class="ph-section-tag">
+                        Recorded system data
+                    </span>
+                </div>
+
+                <div class="ph-kpi-grid">
+
+                    <div class="ph-kpi">
+                        <div class="ph-kpi-label">
+                            Total Transactions
+                        </div>
+
+                        <div class="ph-kpi-value">
+                            {{ total_transactions|default:0 }}
+                        </div>
+
+                        <div class="ph-kpi-note">
+                            Recorded dispensing operations
+                        </div>
+                    </div>
+
+                    <div class="ph-kpi green">
+                        <div class="ph-kpi-label">
+                            Units Dispensed
+                        </div>
+
+                        <div class="ph-kpi-value">
+                            {{ total_quantity_dispensed|default:0 }}
+                        </div>
+
+                        <div class="ph-kpi-note">
+                            Total recorded medicine quantity
+                        </div>
+                    </div>
+
+                    <div class="ph-kpi amber">
+                        <div class="ph-kpi-label">
+                            FEFO Overrides
+                        </div>
+
+                        <div class="ph-kpi-value">
+                            {{ fefo_overrides|default:0 }}
+                        </div>
+
+                        <div class="ph-kpi-note">
+                            Transactions requiring FEFO exception
+                        </div>
+                    </div>
+
+                    <div class="ph-kpi green">
+                        <div class="ph-kpi-label">
+                            FEFO Compliance
+                        </div>
+
+                        <div class="ph-kpi-value"
+                             id="fefoComplianceValue">
+                            --
+                        </div>
+
+                        <div class="ph-kpi-note">
+                            Calculated from recorded transactions
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. ANALYTICS -->
+
+            <section>
+                <div class="ph-section-heading">
+                    <div>
+                        <h2>Medicine Consumption Analytics</h2>
+                        <p>
+                            Distribution of recorded dispensing activity
+                            across medicines and dates.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="ph-analytics-grid">
+                    <!-- Daily activity -->
+                    <div class="ph-panel">
+
+                        <div class="ph-panel-heading">
+                            <div>
+                                <h3>Daily Dispensing Activity</h3>
+                                <p>
+                                    Transaction count by dispensing date
+                                </p>
+                            </div>
+                        </div>
+
+                        <div id="dailyActivityChart"
+                             class="ph-chart-area">
+
+                            <div class="ph-chart-empty">
+                                Daily activity will appear when
+                                transactions are available.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medicine ranking -->
+                    <div class="ph-panel">
+                        <div class="ph-panel-heading">
+                            <div>
+                                <h3>Medicine Consumption Ranking</h3>
+                                <p>
+                                    Medicines ranked by total units dispensed
+                                </p>
+                            </div>
+                        </div>
+
+                        <div id="medicineRanking"
+                             class="ph-ranking-list ph-chart-area">
+
+                            <div class="ph-chart-empty">
+                                Medicine consumption analytics will appear
+                                when transactions are available.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. FEFO COMPLIANCE -->
+            <section class="ph-panel">
+                <div class="ph-panel-heading">
+                    <div>
+                        <h3>FEFO Compliance Analysis</h3>
+                        <p>
+                            Monitoring adherence to First Expiry First Out
+                            dispensing.
+                        </p>
+                    </div>
+
+                    <span class="ph-section-tag">
+                        Dispensing safety
+                    </span>
+                </div>
+
+                <div class="ph-fefo-grid">
+                    <div>
+                        <div class="ph-fefo-score">
+                            <strong id="fefoLargeScore">--</strong>
+                            <span>FEFO Compliance Rate</span>
+                        </div>
+
+                        <div class="ph-fefo-progress">
+                            <div id="fefoCompliantBar"
+                                 class="ph-fefo-compliant">
+                            </div>
+
+                            <div id="fefoOverrideBar"
+                                 class="ph-fefo-override">
+                            </div>
+                        </div>
+
+                        <div class="ph-fefo-legend">
+                            <span>
+                                <i class="ph-legend-dot"
+                                   style="background:#16845b;">
+                                </i>
+                                FEFO compliant
+                            </span>
+
+                            <span>
+                                <i class="ph-legend-dot"
+                                   style="background:#b7791f;">
+                                </i>
+                                FEFO override
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ph-fefo-note">
+                        <strong>Interpretation</strong>
+
+                        <p style="margin:7px 0;">
+                            FEFO compliance measures the proportion of
+                            recorded dispensing transactions that were
+                            completed without a recorded override.
+                        </p>
+
+                        <p style="margin:7px 0 0;">
+                            Overrides should be reviewed against their
+                            documented reasons and the applicable dispensing
+                            safety requirements. An override is not
+                            automatically evidence of inappropriate
+                            dispensing.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. TRANSACTION REGISTER -->
+            <section class="ph-panel">
+                <div class="ph-panel-heading">
+                    <div>
+                        <h3>Detailed Dispensing Transaction Register</h3>
+                        <p>
+                            Search and inspect recorded medicine dispensing
+                            operations.
+                        </p>
+                    </div>
+
+                    <span class="ph-section-tag"
+                          id="visibleTransactionCount">
+                        Transaction register
+                    </span>
+                </div>
+
+                <div class="ph-table-tools">
+                    <input type="search"
+                           id="transactionSearch"
+                           class="ph-filter ph-search"
+                           placeholder="Search medicine, batch or pharmacist...">
+
+                    <select id="fefoFilter" class="ph-filter">
+                        <option value="all">All FEFO statuses</option>
+                        <option value="compliant">FEFO compliant</option>
+                        <option value="override">FEFO override</option>
+                    </select>
+
+                    <input type="date"
+                           id="dateFilter"
+                           class="ph-filter"
+                           title="Filter by dispensing date">
+                </div>
+
+                <div class="ph-table-wrap">
+                    <table class="ph-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction Date</th>
+                                <th>Medicine</th>
+                                <th>Batch Number</th>
+                                <th>Quantity</th>
+                                <th>Patient Identifier</th>
+                                <th>Dispensed By</th>
+                                <th>FEFO Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="transactionTableBody">
+                            {% for tx in transactions %}
+                            <tr class="transaction-row"
+                                data-medicine="{{ tx.medicine.medicine_name }}"
+                                data-batch="{{ tx.batch.batch_number }}"
+                                data-pharmacist="{{ tx.dispensed_by.username }}"
+                                data-date="{{ tx.dispensed_at|date:'Y-m-d' }}"
+                                data-quantity="{{ tx.quantity_dispensed }}"
+                                data-override="{% if tx.is_override %}true{% else %}false{% endif %}">
+
+                                <td>
+                                    {{ tx.dispensed_at|date:"Y-m-d H:i" }}
+                                </td>
+
+                                <td>
+                                    <span class="ph-medicine-name">
+                                        {{ tx.medicine.medicine_name }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <code>{{ tx.batch.batch_number }}</code>
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        {{ tx.quantity_dispensed }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    {{ tx.patient_identifier|default:"Not recorded" }}
+                                </td>
+
+                                <td>
+                                    {{ tx.dispensed_by.username }}
+                                </td>
+
+                                <td>
+                                    {% if tx.is_override %}
+                                        <span class="ph-status override">
+                                            Override
+                                        </span>
+                                    {% else %}
+                                        <span class="ph-status compliant">
+                                            Compliant
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="ph-table-empty">
+                                    No dispensing transactions have been
+                                    recorded yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="ph-table-footer">
+                    <span id="tableResultSummary">
+                        Displaying recorded transactions
+                    </span>
+
+                    <span>
+                        FEFO status is based on the recorded override flag.
+                    </span>
+                </div>
+            </section>
+
+            <!-- 5. OPERATIONAL INSIGHTS -->
+            <section class="ph-panel">
+                <div class="ph-panel-heading">
+                    <div>
+                        <h3>Operational Interpretation & Recommendations</h3>
+                        <p>
+                            Practical implications of dispensing and
+                            consumption records.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="ph-insight-grid">
+                    <div class="ph-insight">
+                        <h4>01. FEFO Discipline</h4>
+                        <p>
+                            Review override transactions and their documented
+                            reasons. Consistent FEFO application helps reduce
+                            the likelihood of older eligible stock remaining
+                            unused until expiry.
+                        </p>
+                    </div>
+
+                    <div class="ph-insight">
+                        <h4>02. Medicine Consumption</h4>
+                        <p>
+                            Frequently dispensed medicines provide useful
+                            consumption evidence. These records can support
+                            demand forecasting and replenishment decisions.
+                        </p>
+                    </div>
+
+                    <div class="ph-insight">
+                        <h4>03. Dispensing Records</h4>
+                        <p>
+                            Ensure every dispensing operation is accurately
+                            recorded, including the medicine, quantity,
+                            selected batch and dispensing operator.
+                        </p>
+                    </div>
+
+                    <div class="ph-insight">
+                        <h4>04. Expiry Prevention</h4>
+                        <p>
+                            Dispensing activity should be considered alongside
+                            batch expiry dates, remaining stock and
+                            near-expiry alerts to identify medicines requiring
+                            timely stock management.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="ph-report-footer">
+                <strong>REPORT DATA NOTE:</strong>
+                This report analyses the dispensing transactions supplied
+                by the system. FEFO compliance is calculated using the
+                recorded override indicator. Daily activity and medicine
+                rankings are calculated from the transactions displayed
+                in this report. These analytics do not independently
+                establish stock availability, forecast accuracy or
+                prescription safety.
+            </footer>
+        </main>
+    </div>
+</div>
+
+<!-- CLIENT-SIDE REPORT ANALYTICS -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const rows = Array.from(
+        document.querySelectorAll(".transaction-row")
+    );
+
+    const totalTransactions = Number(
+        "{{ total_transactions|default:0 }}"
+    );
+
+    const totalOverrides = Number(
+        "{{ fefo_overrides|default:0 }}"
+    );
+
+    const compliantTransactions = Math.max(
+        0,
+        totalTransactions - totalOverrides
+    );
+
+    const complianceRate = totalTransactions > 0
+        ? (compliantTransactions / totalTransactions) * 100
+        : null;
+
+    const complianceText = complianceRate === null
+        ? "N/A"
+        : complianceRate.toFixed(1) + "%";
+
+    document.getElementById("fefoComplianceValue").textContent =
+        complianceText;
+
+    document.getElementById("fefoLargeScore").textContent =
+        complianceText;
+
+    const compliantWidth = totalTransactions > 0
+        ? (compliantTransactions / totalTransactions) * 100
+        : 0;
+
+    const overrideWidth = totalTransactions > 0
+        ? (totalOverrides / totalTransactions) * 100
+        : 0;
+
+    document.getElementById("fefoCompliantBar").style.width =
+        compliantWidth + "%";
+
+    document.getElementById("fefoOverrideBar").style.width =
+        overrideWidth + "%";
+
+
+    /* -----------------------------------------
+       Extract transaction information
+    ----------------------------------------- */
+
+    const transactions = rows.map(function (row) {
+        return {
+            medicine: row.dataset.medicine || "Unknown medicine",
+            batch: row.dataset.batch || "Not recorded",
+            pharmacist: row.dataset.pharmacist || "Not recorded",
+            date: row.dataset.date || "",
+            quantity: Number(row.dataset.quantity || 0),
+            override: row.dataset.override === "true",
+            element: row
+        };
+    });
+
+
+    /* -----------------------------------------
+       Daily dispensing activity
+    ----------------------------------------- */
+
+    const dailyCounts = {};
+
+    transactions.forEach(function (tx) {
+        if (!tx.date) return;
+
+        dailyCounts[tx.date] =
+            (dailyCounts[tx.date] || 0) + 1;
+    });
+
+    const dailyEntries = Object.entries(dailyCounts)
+        .sort(function (a, b) {
+            return a[0].localeCompare(b[0]);
+        })
+        .slice(-7);
+
+    const dailyContainer =
+        document.getElementById("dailyActivityChart");
+
+    if (dailyEntries.length === 0) {
+
+        dailyContainer.innerHTML =
+            '<div class="ph-chart-empty">No dated transactions available for this analysis.</div>';
+
+    } else {
+
+        const maximum = Math.max(
+            ...dailyEntries.map(entry => entry[1]),
+            1
+        );
+
+        const chart = document.createElement("div");
+        chart.className = "ph-activity-chart";
+
+        dailyEntries.forEach(function (entry) {
+
+            const column = document.createElement("div");
+            column.className = "ph-day-column";
+
+            const value = document.createElement("span");
+            value.className = "ph-day-value";
+            value.textContent = entry[1];
+
+            const bar = document.createElement("div");
+            bar.className = "ph-day-bar";
+            bar.style.height =
+                Math.max(4, (entry[1] / maximum) * 115) + "px";
+
+            const label = document.createElement("span");
+            label.className = "ph-day-label";
+            label.textContent = entry[0].slice(5);
+
+            column.appendChild(value);
+            column.appendChild(bar);
+            column.appendChild(label);
+
+            chart.appendChild(column);
+        });
+
+        dailyContainer.innerHTML = "";
+        dailyContainer.appendChild(chart);
+    }
+
+
+    /* -----------------------------------------
+       Medicine consumption ranking
+    ----------------------------------------- */
+
+    const medicineTotals = {};
+
+    transactions.forEach(function (tx) {
+
+        medicineTotals[tx.medicine] =
+            (medicineTotals[tx.medicine] || 0) + tx.quantity;
+
+    });
+
+    const medicineEntries = Object.entries(medicineTotals)
+        .sort(function (a, b) {
+            return b[1] - a[1];
+        })
+        .slice(0, 6);
+
+    const rankingContainer =
+        document.getElementById("medicineRanking");
+
+    if (medicineEntries.length === 0) {
+
+        rankingContainer.innerHTML =
+            '<div class="ph-chart-empty">No medicine consumption records available.</div>';
+
+    } else {
+
+        const maximum = Math.max(
+            ...medicineEntries.map(entry => entry[1]),
+            1
+        );
+
+        rankingContainer.innerHTML = "";
+
+        medicineEntries.forEach(function (entry) {
+
+            const item = document.createElement("div");
+            item.className = "ph-ranking-item";
+
+            const info = document.createElement("div");
+            info.className = "ph-ranking-info";
+
+            const name = document.createElement("strong");
+            name.textContent = entry[0];
+
+            const quantity = document.createElement("span");
+            quantity.textContent = entry[1] + " units";
+
+            info.appendChild(name);
+            info.appendChild(quantity);
+
+            const track = document.createElement("div");
+            track.className = "ph-ranking-track";
+
+            const fill = document.createElement("div");
+            fill.className = "ph-ranking-fill";
+
+            fill.style.width =
+                (entry[1] / maximum) * 100 + "%";
+
+            track.appendChild(fill);
+
+            item.appendChild(info);
+            item.appendChild(track);
+
+            rankingContainer.appendChild(item);
+        });
+    }
+
+
+    /* -----------------------------------------
+       Transaction search and filtering
+    ----------------------------------------- */
+
+    const searchInput =
+        document.getElementById("transactionSearch");
+
+    const fefoFilter =
+        document.getElementById("fefoFilter");
+
+    const dateFilter =
+        document.getElementById("dateFilter");
+
+    const visibleCount =
+        document.getElementById("visibleTransactionCount");
+
+    const resultSummary =
+        document.getElementById("tableResultSummary");
+
+    function filterTransactions() {
+
+        const search = searchInput.value
+            .trim()
+            .toLowerCase();
+
+        const status = fefoFilter.value;
+        const selectedDate = dateFilter.value;
+
+        let visible = 0;
+
+        transactions.forEach(function (tx) {
+
+            const searchableText = [
+                tx.medicine,
+                tx.batch,
+                tx.pharmacist
+            ].join(" ").toLowerCase();
+
+            const matchesSearch =
+                searchableText.includes(search);
+
+            const matchesStatus =
+                status === "all" ||
+                (status === "override" && tx.override) ||
+                (status === "compliant" && !tx.override);
+
+            const matchesDate =
+                !selectedDate || tx.date === selectedDate;
+
+            const show =
+                matchesSearch &&
+                matchesStatus &&
+                matchesDate;
+
+            tx.element.style.display = show ? "" : "none";
+
+            if (show) visible++;
+        });
+
+        visibleCount.textContent =
+            visible + " / " + transactions.length + " records";
+
+        resultSummary.textContent =
+            "Showing " + visible + " of " +
+            transactions.length + " displayed transactions.";
+    }
+
+    searchInput.addEventListener("input", filterTransactions);
+    fefoFilter.addEventListener("change", filterTransactions);
+    dateFilter.addEventListener("change", filterTransactions);
+
+    filterTransactions();
+
+});
+</script>
+{% endblock %}

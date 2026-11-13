@@ -1,17 +1,22 @@
-
 {% extends 'base.html' %}
-
 {% block content %}
 <div style="max-width:1400px;margin:30px auto;padding:0 20px;font-family:Arial,sans-serif;color:#1e293b;">
-
     <div style="background:linear-gradient(120deg,#134e4a,#0f766e);color:white;padding:28px;border-radius:14px;margin-bottom:25px;">
         <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.85;">Supply Planning Workspace</div>
         <h1 style="font-size:28px;margin:8px 0;font-weight:800;">Procurement Recommendations</h1>
         <p style="margin:0;font-size:14px;opacity:.9;">Identify low-stock medicines and submit procurement recommendations for review.</p>
     </div>
 
-    <style>
-        .sm-layout{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start}
+<style>
+.sm-layout {display: grid;grid-template-columns: 240px minmax(0, 1fr);gap: 20px;align-items: start;}
+.sm-main-grid {display: grid;grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);gap: 20px; align-items: start;}
+.sm-history-section {grid-column: 1 / -1;}
+
+@media (max-width: 1100px) {
+    .sm-layout {grid-template-columns: 1fr;}
+    .sm-main-grid {grid-template-columns: 1fr;}
+    .sm-history-section {grid-column: auto;}
+    }
         .sm-card{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:22px;box-shadow:0 3px 12px rgba(15,23,42,.05)}
         .sm-link{display:block;padding:13px 15px;border-radius:8px;text-decoration:none;color:#334155;font-size:13px;font-weight:700;background:#f1f5f9;margin-bottom:9px}
         .sm-link:hover,.sm-link.active{background:#123b66;color:white}
@@ -22,137 +27,258 @@
         .sm-warning{background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;padding:15px;margin-bottom:10px}
         .sm-history{background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:15px;margin-bottom:10px}
         @media(max-width:1000px){.sm-layout{grid-template-columns:1fr}}
+.sm-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: stretch;
+}
+.sm-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.sm-panel {
+    height: 480px;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.sm-stock-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+}
+
+.sm-history-section {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 1100px) {
+    .sm-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .sm-main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sm-panel {
+        height: 480px;
+    }
+
+    .sm-history-section {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 1100px) {
+    .sm-main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sm-panel {
+        height: 520px;
+    }
+}
+    .sm-history-section {
+    grid-column: 1 / -1;
+    height: 380px;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.sm-history-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding-right: 8px;
+}
+
+.sm-history-list::-webkit-scrollbar,
+.sm-stock-list::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+.sm-history-list::-webkit-scrollbar-thumb,
+.sm-stock-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
     </style>
 
     <div class="sm-layout">
-
         <!-- SIDEBAR -->
         <aside class="sm-card">
-            <h3 style="font-size:13px;text-transform:uppercase;color:#64748b;margin:0 0 18px;">Navigation</h3>
-            <a href="{% url 'inventory' %}" class="sm-link">📦 Stock Intake</a>
-            <a href="{% url 'inventory_reports' %}" class="sm-link">📊 Stock Reports</a>
-            <a href="{% url 'inventory_alerts' %}" class="sm-link">🚨 Alerts Centre</a>
-            <a href="{% url 'inventory_recommendations' %}" class="sm-link active">📝 Procurement Advice</a>
+            <a href="{% url 'inventory' %}" class="sm-link">Stock Intake</a>
+            <a href="{% url 'inventory_reports' %}" class="sm-link">Stock Reports</a>
+            <a href="{% url 'inventory_alerts' %}" class="sm-link">Alerts</a>
+            <a href="{% url 'inventory_recommendations' %}" class="sm-link active">Procurement Recommendations</a>
 
             <div style="margin-top:25px;padding:15px;background:#ecfdf5;border-radius:9px;">
                 <strong style="font-size:12px;color:#065f46;">Stock Threshold</strong>
-                <p style="font-size:12px;line-height:1.6;color:#334155;margin:7px 0 0;">
-                    The current low-stock warning threshold is {{ low_stock_threshold }} units.
-                </p>
+                <p style="font-size:12px;line-height:1.6;color:#334155;margin:7px 0 0;">The current low-stock warning threshold is {{ low_stock_threshold }} units.</p>
             </div>
         </aside>
 
-        <main style="display:flex;flex-direction:column;gap:20px;">
 
-            <!-- LOW STOCK WARNINGS -->
-            <section class="sm-card">
-                <h2 style="font-size:17px;color:#123b66;margin:0 0 7px;">Low-Stock Monitoring</h2>
-                <p style="font-size:13px;color:#64748b;margin:0 0 18px;">
-                    Medicines whose eligible available stock is at or below the reorder threshold.
+<main class="sm-main-grid">
+    <!-- LEFT: LOW STOCK MONITORING -->
+    <section class="sm-card sm-panel">
+        <h2 style="font-size:17px;color:#123b66;margin:0 0 7px;">Low-Stock Monitoring</h2>
+        <p style="font-size:13px;color:#64748b;margin:0 0 18px;">
+            Medicines whose eligible available stock is at or below the reorder threshold.
+        </p>
+        <div class="sm-stock-list">
+          {% for rec in recommendations %}
+            <div class="sm-warning">
+                <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                    <strong style="font-size:14px;">
+                        {{ rec.medicine.medicine_name }}
+                    </strong>
+                    <span style="font-size:11px;font-weight:800;color:#9a3412;background:#ffedd5;padding:5px 9px;border-radius:20px;">
+                        LOW STOCK
+                    </span>
+                </div>
+
+                <div style="font-size:13px;color:#475569;margin-top:8px;">
+                    Available stock: <strong>{{ rec.available_stock }} units</strong>
+                </div>
+
+                <div style="font-size:12px;color:#9a3412;margin-top:5px;">
+                    Recommended action: {{ rec.recommended_action }}
+                </div>
+            </div>
+          {% empty %}
+            <div style="padding:22px;text-align:center;background:#ecfdf5;border-radius:9px;color:#065f46;font-size:13px;">
+                No medicines currently meet the low-stock warning condition.
+            </div>
+          {% endfor %}
+        </div>
+    </section>
+
+    <!-- RIGHT: PROCUREMENT RECOMMENDATION FORM -->
+    <section class="sm-card">
+        <h2 style="font-size:17px;color:#123b66;margin:0 0 7px;">
+            Submit Procurement Recommendation
+        </h2>
+
+        <p style="font-size:13px;color:#64748b;margin:0 0 20px;">
+            Submit a proposed quantity and explain the reason for procurement.
+        </p>
+
+        <form method="POST"
+              action="{% url 'store_manager_recommendations' %}"
+              style="display:flex;flex-direction:column;gap:16px;">
+
+            {% csrf_token %}
+            <div>
+                <label class="sm-label" for="med_choice">Medicine</label>
+                <select id="med_choice" name="medicine_id" class="sm-input" required>
+                    <option value="">-- Select Medicine --</option>
+
+                    {% for med in medicines %}
+                        <option value="{{ med.id }}">{{ med.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                <div>
+                    <label class="sm-label" for="rec_qty">Recommended Quantity</label>
+                    <input class="sm-input"
+                           type="number"
+                           id="rec_qty"
+                           name="recommended_quantity"
+                           min="1"
+                           required
+                           placeholder="Enter units">
+                </div>
+
+                <div>
+                    <label class="sm-label" for="urgency">Urgency Level</label>
+                    <select class="sm-input" id="urgency" name="urgency_level" required>
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM" selected>Medium</option>
+                        <option value="HIGH">High</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="sm-label" for="notes">
+                    Justification / Demand Notes
+                </label>
+
+                <textarea class="sm-input"
+                          id="notes"
+                          name="justification"
+                          rows="4"
+                          required
+                          placeholder="Explain the stock position, demand pattern or other reason supporting this recommendation."></textarea>
+            </div>
+            <button type="submit" class="sm-button">Submit Recommendation →</button>
+        </form>
+    </section>
+
+    <!-- FULL WIDTH: RECOMMENDATION HISTORY -->
+    <section class="sm-card sm-history-section ">
+        <h2 style="font-size:17px;color:#123b66;margin:0 0 7px;">
+            Submitted Recommendation History
+        </h2>
+
+        <p style="font-size:13px;color:#64748b;margin:0 0 18px;">
+            Track procurement recommendations submitted by the Store Manager.
+        </p>
+
+        <div class="sm-history-list">
+          {% for rec in recommendation_history %}
+            <div class="sm-history">
+                <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                    <strong style="font-size:14px;">
+                        {{ rec.medicine.medicine_name }}
+                    </strong>
+
+                    <span style="font-size:11px;font-weight:800;background:#dbeafe;color:#1e40af;padding:5px 9px;border-radius:20px;">
+                        {{ rec.get_status_display }}
+                    </span>
+                </div>
+
+                <div style="font-size:13px;margin-top:9px;">
+                    Recommended quantity:
+                    <strong>{{ rec.recommended_quantity }} units</strong>
+                </div>
+
+                <div style="font-size:12px;color:#64748b;margin-top:5px;">
+                    Urgency: <strong>{{ rec.get_urgency_level_display }}</strong>
+                </div>
+
+                <p style="font-size:12px;color:#475569;line-height:1.6;margin:10px 0;">
+                    {{ rec.reasoning }}
                 </p>
 
-                {% for rec in recommendations %}
-                    <div class="sm-warning">
-                        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                            <strong style="font-size:14px;">{{ rec.medicine.medicine_name }}</strong>
-                            <span style="font-size:11px;font-weight:800;color:#9a3412;background:#ffedd5;padding:5px 9px;border-radius:20px;">LOW STOCK</span>
-                        </div>
-                        <div style="font-size:13px;color:#475569;margin-top:8px;">
-                            Available stock: <strong>{{ rec.available_stock }} units</strong>
-                        </div>
-                        <div style="font-size:12px;color:#9a3412;margin-top:5px;">
-                            Recommended action: {{ rec.recommended_action }}
-                        </div>
-                    </div>
-                {% empty %}
-                    <div style="padding:22px;text-align:center;background:#ecfdf5;border-radius:9px;color:#065f46;font-size:13px;">
-                        No medicines currently meet the low-stock warning condition.
-                    </div>
-                {% endfor %}
-            </section>
-
-            <!-- RECOMMENDATION FORM -->
-            <section class="sm-card">
-                <h2 style="font-size:17px;color:#123b66;margin:0 0 7px;">Submit Procurement Recommendation</h2>
-                <p style="font-size:13px;color:#64748b;margin:0 0 20px;">
-                    Submit a proposed quantity and explain the reason for procurement.
-                </p>
-
-                <form method="POST" action="{% url 'store_manager_recommendations' %}" style="display:flex;flex-direction:column;gap:16px;">
-                    {% csrf_token %}
-
-                    <div>
-                        <label class="sm-label" for="med_choice">Medicine</label>
-                        <select id="med_choice" name="medicine_id" class="sm-input" required>
-                            <option value="">-- Select Medicine --</option>
-                            {% for med in medicines %}
-                                <option value="{{ med.id }}">{{ med.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                        <div>
-                            <label class="sm-label" for="rec_qty">Recommended Quantity</label>
-                            <input class="sm-input" type="number" id="rec_qty" name="recommended_quantity" min="1" required placeholder="Enter units">
-                        </div>
-                        <div>
-                            <label class="sm-label" for="urgency">Urgency Level</label>
-                            <select class="sm-input" id="urgency" name="urgency_level" required>
-                                <option value="LOW">Low</option>
-                                <option value="MEDIUM" selected>Medium</option>
-                                <option value="HIGH">High</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="sm-label" for="notes">Justification / Demand Notes</label>
-                        <textarea class="sm-input" id="notes" name="justification" rows="4" required placeholder="Explain the stock position, demand pattern or other reason supporting this recommendation."></textarea>
-                    </div>
-
-                    <button type="submit" class="sm-button">Submit Recommendation →</button>
-                </form>
-            </section>
-
-            <!-- RECOMMENDATION HISTORY -->
-            <section class="sm-card">
-                <h2 style="font-size:17px;color:#123b66;margin:0 0 7px;">Submitted Recommendation History</h2>
-                <p style="font-size:13px;color:#64748b;margin:0 0 18px;">Track procurement recommendations submitted by the Store Manager.</p>
-
-                {% for rec in recommendation_history %}
-                    <div class="sm-history">
-                        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                            <strong style="font-size:14px;">{{ rec.medicine.medicine_name }}</strong>
-                            <span style="font-size:11px;font-weight:800;background:#dbeafe;color:#1e40af;padding:5px 9px;border-radius:20px;">
-                                {{ rec.get_status_display }}
-                            </span>
-                        </div>
-
-                        <div style="font-size:13px;margin-top:9px;">
-                            Recommended quantity: <strong>{{ rec.recommended_quantity }} units</strong>
-                        </div>
-
-                        <div style="font-size:12px;color:#64748b;margin-top:5px;">
-                            Urgency: <strong>{{ rec.get_urgency_level_display }}</strong>
-                        </div>
-
-                        <p style="font-size:12px;color:#475569;line-height:1.6;margin:10px 0;">
-                            {{ rec.reasoning }}
-                        </p>
-
-                        <div style="border-top:1px solid #e2e8f0;padding-top:9px;font-size:11px;color:#64748b;">
-                            Submitted: {{ rec.created_at|date:"Y-m-d H:i" }}
-                        </div>
-                    </div>
-                {% empty %}
-                    <div style="padding:25px;text-align:center;background:#f8fafc;border-radius:9px;color:#64748b;font-size:13px;">
-                        No procurement recommendations have been submitted yet.
-                    </div>
-                {% endfor %}
-            </section>
-
-        </main>
-    </div>
+                <div style="border-top:1px solid #e2e8f0;padding-top:9px;font-size:11px;color:#64748b;">
+                    Submitted: {{ rec.created_at|date:"Y-m-d H:i" }}
+                </div>
+            </div>
+          {% empty %}
+            <div style="padding:25px;text-align:center;background:#f8fafc;border-radius:9px;color:#64748b;font-size:13px;">
+                No procurement recommendations have been submitted yet.
+            </div>
+          {% endfor %}
+        </div>
+    </section>
+</main>
+</div>
 </div>
 {% endblock %}
