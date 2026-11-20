@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block title %}Medicine Dispensing | Pharmacist Workspace{% endblock %}
-
 {% block content %}
 
 <style>
@@ -21,12 +19,13 @@
         --warning: #b7791f;
         --danger: #c83c4d;
 
-        background: var(--background);
-        color: var(--text);
-        min-height: 100vh;
-        padding: 22px;
-        font-family: Arial, Helvetica, sans-serif;
-        box-sizing: border-box;
+         min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 0 22px 0 0;
+    background: #f2f6fa;
+    color: #15324f;
+    font-family: Arial, Helvetica, sans-serif;
     }
 
     .dispense-page *,
@@ -37,12 +36,13 @@
 
     /* PAGE HEADER */
     .dispense-hero {
-        max-width: 1550px;
-        margin: 0 auto 20px;
-        padding: 23px 27px;
+        max-width:none;
+        width: calc(100% + 44px);
+        margin: 0 -22px 0;
+        padding: 29px 27px;
         background: linear-gradient(115deg, #123b66, #087e8b);
         color: #fff;
-        border-radius: 13px;
+        border-radius: 0;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -102,63 +102,70 @@
 
     /* THREE-COLUMN LAYOUT */
     .dispense-workspace {
-        max-width: 1550px;
-        margin: 0 auto;
+        max-width: 0;
+        width: 100%;
+        margin: 0;
         display: grid;
         grid-template-columns: 215px minmax(380px, 1.45fr) minmax(300px, 1fr);
         gap: 17px;
-        align-items: start;
+        align-items: stretch;
     }
 
     /* SIDEBAR */
     .dispense-sidebar {
-        background: var(--navy-dark);
-        border-radius: 12px;
-        padding: 15px;
-        color: #fff;
-        box-shadow: 0 4px 14px rgba(8,47,70,.10);
+    background: #082f46;
+    border-radius: 0;
+    padding: 18px 13px;
+    color: #fff;
+    box-shadow: none;
+    height: 100%;
+    min-height: 100%;
+    align-self: stretch;
+    margin: 0;
     }
 
     .dispense-sidebar-heading {
-        padding: 12px;
-        border-radius: 8px;
-        background: #123f57;
-        border: 1px solid #28566d;
-        margin-bottom: 13px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #123f57;
+    border: 1px solid #28566d;
+    margin-bottom: 17px;
     }
 
     .dispense-sidebar-heading strong {
         display: block;
-        font-size: 11px;
-        letter-spacing: .7px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #fff;
     }
 
     .dispense-sidebar-heading span {
-        display: block;
-        font-size: 10px;
-        color: #b8d5df;
-        margin-top: 5px;
-        line-height: 1.5;
+     display: block;
+    font-size: 10px;
+    color: #b9d4df;
+    margin-top: 5px;
+    line-height: 1.5;
     }
 
     .dispense-nav {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
     }
 
     .dispense-nav a {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 11px 10px;
-        border-radius: 7px;
-        color: #d9eaf0;
-        text-decoration: none;
-        font-size: 11px;
-        font-weight: 700;
-        border: 1px solid transparent;
-        transition: .2s ease;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 10px;
+    color: #d9eaf0;
+    text-decoration: none;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    font-size: 11px;
+    font-weight: 700;
+    transition: .2s ease;
     }
 
     .dispense-nav a:hover {
@@ -168,25 +175,28 @@
 
     .dispense-nav a.active {
         background: #087f80;
-        border-color: #22a5a1;
-        color: #fff;
+    color: #fff;
+    border-color: #22a5a1;
+    border-left: 3px solid #22a5a1;
     }
 
     .dispense-nav-icon {
-        width: 19px;
-        text-align: center;
-        font-size: 15px;
+        width: 20px;
+    min-width: 20px;
+    text-align: center;
+    font-size: 16px;
+    flex-shrink: 0;
     }
 
     .dispense-sidebar-note {
-        margin-top: 20px;
-        padding: 12px;
-        border-radius: 8px;
-        background: #164b5c;
-        border: 1px solid #286679;
-        color: #d8eaf0;
-        font-size: 10px;
-        line-height: 1.7;
+      margin: 25px 3px 0;
+    padding: 12px;
+    border: 1px solid #28566d;
+    border-radius: 8px;
+    background: transparent;
+    color: #c3dce5;
+    font-size: 10px;
+    line-height: 1.7;
     }
 
     .dispense-sidebar-note strong {
@@ -196,15 +206,49 @@
     }
 
     .dispense-sidebar-warning {
-        margin-top: 11px;
+   margin: 11px 3px 0;
+    padding: 12px;
+    border-radius: 8px;
+    background: #fff5e6;
+    border: 1px solid #f0d7ad;
+    color: #805b16;
+    font-size: 10px;
+    line-height: 1.7;    }
+
+    .dispense-sidebar-warning strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #805b16;
+}
+/* SIDEBAR RESPONSIVENESS */
+@media (max-width: 760px) {
+    .dispense-sidebar {
+        height: auto;
+        min-height: auto;
         padding: 12px;
-        border-radius: 8px;
-        background: #fff5e6;
-        border: 1px solid #f0d7ad;
-        color: #805b16;
-        font-size: 10px;
-        line-height: 1.7;
     }
+
+    .dispense-nav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dispense-sidebar-note,
+    .dispense-sidebar-warning {
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 450px) {
+    .dispense-nav {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .dispense-nav a {
+        font-size: 11px;
+        padding: 10px;
+    }
+}
 
     /* PANELS */
     .dispense-panel {
@@ -571,8 +615,13 @@
 
     @media (max-width: 760px) {
         .dispense-page {
-            padding: 13px;
+            padding: 0 13px 0 0;
         }
+
+        .dispense-hero {
+        width: calc(100% + 26px);
+        margin: 0 -13px 0;
+    }
 
         .dispense-workspace {
             grid-template-columns: minmax(0, 1fr);
@@ -583,7 +632,8 @@
         }
 
         .dispense-sidebar {
-            padding: 12px;
+       height: auto;
+        min-height: auto;
         }
 
         .dispense-nav {
@@ -625,17 +675,14 @@
 </style>
 
 <div class="dispense-page">
-
     <!-- PAGE HEADER -->
     <header class="dispense-hero">
-
         <div>
             <div class="dispense-eyebrow">
                 Pharmacist Workspace
             </div>
 
             <h1>Medicine Dispensing Portal</h1>
-
             <p>
                 Verify the prescription, review eligible batches, apply
                 First Expiry First Out (FEFO), and record each dispensing
@@ -646,7 +693,6 @@
         <div class="dispense-hero-tag">
             FEFO CONTROL · DISPENSING OPERATIONS
         </div>
-
     </header>
 
     <!-- DJANGO SUCCESS AND ERROR MESSAGES -->
@@ -662,44 +708,30 @@
 
     <!-- THREE-COLUMN WORKSPACE -->
     <div class="dispense-workspace">
-
         <!-- COLUMN 1: NAVIGATION -->
         <aside class="dispense-sidebar">
-
-            <div class="dispense-sidebar-heading">
-                <strong>OPERATIONS CONTROL</strong>
-                <span>Pharmacist navigation and clinical guidance</span>
-            </div>
-
             <nav class="dispense-nav" aria-label="Pharmacist navigation">
-
                 <a href="{% url 'pharmacist_dashboard' %}">
-                    <span class="dispense-nav-icon">⌂</span>
                     Dashboard
                 </a>
 
                 <a href="{% url 'dispense' %}"
                    class="active"
                    aria-current="page">
-                    <span class="dispense-nav-icon">＋</span>
                     Dispense Medicine
                 </a>
 
                 <a href="{% url 'dispense_reports' %}">
-                    <span class="dispense-nav-icon">▤</span>
                     Pharmacist Reports
                 </a>
 
                 <a href="{% url 'alerts' %}">
-                    <span class="dispense-nav-icon">⚑</span>
                     Alerts Centre
                 </a>
 
                 <a href="{% url 'profile' %}">
-                    <span class="dispense-nav-icon">◎</span>
                     My Profile
                 </a>
-
             </nav>
 
             <div class="dispense-sidebar-note">
@@ -713,14 +745,11 @@
                 Expired, depleted or inactive batches must not be dispensed.
                 Prescription-period expiry eligibility must be respected.
             </div>
-
         </aside>
 
         <!-- COLUMN 2: DISPENSING FORM -->
         <section class="dispense-panel">
-
             <div class="dispense-panel-header">
-
                 <div class="dispense-panel-eyebrow">
                     TRANSACTION CONTROL
                 </div>
@@ -733,7 +762,6 @@
                     Enter the prescription details and allow the FEFO
                     allocation process to identify the appropriate stock.
                 </p>
-
             </div>
 
             <form method="POST"
@@ -1027,37 +1055,24 @@
                         </li>
 
                     {% endfor %}
-
                 </ul>
-
             </div>
 
             <div class="ledger-rule">
-
                 <strong>FEFO Safety Rule</strong>
-
                 <p>
                     The earliest-expiring eligible batch should be prioritised.
                     Expired, depleted and inactive stock must not be dispensed.
                     Backend FEFO validation remains authoritative.
                 </p>
-
             </div>
 
             <a href="{% url 'pharmacist_dashboard' %}"
                class="dispense-bottom-link">
                 ← Return to Pharmacist Dashboard
             </a>
-
         </section>
-
     </div>
-
-    <footer class="dispense-footer">
-        Demand-Driven Medicine Expiry Management System
-        · Pharmacist Dispensing Workspace
-    </footer>
-
 </div>
 
 <!-- FRONTEND MEDICINE-TO-BATCH FILTER -->

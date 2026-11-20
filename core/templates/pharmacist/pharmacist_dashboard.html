@@ -1,772 +1,808 @@
-
 {% extends 'base.html' %}
 {% load static %}
-
 {% block title %}Pharmacist Dashboard | Medicine Expiry Management System{% endblock %}
-
 {% block content %}
 
 <style>
-    .pharmacist-dashboard {
-        min-height: 100vh;
-        background: #f3f7fb;
-        color: #15324f;
-        font-family: Arial, Helvetica, sans-serif;
+/* DASHBOARD PAGE HEADER */
+.pharmacist-hero {
+width: calc(100% +44px) !important;
+    max-width: none !important;
+    margin: 0 -22px 20px !important;
+    margin-bottom: 0 !important;
+    min-height: 145px;
+    padding: 30px 27px;
+    background: linear-gradient(115deg, #123b66, #087e8b);
+    color: #fff;
+    border-radius: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 5px 16px rgba(18, 59, 102, .12);
+}
+
+.pharmacist-eyebrow {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #c8e8eb;
+}
+
+.pharmacist-hero h1 {
+    margin: 7px 0;
+    font-size: 25px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.pharmacist-hero p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #e0f0f4;
+    max-width: 700px;
+}
+
+.pharmacist-hero-tag {
+    padding: 10px 14px;
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(255,255,255,.12);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+}
+
+/* RESPONSIVE HEADER */
+@media (max-width: 760px) {
+    .pharmacist-hero {
+        padding: 19px;
     }
 
-    .pharmacist-dashboard * {
-        box-sizing: border-box;
+    .pharmacist-hero h1 {
+        font-size: 21px;
+    }
+}
+
+@media (max-width: 450px) {
+    .pharmacist-hero-tag {
+        white-space: normal;
+    }
+}
+
+/* HEADER */
+.ph-header {
+    background: linear-gradient(115deg, #123b66, #087e8b);
+    color: #fff;
+    padding: 20px 27px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    box-shadow: 0 3px 12px rgba(0,0,0,.12);
+}
+
+.ph-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ph-brand-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.17);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.ph-brand-title {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.ph-brand-subtitle {
+    font-size: 12px;
+    color: #d5edf0;
+    margin-top: 4px;
+}
+
+.ph-user-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 13px;
+}
+
+.ph-workstation {
+    background: rgba(255,255,255,.15);
+    padding: 9px 12px;
+    border-radius: 8px;
+}
+
+.ph-user-info {
+    text-align: right;
+}
+
+.ph-user-role {
+    font-size: 11px;
+    color: #d5edf0;
+    margin-top: 3px;
+}
+
+/* MAIN LAYOUT */
+.ph-layout {
+    display: grid;
+    grid-template-columns: 215px minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0;
+    min-height: calc(100vh - 84px);
+    margin-bottom: 0;
+}
+
+/* SIDEBAR */
+.ph-sidebar {
+    width: 100%;
+    min-width: 0;
+    background: #082f46;
+    color: #fff;
+    padding:18px 13;
+    height: 100%;
+    margin: 0;
+    align-self: stretch;
+    border-radius: 0!important;
+    overflow: hidden;
+}
+
+.ph-sidebar-label {
+    background: #123f57;
+    border: 1px solid #28566d;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 17px;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.ph-sidebar-label span {
+    color: #b9d4df;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.5;
+}
+
+.ph-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.ph-nav a {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 10px;
+    color: #d9eaf0;
+    text-decoration: none;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    transition: .2s ease;
+}
+
+.ph-nav a:hover {
+    background: #164f63;
+    color: #fff;
+}
+
+.ph-nav a.active {
+    background: #087f80;
+    color: #fff;
+    border-left: 3px solid #22a5a1;
+}
+
+.ph-nav-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.ph-sidebar-note {
+    margin: 25px 3px 0;
+    padding: 12px;
+    border: 1px solid #28566d;
+    border-radius: 8px;
+    color: #c3dce5;
+    font-size: 10px;
+    line-height: 1.7;
+}
+
+/* MAIN CONTENT */
+.ph-main {
+    min-width: 0;
+    width: 100%;
+    padding: 25px;
+}
+
+.ph-page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+.ph-breadcrumb {
+    color: #71869a;
+    font-size: 11px;
+    margin-bottom: 7px;
+}
+
+.ph-page-title {
+    color: #123b65;
+    font-size: 27px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.ph-page-description {
+    color: #61758b;
+    font-size: 13px;
+    margin: 7px 0 0;
+}
+
+.ph-primary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #07536c;
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 17px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    transition: .2s ease;
+}
+
+.ph-primary-button:hover {
+    background: #0b7183;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* DJANGO MESSAGES */
+.ph-messages {
+    margin-bottom: 18px;
+}
+
+.ph-message {
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 7px;
+    font-size: 13px;
+    background: #fff;
+    border: 1px solid #d9e8f1;
+    color: #234665;
+}
+
+/* KPI CARDS */
+.ph-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.ph-kpi-card {
+    background: #fff;
+    border: 1px solid #d9e8f1;
+    border-radius: 10px;
+    padding: 17px;
+    box-shadow: 0 3px 10px rgba(26,67,100,.04);
+    min-width: 0;
+}
+
+.ph-kpi-label {
+    font-size: 11px;
+    color: #60778d;
+    font-weight: 800;
+    letter-spacing: .3px;
+}
+
+.ph-kpi-value {
+    font-size: 30px;
+    color: #123b65;
+    font-weight: 800;
+    margin: 10px 0 7px;
+}
+
+.ph-kpi-description {
+    font-size: 11px;
+    color: #60778d;
+    line-height: 1.5;
+}
+
+.ph-kpi-teal {
+    border-left: 5px solid #079b91;
+}
+
+.ph-kpi-orange {
+    border-left: 5px solid #f4a62a;
+}
+
+.ph-kpi-red {
+    border-left: 5px solid #e74755;
+}
+
+/* GENERAL PANELS */
+.ph-panel {
+    background: #fff;
+    border: 1px solid #d9e8f1;
+    border-radius: 10px;
+    padding: 19px;
+    min-width: 0;
+    box-shadow: 0 3px 10px rgba(26,67,100,.025);
+}
+
+.ph-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.ph-panel-title {
+    font-size: 16px;
+    margin: 0;
+    color: #123b65;
+    font-weight: 800;
+}
+
+.ph-panel-label {
+    font-size: 10px;
+    color: #07848b;
+    font-weight: 800;
+    letter-spacing: .4px;
+}
+
+/* FEFO AND EXPIRY PANELS */
+.ph-monitoring-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, .9fr);
+    gap: 17px;
+    margin-bottom: 20px;
+    align-items: stretch;
+}
+
+.ph-table-scroll {
+    width: 100%;
+    overflow: auto;
+    max-height: 300px;
+    border-radius: 6px;
+}
+
+.ph-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    text-align: left;
+}
+
+.ph-table thead {
+    background: #f0f5f9;
+    color: #536c83;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.ph-table th {
+    padding: 11px 9px;
+    white-space: nowrap;
+    font-weight: 800;
+}
+
+.ph-table td {
+    padding: 12px 9px;
+    border-bottom: 1px solid #edf2f7;
+    color: #415a70;
+}
+
+.ph-table tbody tr:hover {
+    background: #f8fbfd;
+}
+
+.ph-medicine-name {
+    font-weight: 700;
+    color: #234665;
+}
+
+.ph-batch-number {
+    font-size: 10px;
+    color: #7a8da0;
+    margin-top: 4px;
+}
+
+.ph-empty {
+    padding: 23px 10px !important;
+    text-align: center;
+    color: #71869a !important;
+}
+
+.ph-secondary-link {
+    display: block;
+    margin-top: 13px;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #0b7183;
+    border-radius: 7px;
+    text-decoration: none;
+    color: #07536c;
+    font-size: 12px;
+    font-weight: 700;
+    transition: .2s ease;
+}
+
+.ph-secondary-link:hover {
+    background: #edf9f8;
+}
+
+/* EXPIRY RISK */
+.ph-expiry-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ph-expiry-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    border-radius: 8px;
+    padding: 13px 14px;
+}
+
+.ph-expiry-90 {
+    border: 1px solid #f5d9a6;
+    background: #fffaf1;
+}
+
+.ph-expiry-60 {
+    border: 1px solid #ffc9b8;
+    background: #fff5f1;
+}
+
+.ph-expiry-30 {
+    border: 1px solid #ffc6d0;
+    background: #fff3f5;
+}
+
+.ph-expiry-name {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.ph-expiry-description {
+    font-size: 11px;
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+.ph-expiry-number {
+    font-size: 23px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.ph-expiry-90 .ph-expiry-name,
+.ph-expiry-90 .ph-expiry-number {
+    color: #b86b05;
+}
+
+.ph-expiry-90 .ph-expiry-description {
+    color: #8a6a3d;
+}
+
+.ph-expiry-60 .ph-expiry-name,
+.ph-expiry-60 .ph-expiry-number {
+    color: #c74726;
+}
+
+.ph-expiry-60 .ph-expiry-description {
+    color: #94594b;
+}
+
+.ph-expiry-30 .ph-expiry-name,
+.ph-expiry-30 .ph-expiry-number {
+    color: #d52f42;
+}
+
+.ph-expiry-30 .ph-expiry-description {
+    color: #995b68;
+}
+
+.ph-information-note {
+    background: #f0f7fc;
+    border-radius: 7px;
+    padding: 11px;
+    font-size: 11px;
+    color: #59758c;
+    line-height: 1.6;
+    margin-top: 12px;
+}
+
+/* TRANSACTION TABLE */
+.ph-transactions-panel {
+    margin-bottom: 20px;
+}
+
+.ph-transactions-scroll {
+    max-height: 330px;
+}
+
+.ph-status {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.ph-status-fefo {
+    background: #d9f7ee;
+    color: #087f68;
+}
+
+.ph-status-override {
+    background: #fff0d5;
+    color: #925500;
+}
+
+/* ACTION POINTS */
+.ph-action-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.ph-action-card {
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.ph-action-title {
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 7px;
+}
+
+.ph-action-description {
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.ph-action-fefo {
+    border: 1px solid #b8eee4;
+    background: #effcf8;
+    color: #496d68;
+}
+
+.ph-action-fefo .ph-action-title {
+    color: #087f68;
+}
+
+.ph-action-expired {
+    border: 1px solid #ffc6d0;
+    background: #fff3f5;
+    color: #8e5862;
+}
+
+.ph-action-expired .ph-action-title {
+    color: #c72e43;
+}
+
+.ph-action-risk {
+    border: 1px solid #f5d9a6;
+    background: #fffaf1;
+    color: #8a6a3d;
+}
+
+.ph-action-risk .ph-action-title {
+    color: #a76508;
+}
+
+/* FOOTER */
+.ph-footer {
+    text-align: center;
+    padding: 22px 10px 5px;
+    color: #8293a3;
+    font-size: 11px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+    .ph-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    /* HEADER */
-    .ph-header {
-        background: #073b50;
-        color: #fff;
-        padding: 15px 26px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 15px;
-        box-shadow: 0 3px 12px rgba(0,0,0,.12);
+    .ph-monitoring-grid {
+        grid-template-columns: minmax(0, 1fr);
     }
+}
 
-    .ph-brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .ph-brand-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        background: #0f9e9a;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 25px;
-        font-weight: 800;
-        flex-shrink: 0;
-    }
-
-    .ph-brand-title {
-        font-size: 18px;
-        font-weight: 800;
-    }
-
-    .ph-brand-subtitle {
-        font-size: 12px;
-        color: #c9e3ed;
-        margin-top: 4px;
-    }
-
-    .ph-user-area {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        font-size: 13px;
-    }
-
-    .ph-workstation {
-        background: #124f62;
-        padding: 9px 12px;
-        border-radius: 8px;
-    }
-
-    .ph-user-info {
-        text-align: right;
-    }
-
-    .ph-user-role {
-        font-size: 11px;
-        color: #c9e3ed;
-        margin-top: 3px;
-    }
-
-    /* MAIN LAYOUT */
+@media (max-width: 760px) {
     .ph-layout {
-        display: flex;
-        min-height: calc(100vh - 74px);
+        grid-template-columns: 1fr;
+        min-height: auto;
     }
 
-    /* SIDEBAR */
     .ph-sidebar {
-        width: 225px;
-        flex-shrink: 0;
-        background: #073b50;
-        color: #fff;
-        padding: 22px 13px;
+        width: 100%;
+        min-height: auto;
+        padding: 12px;
     }
 
     .ph-sidebar-label {
-        font-size: 10px;
-        color: #91bdcc;
-        font-weight: 800;
-        letter-spacing: 1.2px;
-        padding: 8px 12px 15px;
+        padding-bottom: 9px;
     }
 
     .ph-nav {
-        display: flex;
-        flex-direction: column;
-        gap: 7px;
-    }
-
-    .ph-nav a {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        padding: 12px 13px;
-        color: #d5e7ee;
-        text-decoration: none;
-        border-radius: 7px;
-        font-size: 13px;
-        font-weight: 600;
-        transition: .2s ease;
-    }
-
-    .ph-nav a:hover {
-        background: #124f62;
-        color: #fff;
-    }
-
-    .ph-nav a.active {
-        background: #0f777d;
-        color: #fff;
-        border-left: 3px solid #65e1ce;
-    }
-
-    .ph-nav-icon {
-        width: 20px;
-        text-align: center;
-        font-size: 16px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .ph-sidebar-note {
-        margin: 30px 5px 0;
-        padding: 13px;
-        border: 1px solid #20566a;
-        border-radius: 8px;
-        color: #b9d4df;
-        font-size: 11px;
-        line-height: 1.7;
+        display: block;
     }
 
-    /* MAIN CONTENT */
     .ph-main {
-        flex: 1;
-        min-width: 0;
-        padding: 25px;
-    }
-
-    .ph-page-heading {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 15px;
-        margin-bottom: 22px;
-    }
-
-    .ph-breadcrumb {
-        color: #71869a;
-        font-size: 11px;
-        margin-bottom: 7px;
+        padding: 17px;
     }
 
     .ph-page-title {
-        color: #123b65;
-        font-size: 27px;
-        font-weight: 800;
-        margin: 0;
+        font-size: 23px;
     }
 
-    .ph-page-description {
-        color: #61758b;
-        font-size: 13px;
-        margin: 7px 0 0;
+    .ph-action-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .ph-header {
+        padding: 13px 15px;
     }
 
-    .ph-primary-button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        background: #07536c;
-        color: #fff;
-        text-decoration: none;
-        padding: 12px 17px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 700;
-        transition: .2s ease;
+    .ph-brand-title {
+        font-size: 14px;
     }
 
-    .ph-primary-button:hover {
-        background: #0b7183;
-        color: #fff;
-        transform: translateY(-1px);
+    .ph-workstation {
+        display: none;
     }
 
-    /* DJANGO MESSAGES */
-    .ph-messages {
-        margin-bottom: 18px;
-    }
-
-    .ph-message {
-        padding: 12px 15px;
-        margin-bottom: 8px;
-        border-radius: 7px;
-        font-size: 13px;
-        background: #fff;
-        border: 1px solid #d9e8f1;
-        color: #234665;
-    }
-
-    /* KPI CARDS */
     .ph-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px;
-        margin-bottom: 20px;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
     }
 
     .ph-kpi-card {
-        background: #fff;
-        border: 1px solid #d9e8f1;
-        border-radius: 10px;
-        padding: 17px;
-        box-shadow: 0 3px 10px rgba(26,67,100,.04);
-        min-width: 0;
-    }
-
-    .ph-kpi-label {
-        font-size: 11px;
-        color: #60778d;
-        font-weight: 800;
-        letter-spacing: .3px;
+        padding: 13px;
     }
 
     .ph-kpi-value {
-        font-size: 30px;
-        color: #123b65;
-        font-weight: 800;
-        margin: 10px 0 7px;
+        font-size: 25px;
     }
 
-    .ph-kpi-description {
-        font-size: 11px;
-        color: #60778d;
-        line-height: 1.5;
+    .ph-main {
+        padding: 13px;
     }
 
-    .ph-kpi-teal {
-        border-left: 5px solid #079b91;
-    }
-
-    .ph-kpi-orange {
-        border-left: 5px solid #f4a62a;
-    }
-
-    .ph-kpi-red {
-        border-left: 5px solid #e74755;
-    }
-
-    /* GENERAL PANELS */
     .ph-panel {
-        background: #fff;
-        border: 1px solid #d9e8f1;
-        border-radius: 10px;
-        padding: 19px;
-        min-width: 0;
-        box-shadow: 0 3px 10px rgba(26,67,100,.025);
-    }
-
-    .ph-panel-heading {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-
-    .ph-panel-title {
-        font-size: 16px;
-        margin: 0;
-        color: #123b65;
-        font-weight: 800;
-    }
-
-    .ph-panel-label {
-        font-size: 10px;
-        color: #07848b;
-        font-weight: 800;
-        letter-spacing: .4px;
-    }
-
-    /* FEFO AND EXPIRY PANELS */
-    .ph-monitoring-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1.4fr) minmax(280px, .9fr);
-        gap: 17px;
-        margin-bottom: 20px;
-        align-items: stretch;
-    }
-
-    .ph-table-scroll {
-        width: 100%;
-        overflow: auto;
-        max-height: 300px;
-        border-radius: 6px;
-    }
-
-    .ph-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 12px;
-        text-align: left;
-    }
-
-    .ph-table thead {
-        background: #f0f5f9;
-        color: #536c83;
-        position: sticky;
-        top: 0;
-        z-index: 2;
-    }
-
-    .ph-table th {
-        padding: 11px 9px;
-        white-space: nowrap;
-        font-weight: 800;
-    }
-
-    .ph-table td {
-        padding: 12px 9px;
-        border-bottom: 1px solid #edf2f7;
-        color: #415a70;
-    }
-
-    .ph-table tbody tr:hover {
-        background: #f8fbfd;
-    }
-
-    .ph-medicine-name {
-        font-weight: 700;
-        color: #234665;
-    }
-
-    .ph-batch-number {
-        font-size: 10px;
-        color: #7a8da0;
-        margin-top: 4px;
-    }
-
-    .ph-empty {
-        padding: 23px 10px !important;
-        text-align: center;
-        color: #71869a !important;
-    }
-
-    .ph-secondary-link {
-        display: block;
-        margin-top: 13px;
-        text-align: center;
-        padding: 10px;
-        border: 1px solid #0b7183;
-        border-radius: 7px;
-        text-decoration: none;
-        color: #07536c;
-        font-size: 12px;
-        font-weight: 700;
-        transition: .2s ease;
-    }
-
-    .ph-secondary-link:hover {
-        background: #edf9f8;
-    }
-
-    /* EXPIRY RISK */
-    .ph-expiry-list {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .ph-expiry-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        border-radius: 8px;
-        padding: 13px 14px;
-    }
-
-    .ph-expiry-90 {
-        border: 1px solid #f5d9a6;
-        background: #fffaf1;
-    }
-
-    .ph-expiry-60 {
-        border: 1px solid #ffc9b8;
-        background: #fff5f1;
-    }
-
-    .ph-expiry-30 {
-        border: 1px solid #ffc6d0;
-        background: #fff3f5;
-    }
-
-    .ph-expiry-name {
-        font-size: 14px;
-        font-weight: 800;
-    }
-
-    .ph-expiry-description {
-        font-size: 11px;
-        margin-top: 5px;
-        line-height: 1.4;
-    }
-
-    .ph-expiry-number {
-        font-size: 23px;
-        font-weight: 800;
-        flex-shrink: 0;
-    }
-
-    .ph-expiry-90 .ph-expiry-name,
-    .ph-expiry-90 .ph-expiry-number {
-        color: #b86b05;
-    }
-
-    .ph-expiry-90 .ph-expiry-description {
-        color: #8a6a3d;
-    }
-
-    .ph-expiry-60 .ph-expiry-name,
-    .ph-expiry-60 .ph-expiry-number {
-        color: #c74726;
-    }
-
-    .ph-expiry-60 .ph-expiry-description {
-        color: #94594b;
-    }
-
-    .ph-expiry-30 .ph-expiry-name,
-    .ph-expiry-30 .ph-expiry-number {
-        color: #d52f42;
-    }
-
-    .ph-expiry-30 .ph-expiry-description {
-        color: #995b68;
-    }
-
-    .ph-information-note {
-        background: #f0f7fc;
-        border-radius: 7px;
-        padding: 11px;
-        font-size: 11px;
-        color: #59758c;
-        line-height: 1.6;
-        margin-top: 12px;
-    }
-
-    /* TRANSACTION TABLE */
-    .ph-transactions-panel {
-        margin-bottom: 20px;
-    }
-
-    .ph-transactions-scroll {
-        max-height: 330px;
-    }
-
-    .ph-status {
-        display: inline-block;
-        padding: 5px 9px;
-        border-radius: 20px;
-        font-size: 10px;
-        font-weight: 800;
-        white-space: nowrap;
-    }
-
-    .ph-status-fefo {
-        background: #d9f7ee;
-        color: #087f68;
-    }
-
-    .ph-status-override {
-        background: #fff0d5;
-        color: #925500;
-    }
-
-    /* ACTION POINTS */
-    .ph-action-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-    }
-
-    .ph-action-card {
-        border-radius: 8px;
         padding: 14px;
     }
 
-    .ph-action-title {
-        font-size: 13px;
-        font-weight: 800;
-        margin-bottom: 7px;
-    }
-
-    .ph-action-description {
+    .ph-nav a {
         font-size: 11px;
-        line-height: 1.7;
+        padding: 10px;
     }
-
-    .ph-action-fefo {
-        border: 1px solid #b8eee4;
-        background: #effcf8;
-        color: #496d68;
-    }
-
-    .ph-action-fefo .ph-action-title {
-        color: #087f68;
-    }
-
-    .ph-action-expired {
-        border: 1px solid #ffc6d0;
-        background: #fff3f5;
-        color: #8e5862;
-    }
-
-    .ph-action-expired .ph-action-title {
-        color: #c72e43;
-    }
-
-    .ph-action-risk {
-        border: 1px solid #f5d9a6;
-        background: #fffaf1;
-        color: #8a6a3d;
-    }
-
-    .ph-action-risk .ph-action-title {
-        color: #a76508;
-    }
-
-    /* FOOTER */
-    .ph-footer {
-        text-align: center;
-        padding: 22px 10px 5px;
-        color: #8293a3;
-        font-size: 11px;
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 1100px) {
-        .ph-kpi-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .ph-monitoring-grid {
-            grid-template-columns: minmax(0, 1fr);
-        }
-    }
-
-    @media (max-width: 760px) {
-        .ph-layout {
-            flex-direction: column;
-        }
-
-        .ph-sidebar {
-            width: 100%;
-            padding: 12px;
-        }
-
-        .ph-sidebar-label {
-            padding-bottom: 9px;
-        }
-
-        .ph-nav {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .ph-sidebar-note {
-            display: none;
-        }
-
-        .ph-main {
-            padding: 17px;
-        }
-
-        .ph-page-title {
-            font-size: 23px;
-        }
-
-        .ph-action-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .ph-header {
-            padding: 13px 15px;
-        }
-
-        .ph-brand-title {
-            font-size: 14px;
-        }
-
-        .ph-workstation {
-            display: none;
-        }
-
-        .ph-kpi-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 9px;
-        }
-
-        .ph-kpi-card {
-            padding: 13px;
-        }
-
-        .ph-kpi-value {
-            font-size: 25px;
-        }
-
-        .ph-main {
-            padding: 13px;
-        }
-
-        .ph-panel {
-            padding: 14px;
-        }
-
-        .ph-nav a {
-            font-size: 11px;
-            padding: 10px;
-        }
-    }
+}
 </style>
-
 <div class="pharmacist-dashboard">
-
     <!-- TOP HEADER -->
-    <header class="ph-header">
-
-        <div class="ph-brand">
-            <div class="ph-brand-icon">+</div>
-
-            <div>
-                <div class="ph-brand-title">
-                    Demand-Driven Medicine Expiry Management System
-                </div>
-
-                <div class="ph-brand-subtitle">
-                    FEFO — First Expiry, First Out
-                </div>
-            </div>
+    <!-- DASHBOARD PAGE HEADER -->
+<header class="pharmacist-hero">
+    <div>
+        <div class="pharmacist-eyebrow">
+            Pharmacist Workspace
         </div>
 
-        <div class="ph-user-area">
+        <h1>Pharmacist Dashboard</h1>
 
-            <span class="ph-workstation">
-                Clinical Workstation
-            </span>
+        <p>
+            Monitor medicine inventory, dispensing activities,
+            FEFO compliance, expiry alerts and medicine availability
+            across the facility.
+        </p>
+    </div>
 
-            <div class="ph-user-info">
-                <div style="font-weight:700;">
-                    {{ request.user.username }}
-                </div>
-
-                <div class="ph-user-role">
-                    Pharmacist
-                </div>
-            </div>
-
-        </div>
-
-    </header>
+    <div class="pharmacist-hero-tag">
+        FEFO CONTROL · PHARMACY OPERATIONS
+    </div>
+</header>
 
     <!-- MAIN LAYOUT -->
     <div class="ph-layout">
-
-        <!-- SIDEBAR -->
+        <!-- PHARMACIST OPERATIONS CONTROL -->
         <aside class="ph-sidebar">
-
-            <div class="ph-sidebar-label">
-                PHARMACIST WORKSPACE
-            </div>
-
             <nav class="ph-nav" aria-label="Pharmacist navigation">
-
                 <a href="{% url 'pharmacist_dashboard' %}"
                    class="active"
                    aria-current="page">
-                    <span class="ph-nav-icon">⌂</span>
-                    Pharmacist Dashboard
+                    Dashboard
                 </a>
 
                 <a href="{% url 'dispense' %}">
-                    <span class="ph-nav-icon">＋</span>
-                    Dispense Medicines
+                    Dispense Medicine
                 </a>
 
                 <a href="{% url 'dispense_reports' %}">
-                    <span class="ph-nav-icon">▤</span>
                     Pharmacist Reports
                 </a>
 
                 <a href="{% url 'alerts' %}">
-                    <span class="ph-nav-icon">⚑</span>
                     Alerts Centre
                 </a>
 
                 <a href="{% url 'profile' %}">
-                    <span class="ph-nav-icon">◎</span>
                     My Profile
                 </a>
-
             </nav>
 
             <div class="ph-sidebar-note">
-                <strong>Clinical Responsibility</strong>
-                <br>
-                Ensure medicine safety, apply FEFO during dispensing
-                and record every dispensing transaction accurately.
+                <strong>Dispensing Responsibility</strong>
+                Confirm the medicine, prescribed quantity and treatment
+                duration before recording a transaction.
             </div>
 
+            <div style="
+                margin-top:11px;
+                padding:12px;
+                border-radius:8px;
+                background:#fff5e6;
+                border:1px solid #f0d7ad;
+                color:#805b16;
+                font-size:10px;
+                line-height:1.7;
+            ">
+                <strong>Important Safety Rule</strong>
+                Expired, depleted or inactive batches must not be dispensed.
+                Prescription-period expiry eligibility must be respected.
+            </div>
         </aside>
 
         <!-- DASHBOARD CONTENT -->
         <main class="ph-main">
-
-            <!-- PAGE HEADING -->
-            <div class="ph-page-heading">
-
-                <div>
-                    <div class="ph-breadcrumb">
-                        Home / Pharmacist Workspace
-                    </div>
-
-                    <h1 class="ph-page-title">
-                        Pharmacist Dashboard
-                    </h1>
-
-                    <p class="ph-page-description">
-                        Monitor medicine availability, dispensing activity,
-                        FEFO compliance and expiry risks.
-                    </p>
-                </div>
-
-                <a href="{% url 'dispense' %}" class="ph-primary-button">
-                    <span>＋</span>
-                    New Dispensing Transaction
-                </a>
-
-            </div>
-
             <!-- DJANGO MESSAGES -->
             {% if messages %}
                 <div class="ph-messages">
@@ -780,7 +816,6 @@
 
             <!-- KPI CARDS -->
             <div class="ph-kpi-grid">
-
                 <section class="ph-kpi-card ph-kpi-teal">
                     <div class="ph-kpi-label">
                         ELIGIBLE MEDICINES
@@ -841,10 +876,8 @@
 
             <!-- FEFO QUEUE AND EXPIRY RISK -->
             <div class="ph-monitoring-grid">
-
                 <!-- FEFO DISPENSING QUEUE -->
                 <section class="ph-panel">
-
                     <div class="ph-panel-heading">
 
                         <h2 class="ph-panel-title">
@@ -854,13 +887,10 @@
                         <span class="ph-panel-label">
                             EARLIEST EXPIRY FIRST
                         </span>
-
                     </div>
 
                     <div class="ph-table-scroll">
-
                         <table class="ph-table">
-
                             <thead>
                                 <tr>
                                     <th scope="col">Medicine / Batch</th>
@@ -870,10 +900,8 @@
                             </thead>
 
                             <tbody>
-
                                 {% for batch in fefo_queue %}
                                     <tr>
-
                                         <td>
                                             <div class="ph-medicine-name">
                                                 {{ batch.medicine.medicine_name }}
@@ -891,7 +919,6 @@
                                         <td style="white-space:nowrap;">
                                             {{ batch.expiry_date|date:"d M Y" }}
                                         </td>
-
                                     </tr>
 
                                 {% empty %}
@@ -901,22 +928,17 @@
                                         </td>
                                     </tr>
                                 {% endfor %}
-
                             </tbody>
-
                         </table>
-
                     </div>
 
                     <a href="{% url 'dispense' %}" class="ph-secondary-link">
                         Open Dispensing Form →
                     </a>
-
                 </section>
 
                 <!-- EXPIRY RISK OVERVIEW -->
                 <section class="ph-panel">
-
                     <div class="ph-panel-heading">
                         <h2 class="ph-panel-title">
                             Expiry Risk Overview
@@ -924,9 +946,7 @@
                     </div>
 
                     <div class="ph-expiry-list">
-
                         <div class="ph-expiry-item ph-expiry-90">
-
                             <div>
                                 <div class="ph-expiry-name">
                                     Within 90 Days
@@ -940,11 +960,9 @@
                             <div class="ph-expiry-number">
                                 {{ expiry_90_count|default:0 }}
                             </div>
-
                         </div>
 
                         <div class="ph-expiry-item ph-expiry-60">
-
                             <div>
                                 <div class="ph-expiry-name">
                                     Within 60 Days
@@ -958,11 +976,9 @@
                             <div class="ph-expiry-number">
                                 {{ expiry_60_count|default:0 }}
                             </div>
-
                         </div>
 
                         <div class="ph-expiry-item ph-expiry-30">
-
                             <div>
                                 <div class="ph-expiry-name">
                                     Within 30 Days
@@ -976,25 +992,19 @@
                             <div class="ph-expiry-number">
                                 {{ expiry_30_count|default:0 }}
                             </div>
-
                         </div>
-
                     </div>
 
                     <div class="ph-information-note">
                         Expiry indicators represent batch counts, not unique
                         medicine counts. Expired batches must not be dispensed.
                     </div>
-
                 </section>
-
             </div>
 
             <!-- RECENT DISPENSING TRANSACTIONS -->
             <section class="ph-panel ph-transactions-panel">
-
                 <div class="ph-panel-heading">
-
                     <h2 class="ph-panel-title">
                         Recent Dispensing Transactions
                     </h2>
@@ -1002,13 +1012,10 @@
                     <span style="font-size:11px;color:#71869a;">
                         Latest 8 records
                     </span>
-
                 </div>
 
                 <div class="ph-table-scroll ph-transactions-scroll">
-
                     <table class="ph-table">
-
                         <thead>
                             <tr>
                                 <th scope="col">Date &amp; Time</th>
@@ -1021,10 +1028,8 @@
                         </thead>
 
                         <tbody>
-
                             {% for tx in recent_transactions %}
                                 <tr>
-
                                     <td style="white-space:nowrap;">
                                         {{ tx.dispensed_at|date:"d M Y H:i" }}
                                     </td>
@@ -1064,7 +1069,6 @@
                                             </span>
                                         {% endif %}
                                     </td>
-
                                 </tr>
 
                             {% empty %}
@@ -1074,87 +1078,15 @@
                                     </td>
                                 </tr>
                             {% endfor %}
-
                         </tbody>
-
                     </table>
-
                 </div>
 
                 <a href="{% url 'dispense_reports' %}" class="ph-secondary-link">
                     View Pharmacist Reports →
                 </a>
-
             </section>
-
-            <!-- PHARMACIST ACTION POINTS -->
-            <section class="ph-panel">
-
-                <div class="ph-panel-heading">
-                    <h2 class="ph-panel-title">
-                        Pharmacist Action Points
-                    </h2>
-                </div>
-
-                <div class="ph-action-grid">
-
-                    <!-- FEFO -->
-                    <div class="ph-action-card ph-action-fefo">
-
-                        <div class="ph-action-title">
-                            ✓ Follow FEFO
-                        </div>
-
-                        <div class="ph-action-description">
-                            Select the earliest-expiring eligible batch.
-                            Record a reason whenever a FEFO override is necessary.
-                        </div>
-
-                    </div>
-
-                    <!-- EXPIRED STOCK -->
-                    <div class="ph-action-card ph-action-expired">
-
-                        <div class="ph-action-title">
-                            ! Check Expired Stock
-                        </div>
-
-                        <div class="ph-action-description">
-                            Never dispense expired medicine. Refer expired
-                            batches to the Store Manager for quarantine
-                            and approved disposal.
-                        </div>
-
-                    </div>
-
-                    <!-- EXPIRY RISK -->
-                    <div class="ph-action-card ph-action-risk">
-
-                        <div class="ph-action-title">
-                            ↻ Review Expiry Risk
-                        </div>
-
-                        <div class="ph-action-description">
-                            Review batches approaching expiry and coordinate
-                            appropriate stock rotation with the Store Manager.
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-            <!-- FOOTER -->
-            <footer class="ph-footer">
-                Demand-Driven Medicine Expiry Management System
-                · FEFO Control Workspace
-            </footer>
-
         </main>
-
     </div>
-
 </div>
-
 {% endblock %}
