@@ -27,7 +27,7 @@ class Command(BaseCommand):
                 forecast = (ForecastingEngine.calculate_3_month_forecast(medicine.id))
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f"{medicine.name}: "
+                        f"{medicine.medicine_name}: "
                         f"{forecast.forecasted_demand_quantity} "
                         f"units forecasted."
                     )
@@ -35,7 +35,7 @@ class Command(BaseCommand):
                 success_count += 1
 
             except Exception as error:
-                self.stderr.write(self.style.ERROR(f"{medicine.name}: {error}"))
+                self.stderr.write(self.style.ERROR(f"{medicine.medicine_name}: {error}"))
                 failure_count += 1
 
         self.stdout.write("\n")
