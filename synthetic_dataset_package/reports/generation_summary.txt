@@ -1,0 +1,56 @@
+SYNTHETIC DATASET GENERATION SUMMARY
+============================================================
+Random seed: 20261109
+Historical period: 2024-11-01 to 2026-10-31
+Snapshot date: 2026-11-09
+November forecast period: 2026-11-01 to 2026-11-30
+Historical reference period: 2024-11-01 to 2026-04-30
+Historical reference months: 18
+Forecast history window: 90 days
+Evaluation months: 6
+
+TRANSACTION PERIODS
+------------------------------------------------------------
+Historical transaction rows: 42,066
+1–9 November snapshot transaction rows: 551
+
+DATASET RECORD COUNTS
+------------------------------------------------------------
+medicines.csv: 100
+suppliers.csv: 15
+medicine_batches.csv: 2,500
+dispensing_transactions.csv: 42,617
+demand_forecasts_evaluation.csv: 600
+demand_forecasts_november_2026.csv: 100
+procurement_recommendations.csv: 2,500
+purchase_orders.csv: 2,455
+goods_receipts.csv: 2,400
+goods_receipt_items.csv: 2,400
+
+FORECAST EVALUATION
+------------------------------------------------------------
+30-day equivalent MAE: 9.09
+WAPE: 10.9%
+MAPE: 11.28
+MAPE excludes observations with zero normalized actual demand.
+Raw calendar-month actual demand is retained in the evaluation CSV. MAE, WAPE, MAPE and absolute_error use actual demand normalized to a 30-day equivalent.
+The CSV absolute_error field is the absolute difference between the forecast and the 30-day-normalized actual demand, rounded to two decimal places.
+
+IMPORTANT METHODOLOGICAL NOTES
+------------------------------------------------------------
+November forecasts were calculated before the 1–9 November snapshot transactions.
+Demand forecasting uses a three-period moving average of completed monthly demand.
+November FEFO-eligible stock must remain valid through the maximum 14-day prescription period.
+Procurement target stock uses daily forecast demand multiplied by supplier lead time plus the 30-day review period plus safety stock days.
+Recommended procurement quantity is the positive difference between target stock and projected stock.
+November snapshot transactions were excluded from the November forecast history.
+Expired batches may retain positive quantities but are not eligible for FEFO dispensing.
+The confidence score measures consistency, not forecast probability.
+
+GENERATION RESTRICTIONS
+------------------------------------------------------------
+No connection to Django was made.
+No records were imported into the application database.
+All supplier and patient identifiers are synthetic.
+Synthetic costs are illustrative.
+The generated files require independent cleaning and validation.

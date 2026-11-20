@@ -1,0 +1,101 @@
+medicine_id,medicine_name,generic_name,category,dosage_form,reorder_level,safety_stock_days,is_active
+MED001,Paracetamol Tablet,Paracetamol,Analgesic,Tablet,30,15,True
+MED002,Paracetamol Oral Suspension,Paracetamol,Analgesic,Oral Suspension,50,30,True
+MED003,Ibuprofen Tablet,Ibuprofen,Analgesic,Tablet,30,30,True
+MED004,Ibuprofen Oral Suspension,Ibuprofen,Analgesic,Oral Suspension,40,15,True
+MED005,Diclofenac Tablet,Diclofenac,Analgesic,Tablet,20,30,True
+MED006,Diclofenac Injection,Diclofenac,Analgesic,Injection,20,15,True
+MED007,Tramadol Capsule,Tramadol,Analgesic,Capsule,50,15,True
+MED008,Tramadol Injection,Tramadol,Analgesic,Injection,40,15,True
+MED009,Aspirin Tablet,Aspirin,Analgesic,Tablet,40,45,True
+MED010,Aspirin Oral Suspension,Aspirin,Analgesic,Oral Suspension,40,15,True
+MED011,Amoxicillin Capsule,Amoxicillin,Antibiotic,Capsule,40,30,True
+MED012,Amoxicillin Oral Suspension,Amoxicillin,Antibiotic,Oral Suspension,50,15,True
+MED013,Azithromycin Tablet,Azithromycin,Antibiotic,Tablet,50,45,True
+MED014,Azithromycin Oral Suspension,Azithromycin,Antibiotic,Oral Suspension,20,15,True
+MED015,Ciprofloxacin Tablet,Ciprofloxacin,Antibiotic,Tablet,30,45,True
+MED016,Ciprofloxacin Injection,Ciprofloxacin,Antibiotic,Injection,40,15,True
+MED017,Metronidazole Tablet,Metronidazole,Antibiotic,Tablet,50,15,True
+MED018,Metronidazole Injection,Metronidazole,Antibiotic,Injection,40,30,True
+MED019,Doxycycline Capsule,Doxycycline,Antibiotic,Capsule,40,45,True
+MED020,Doxycycline Tablet,Doxycycline,Antibiotic,Tablet,50,15,True
+MED021,Ceftriaxone Injection,Ceftriaxone,Antibiotic,Injection,50,15,True
+MED022,Ceftriaxone Powder for Injection,Ceftriaxone,Antibiotic,Powder for Injection,30,30,True
+MED023,Cefuroxime Tablet,Cefuroxime,Antibiotic,Tablet,20,15,True
+MED024,Cefuroxime Injection,Cefuroxime,Antibiotic,Injection,30,45,True
+MED025,Flucloxacillin Capsule,Flucloxacillin,Antibiotic,Capsule,30,15,True
+MED026,Flucloxacillin Oral Suspension,Flucloxacillin,Antibiotic,Oral Suspension,50,30,True
+MED027,Benzylpenicillin Injection,Benzylpenicillin,Antibiotic,Injection,30,30,True
+MED028,Benzylpenicillin Powder for Injection,Benzylpenicillin,Antibiotic,Powder for Injection,30,45,True
+MED029,Gentamicin Injection,Gentamicin,Antibiotic,Injection,50,45,True
+MED030,Gentamicin Eye Drops,Gentamicin,Antibiotic,Eye Drops,50,45,True
+MED031,Metformin Tablet,Metformin,Antidiabetic,Tablet,50,15,True
+MED032,Metformin Oral Solution,Metformin,Antidiabetic,Oral Solution,50,45,True
+MED033,Glibenclamide Tablet,Glibenclamide,Antidiabetic,Tablet,30,15,True
+MED034,Glibenclamide Oral Suspension,Glibenclamide,Antidiabetic,Oral Suspension,30,15,True
+MED035,Insulin Injection,Insulin,Antidiabetic,Injection,20,15,True
+MED036,Insulin Cartridge,Insulin,Antidiabetic,Cartridge,20,15,True
+MED037,Gliclazide Tablet,Gliclazide,Antidiabetic,Tablet,20,30,True
+MED038,Gliclazide Modified Release Tablet,Gliclazide,Antidiabetic,Modified Release Tablet,30,15,True
+MED039,Amlodipine Tablet,Amlodipine,Cardiovascular,Tablet,50,15,True
+MED040,Amlodipine Oral Suspension,Amlodipine,Cardiovascular,Oral Suspension,30,15,True
+MED041,Losartan Tablet,Losartan,Cardiovascular,Tablet,40,45,True
+MED042,Losartan Oral Suspension,Losartan,Cardiovascular,Oral Suspension,50,30,True
+MED043,Atenolol Tablet,Atenolol,Cardiovascular,Tablet,40,45,True
+MED044,Atenolol Oral Solution,Atenolol,Cardiovascular,Oral Solution,50,45,True
+MED045,Enalapril Tablet,Enalapril,Cardiovascular,Tablet,30,45,True
+MED046,Enalapril Oral Solution,Enalapril,Cardiovascular,Oral Solution,40,30,True
+MED047,Hydrochlorothiazide Tablet,Hydrochlorothiazide,Cardiovascular,Tablet,30,45,True
+MED048,Hydrochlorothiazide Oral Solution,Hydrochlorothiazide,Cardiovascular,Oral Solution,40,30,True
+MED049,Furosemide Tablet,Furosemide,Cardiovascular,Tablet,30,30,True
+MED050,Furosemide Injection,Furosemide,Cardiovascular,Injection,20,15,True
+MED051,Nifedipine Tablet,Nifedipine,Cardiovascular,Tablet,40,30,True
+MED052,Nifedipine Modified Release Tablet,Nifedipine,Cardiovascular,Modified Release Tablet,40,30,True
+MED053,Propranolol Tablet,Propranolol,Cardiovascular,Tablet,30,45,True
+MED054,Propranolol Oral Solution,Propranolol,Cardiovascular,Oral Solution,40,30,True
+MED055,Captopril Tablet,Captopril,Cardiovascular,Tablet,50,15,True
+MED056,Captopril Oral Solution,Captopril,Cardiovascular,Oral Solution,30,30,True
+MED057,Omeprazole Capsule,Omeprazole,Gastrointestinal,Capsule,50,30,True
+MED058,Omeprazole Injection,Omeprazole,Gastrointestinal,Injection,30,30,True
+MED059,Loperamide Capsule,Loperamide,Gastrointestinal,Capsule,20,30,True
+MED060,Loperamide Oral Solution,Loperamide,Gastrointestinal,Oral Solution,50,30,True
+MED061,Lansoprazole Capsule,Lansoprazole,Gastrointestinal,Capsule,30,15,True
+MED062,Lansoprazole Oral Suspension,Lansoprazole,Gastrointestinal,Oral Suspension,50,15,True
+MED063,Ondansetron Tablet,Ondansetron,Gastrointestinal,Tablet,20,45,True
+MED064,Ondansetron Injection,Ondansetron,Gastrointestinal,Injection,40,30,True
+MED065,Domperidone Tablet,Domperidone,Gastrointestinal,Tablet,30,30,True
+MED066,Domperidone Oral Suspension,Domperidone,Gastrointestinal,Oral Suspension,50,45,True
+MED067,Oral Rehydration Salts Powder,Oral Rehydration Salts,Gastrointestinal,Powder,40,30,True
+MED068,Oral Rehydration Salts Oral Solution,Oral Rehydration Salts,Gastrointestinal,Oral Solution,40,45,True
+MED069,Cetirizine Tablet,Cetirizine,Antihistamine,Tablet,50,15,True
+MED070,Cetirizine Oral Solution,Cetirizine,Antihistamine,Oral Solution,30,45,True
+MED071,Loratadine Tablet,Loratadine,Antihistamine,Tablet,30,45,True
+MED072,Loratadine Oral Solution,Loratadine,Antihistamine,Oral Solution,30,15,True
+MED073,Chlorpheniramine Tablet,Chlorpheniramine,Antihistamine,Tablet,50,45,True
+MED074,Chlorpheniramine Injection,Chlorpheniramine,Antihistamine,Injection,50,45,True
+MED075,Salbutamol Inhaler,Salbutamol,Respiratory,Inhaler,50,15,True
+MED076,Salbutamol Nebuliser Solution,Salbutamol,Respiratory,Nebuliser Solution,40,45,True
+MED077,Beclometasone Inhaler,Beclometasone,Respiratory,Inhaler,50,45,True
+MED078,Beclometasone Nasal Spray,Beclometasone,Respiratory,Nasal Spray,50,45,True
+MED079,Aminophylline Tablet,Aminophylline,Respiratory,Tablet,50,30,True
+MED080,Aminophylline Injection,Aminophylline,Respiratory,Injection,20,45,True
+MED081,Budesonide Inhaler,Budesonide,Respiratory,Inhaler,50,45,True
+MED082,Budesonide Nebuliser Suspension,Budesonide,Respiratory,Nebuliser Suspension,40,15,True
+MED083,Prednisolone Tablet,Prednisolone,Corticosteroid,Tablet,20,15,True
+MED084,Prednisolone Oral Solution,Prednisolone,Corticosteroid,Oral Solution,30,45,True
+MED085,Dexamethasone Tablet,Dexamethasone,Corticosteroid,Tablet,50,30,True
+MED086,Dexamethasone Injection,Dexamethasone,Corticosteroid,Injection,20,45,True
+MED087,Hydrocortisone Injection,Hydrocortisone,Corticosteroid,Injection,50,45,True
+MED088,Hydrocortisone Cream,Hydrocortisone,Corticosteroid,Cream,30,30,True
+MED089,Ferrous Sulphate Tablet,Ferrous Sulphate,Supplement,Tablet,20,30,True
+MED090,Ferrous Sulphate Oral Solution,Ferrous Sulphate,Supplement,Oral Solution,20,45,True
+MED091,Folic Acid Tablet,Folic Acid,Supplement,Tablet,50,30,True
+MED092,Folic Acid Oral Solution,Folic Acid,Supplement,Oral Solution,50,15,True
+MED093,Vitamin C Tablet,Vitamin C,Supplement,Tablet,40,30,True
+MED094,Vitamin C Oral Drops,Vitamin C,Supplement,Oral Drops,50,15,True
+MED095,Calcium Carbonate Tablet,Calcium Carbonate,Supplement,Tablet,30,45,True
+MED096,Calcium Carbonate Oral Suspension,Calcium Carbonate,Supplement,Oral Suspension,30,30,True
+MED097,Zinc Sulphate Tablet,Zinc Sulphate,Supplement,Tablet,50,15,True
+MED098,Zinc Sulphate Oral Solution,Zinc Sulphate,Supplement,Oral Solution,20,30,True
+MED099,Vitamin B Complex Tablet,Vitamin B Complex,Supplement,Tablet,40,45,True
+MED100,Vitamin B Complex Injection,Vitamin B Complex,Supplement,Injection,40,45,True

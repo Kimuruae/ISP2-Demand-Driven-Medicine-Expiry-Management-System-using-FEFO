@@ -1,0 +1,16 @@
+supplier_id,supplier_name,contact_person,email,phone_number,address,delivery_lead_time_days,is_active
+SUP001,Fictional Williams LLC Medical Supplies Ltd,Jessica White,supplier01@example.test,+254714228155,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP002,Fictional Mcdowell-Chaney Medical Supplies Ltd,Daniel Cantrell,supplier02@example.test,+254769624594,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP003,Fictional Flores LLC Medical Supplies Ltd,Candice Henderson,supplier03@example.test,+254780214626,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP004,Fictional Riley Group Medical Supplies Ltd,Patricia Miller,supplier04@example.test,+254730717331,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP005,Fictional Terry and Sons Medical Supplies Ltd,Jordan Phillips,supplier05@example.test,+254711939083,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP006,Fictional Schultz-Miranda Medical Supplies Ltd,Juan Lopez,supplier06@example.test,+254793504494,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP007,"Fictional Miller, Thomas and Salazar Medical Supplies Ltd",Amy Scott,supplier07@example.test,+254726046691,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP008,Fictional Salas-Finley Medical Supplies Ltd,Mary Sutton,supplier08@example.test,+254728465982,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP009,"Fictional Cole, Long and Lowe Medical Supplies Ltd",Allison Gordon,supplier09@example.test,+254729472902,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP010,Fictional Wright Inc Medical Supplies Ltd,Benjamin Williams,supplier10@example.test,+254724909930,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP011,Fictional Jones Inc Medical Supplies Ltd,Abigail Marsh,supplier11@example.test,+254765939875,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP012,"Fictional Olson, Ward and Guzman Medical Supplies Ltd",Pamela Oneill,supplier12@example.test,+254739184904,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP013,Fictional Johns-Mooney Medical Supplies Ltd,Edward Kim,supplier13@example.test,+254714192429,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP014,Fictional Johnson-Herrera Medical Supplies Ltd,Monica Diaz,supplier14@example.test,+254721168572,"Fictional Business Centre, Nairobi, Kenya",7,True
+SUP015,Fictional Wood-Wong Medical Supplies Ltd,Nicholas Mathis,supplier15@example.test,+254774974881,"Fictional Business Centre, Nairobi, Kenya",7,True

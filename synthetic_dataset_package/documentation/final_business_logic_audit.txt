@@ -1,0 +1,307 @@
+========== FORECASTING ENGINE: HELPERS ==========
+"""
+Demand forecasting and FEFO-aware procurement recommendations.
+Purpose:
+1. Estimate medicine demand from historical dispensing.
+2. Assess stock eligible for FEFO dispensing.
+3. Estimate a target inventory level.
+4. Create or refresh a pending procurement recommendation.
+5. Record the forecast for reporting and evaluation.
+
+This is a decision-support engine. Procurement staff must review
+recommendations before purchase orders are approved or placed.
+"""
+
+from datetime import timedelta
+from decimal import Decimal, ROUND_HALF_UP
+from django.db import models, transaction
+from django.utils import timezone
+from .models import (Medicine,DispensingTransaction,DemandForecast,ProcurementRecommendation,)
+
+class ForecastingEngine:
+    """
+    Three-period moving-average forecasting engine.
+
+    Each historical period is a consecutive 30-day window.
+    The forecast is for the next 30-day period.
+
+    Important:
+    - A consistency score is not statistical forecast accuracy.
+    - Stock calculations use Medicine.get_fefo_batches().
+    - This class does not automatically approve or place orders.
+    """
+
+    PERIOD_DAYS = 30
+    HISTORY_PERIODS = 3
+
+    @staticmethod
+    def _decimal(value):
+        return Decimal(str(value or 0))
+
+    @classmethod
+    def _round_units(cls, value): #Round a forecast to the nearest whole medicine unit.
+        return int(cls._decimal(value).quantize(Decimal("1"),rounding=ROUND_HALF_UP,))
+
+    @classmethod
+    def _get_period_consumption(cls, medicine, start, end):
+        """
+        Return total dispensing quantity and number of records
+        in the half-open interval [start, end).
+        The half-open interval prevents transactions on a boundary
+        from being counted in two periods.
+        """
+        result = DispensingTransaction.objects.filter(
+            medicine=medicine,
+            dispensed_at__gte=start,
+            dispensed_at__lt=end,).aggregate(
+            total_quantity=models.Sum("quantity_dispensed"),
+            transaction_count=models.Count("id"),
+        )
+        return (
+            int(result["total_quantity"] or 0),
+            int(result["transaction_count"] or 0),
+        )
+
+    @classmethod
+    def _calculate_consistency_score(cls, volumes):
+        """
+        Calculate a simple consistency indicator from 0 to 100.
+
+        This measures historical variation only. It is NOT a
+        probability that the forecast is correct.
+
+        A zero score is returned when all three periods show no
+        recorded consumption; insufficient data must be reviewed.
+        """
+        highest = max(volumes)
+        lowest = min(volumes)
+
+        if highest == 0: return Decimal("0.00")
+        variation = (Decimal(highest - lowest) / Decimal(highest))
+        score = Decimal("100.00") * (Decimal("1.00") - variation)
+        return max(Decimal("0.00"),min(Decimal("100.00"), score),).quantize(Decimal("0.01"))
+
+    @classmethod
+    def _get_fefo_eligible_stock(cls, medicine):
+        """
+        Sum the stock returned by the medicine's existing FEFO
+        eligibility method.
+        The existing get_fefo_batches() method must exclude expired,
+        depleted, and otherwise ineligible batches.
+        This method assumes each batch exposes quantity_available.
+        """
+        batches = list(medicine.get_fefo_batches())
+        eligible_quantity = sum(max(0, int(batch.quantity_available or 0)) for batch in batches)
+        return eligible_quantity, batches
+
+    @classmethod
+    def _get_expiring_stock(cls, batches, horizon_end):
+        """
+        Estimate eligible stock expiring on or before horizon_end.
+        This helper expects MedicineBatch to expose expiry_date as
+        a date or datetime. If your model uses another field name,
+        adjust it before using expiry-risk reporting.
+        """
+        today = timezone.localdate()
+        expiring_quantity = 0
+
+        for batch in batches:
+            expiry = getattr(batch, "expiry_date", None)
+            if expiry is None: continue
+            if hasattr(expiry, "date"): expiry = expiry.date()  #Support both DateField and DateTimeField.
+            if today < expiry <= horizon_end: expiring_quantity += max(0,int(batch.quantity_available or 0),)
+        return expiring_quantity
+
+    @classmethod
+    @transaction.atomic
+========== FORECASTING ENGINE: REMAINING LOGIC ==========
+                )
+
+            if expiring_stock:
+                reasons.append(
+                    f"Approximately {expiring_stock} eligible units "
+                    "have expiry dates within the forecast horizon. "
+                    "Review batch-level expiry dates before ordering."
+                )
+
+            recommendation_fields = {
+                "forecast": forecast_entry,
+                "recommended_quantity": recommended_quantity,
+                "urgency_level": urgency,
+                "reasoning": " ".join(reasons),
+            }
+
+            # Update an existing pending recommendation rather than
+            # creating another one for the same medicine.
+            recommendation = (
+                ProcurementRecommendation.objects.filter(
+                    medicine=medicine,
+                    status=ProcurementRecommendation.Status.PENDING).order_by("id").first())
+
+            if recommendation:
+                for field, value in recommendation_fields.items():setattr(recommendation, field, value)
+                recommendation.save(update_fields=list(recommendation_fields.keys()))
+            else:ProcurementRecommendation.objects.create(medicine=medicine,status="Pending",**recommendation_fields,)
+
+        else:
+            # Do not automatically cancel approved or placed orders.
+            # Close obsolete pending recommendations if your model
+            # supports a dedicated cancellation status. Since the
+            # existing status choices are not provided here, leave
+            # the record untouched and flag this for workflow review.
+            pass
+        return forecast_entry========== PURCHASE ORDER CREATION LOCATIONS ==========
+core/models.py:304:class PurchaseOrder(models.Model):
+core/views.py:593:                PurchaseOrder.objects.create(
+========== PURCHASE ORDER MODEL ==========
+299-    def __str__(self):return (
+300-            f"{self.medicine.name} - "
+301-            f"{self.recommended_quantity} units ({self.status})"
+302-        )
+303-
+304:class PurchaseOrder(models.Model):
+305-    class Status(models.TextChoices):
+306-        LEGACY_PENDING = "PENDING", "Legacy Pending"
+307-        PENDING_ADMIN_REVIEW = "Pending Admin Review", "Pending Admin Review"
+308-        APPROVED = "Approved", "Approved"
+309-        REJECTED = "Rejected", "Rejected"
+310-        PLACED_WITH_SUPPLIER = "Placed with Supplier", "Placed with Supplier"
+311-
+312-    id: int
+313-    medicine = models.ForeignKey(Medicine,on_delete=models.CASCADE, null=True,blank=True,)
+314-    supplier = models.ForeignKey(Supplier,on_delete=models.CASCADE,)
+315-    recommendation = models.OneToOneField(ProcurementRecommendation,on_delete=models.SET_NULL,null=True,blank=True,related_name="purchase_order",)
+316-    quantity_ordered = models.IntegerField(default=0)
+317-    total_amount = models.DecimalField(max_digits=12,decimal_places=2,default=0.00,)
+318-    order_date = models.DateTimeField(auto_now_add=True)
+319-    status = models.CharField(max_length=30,choices=Status.choices,default=Status.PENDING_ADMIN_REVIEW,)
+320-    total_cost = models.DecimalField(max_digits=12,decimal_places=2,default=0.00,)
+321-    raised_by = models.ForeignKey( user,on_delete=models.SET_NULL,null=True,blank=True,)
+322-
+323-    def __str__(self): return f"PO-{self.id}"
+324-
+325-class GoodsReceipt(models.Model): #Records physical delivery against approved purchase orders that have been placed with the supplier.
+326-        purchase_order = models.ForeignKey(PurchaseOrder,on_delete=models.PROTECT, related_name="goods_receipts",)
+327-        received_by = models.ForeignKey(
+328-            settings.AUTH_USER_MODEL,
+329-            on_delete=models.SET_NULL,
+330-            null=True,
+331-            blank=True,
+332-            related_name="goods_receipts_recorded",
+333-        )
+334-
+335-        delivery_date = models.DateField(default=timezone.localdate)
+336-        received_at = models.DateTimeField(auto_now_add=True)
+337-        delivery_reference = models.CharField(max_length=100,blank=True,)
+338-        notes = models.TextField(blank=True)
+339-
+340-        class Meta: ordering = ["-received_at"] #holds data about data
+341-        def __str__(self): return f"Receipt for PO-{self.purchase_order_id}"
+342-
+343-class GoodsReceiptItem(models.Model):
+344-    # Records individual medicine batches physically verified during a goods receipt.
+345-    class InspectionStatus(models.TextChoices):
+346-        PENDING = "Pending", "Pending Inspection"
+347-        ACCEPTED = "Accepted", "Accepted"
+348-        REJECTED = "Rejected", "Rejected"
+349-        QUARANTINED = "Quarantined", "Quarantined"
+350-
+351-    goods_receipt = models.ForeignKey(
+352-        GoodsReceipt,
+353-        on_delete=models.PROTECT,
+354-        related_name="items"
+355-    )
+356-
+357-    batch_number = models.CharField(max_length=100)
+358-    quantity_received = models.PositiveIntegerField()
+359-    expiry_date = models.DateField()
+360-    storage_location = models.CharField(max_length=100,blank=True)
+361-    inspection_status = models.CharField(
+362-        max_length=20,
+363-        choices=InspectionStatus.choices,
+364-        default=InspectionStatus.PENDING
+365-    )
+366-
+367-    inspected_by = models.ForeignKey(
+368-        settings.AUTH_USER_MODEL,
+369-        on_delete=models.SET_NULL,
+370-        null=True,
+371-        blank=True,
+372-        related_name="goods_receipt_items_inspected"
+373-    )
+374-
+375-    inspected_at = models.DateTimeField(
+376-        null=True,
+377-        blank=True
+378-    )
+379-
+========== GOODS RECEIPT MODEL ==========
+320-    total_cost = models.DecimalField(max_digits=12,decimal_places=2,default=0.00,)
+321-    raised_by = models.ForeignKey( user,on_delete=models.SET_NULL,null=True,blank=True,)
+322-
+323-    def __str__(self): return f"PO-{self.id}"
+324-
+325:class GoodsReceipt(models.Model): #Records physical delivery against approved purchase orders that have been placed with the supplier.
+326-        purchase_order = models.ForeignKey(PurchaseOrder,on_delete=models.PROTECT, related_name="goods_receipts",)
+327-        received_by = models.ForeignKey(
+328-            settings.AUTH_USER_MODEL,
+329-            on_delete=models.SET_NULL,
+330-            null=True,
+331-            blank=True,
+332-            related_name="goods_receipts_recorded",
+333-        )
+334-
+335-        delivery_date = models.DateField(default=timezone.localdate)
+336-        received_at = models.DateTimeField(auto_now_add=True)
+337-        delivery_reference = models.CharField(max_length=100,blank=True,)
+338-        notes = models.TextField(blank=True)
+339-
+340-        class Meta: ordering = ["-received_at"] #holds data about data
+341-        def __str__(self): return f"Receipt for PO-{self.purchase_order_id}"
+342-
+343:class GoodsReceiptItem(models.Model):
+344-    # Records individual medicine batches physically verified during a goods receipt.
+345-    class InspectionStatus(models.TextChoices):
+346-        PENDING = "Pending", "Pending Inspection"
+347-        ACCEPTED = "Accepted", "Accepted"
+348-        REJECTED = "Rejected", "Rejected"
+349-        QUARANTINED = "Quarantined", "Quarantined"
+350-
+351-    goods_receipt = models.ForeignKey(
+352-        GoodsReceipt,
+353-        on_delete=models.PROTECT,
+354-        related_name="items"
+355-    )
+356-
+357-    batch_number = models.CharField(max_length=100)
+358-    quantity_received = models.PositiveIntegerField()
+359-    expiry_date = models.DateField()
+360-    storage_location = models.CharField(max_length=100,blank=True)
+361-    inspection_status = models.CharField(
+362-        max_length=20,
+363-        choices=InspectionStatus.choices,
+364-        default=InspectionStatus.PENDING
+365-    )
+366-
+367-    inspected_by = models.ForeignKey(
+368-        settings.AUTH_USER_MODEL,
+369-        on_delete=models.SET_NULL,
+370-        null=True,
+371-        blank=True,
+372-        related_name="goods_receipt_items_inspected"
+373-    )
+374-
+375-    inspected_at = models.DateTimeField(
+376-        null=True,
+377-        blank=True
+378-    )
+379-
+380-    inspection_notes = models.TextField(blank=True)
+381-    medicine_batch = models.OneToOneField(
+382-        MedicineBatch,
+383-        on_delete=models.PROTECT,
+384-        related_name="goods_receipt_item",
+385-        null = True,
+386-        blank = True
+387-    )
+388-

@@ -1,0 +1,180 @@
+
+==========================================================================================
+MODEL: Role
+==========================================================================================
+Database table: core_role
+Field: id | Type: BigAutoField | Null: False | Blank: True | Unique: True | Primary key: True | Max length: None
+Field: name | Type: CharField | Null: False | Blank: False | Unique: True | Primary key: False | Max length: 50
+Field: description | Type: TextField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None
+Unique together: []
+
+==========================================================================================
+MODEL: user
+==========================================================================================
+Database table: core_user
+Field: id | Type: BigAutoField | Null: False | Blank: True | Unique: True | Primary key: True | Max length: None
+Field: password | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 128
+Field: last_login | Type: DateTimeField | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None
+Field: is_superuser | Type: BooleanField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: False
+Field: username | Type: CharField | Null: False | Blank: False | Unique: True | Primary key: False | Max length: 150
+Field: first_name | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 150
+Field: last_name | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 150
+Field: email | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 254
+Field: is_staff | Type: BooleanField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: False
+Field: is_active | Type: BooleanField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: True
+Field: date_joined | Type: DateTimeField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: <function now at 0x0000013C52746610>
+Field: other_name | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 150
+Field: role | Type: ForeignKey | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None | Related model: Role | On delete: SET_NULL
+Field: phone_number | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 15
+Unique together: ()
+
+==========================================================================================
+MODEL: Medicine
+==========================================================================================
+Database table: core_medicine
+Field: id | Type: BigAutoField | Null: False | Blank: True | Unique: True | Primary key: True | Max length: None
+Field: name | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 255
+Field: medicine_name | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 255
+Field: generic_name | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 255
+Field: category | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 100 | Default: 'General'
+Field: dosage_form | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 50
+Field: reorder_level | Type: IntegerField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: 30
+Field: safety_stock_days | Type: IntegerField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: 30
+Field: is_active | Type: BooleanField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: True
+Unique together: []
+
+==========================================================================================
+MODEL: Supplier
+==========================================================================================
+Database table: core_supplier
+Field: id | Type: BigAutoField | Null: False | Blank: True | Unique: True | Primary key: True | Max length: None
+Field: supplier_name | Type: CharField | Null: False | Blank: False | Unique: True | Primary key: False | Max length: 255
+Field: name | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 255
+Field: contact_person | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 255
+Field: email | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 254
+Field: phone_number | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 15
+Field: phone | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 15
+Field: address | Type: TextField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None
+Field: is_active | Type: BooleanField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: True
+Unique together: []
+
+==========================================================================================
+MODEL: MedicineBatch
+==========================================================================================
+Database table: core_medicinebatch
+Field: id | Type: BigAutoField | Null: False | Blank: True | Unique: True | Primary key: True | Max length: None
+Field: medicine | Type: ForeignKey | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Related model: Medicine | On delete: CASCADE
+Field: batch_number | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 100
+Field: quantity_received | Type: IntegerField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None
+Field: quantity_available | Type: IntegerField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None
+Field: received_date | Type: DateField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None
+Field: expiry_date | Type: DateField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None
+Field: storage_location | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 100
+Field: status | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 50 | Default: 'Active'
+Unique together: ()
+
+==========================================================================================
+MODEL: DispensingTransaction
+==========================================================================================
+Database table: core_dispensingtransaction
+Field: id | Type: BigAutoField | Null: False | Blank: True | Unique: True | Primary key: True | Max length: None
+Field: medicine | Type: ForeignKey | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None | Related model: Medicine | On delete: CASCADE
+Field: batch | Type: ForeignKey | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Related model: MedicineBatch | On delete: CASCADE
+Field: dispensed_by | Type: ForeignKey | Null: True | Blank: False | Unique: False | Primary key: False | Max length: None | Related model: user | On delete: SET_NULL
+Field: quantity_dispensed | Type: IntegerField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None
+Field: dispensed_date | Type: DateTimeField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None | Auto now add: True
+Field: dispensed_at | Type: DateTimeField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None | Auto now add: True
+Field: is_override | Type: BooleanField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: False
+Field: patient_identifier | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 100
+Field: notes | Type: TextField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None
+Unique together: []
+
+==========================================================================================
+MODEL: DemandForecast
+==========================================================================================
+Database table: core_demandforecast
+Field: id | Type: BigAutoField | Null: False | Blank: True | Unique: True | Primary key: True | Max length: None
+Field: medicine | Type: ForeignKey | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Related model: Medicine | On delete: CASCADE
+Field: forecast_period_start | Type: DateField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None
+Field: forecast_period_end | Type: DateField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None
+Field: forecasted_demand_quantity | Type: PositiveIntegerField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None
+Field: moving_avg_3month | Type: PositiveIntegerField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: 0
+Field: forecast_method | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 30 | Default: DemandForecast.ForecastMethod.MOVING_AVERAGE | Choices: [('MOVING_AVERAGE', 'Three-Period Moving Average')]
+Field: history_start_date | Type: DateField | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None
+Field: history_end_date | Type: DateField | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None
+Field: historical_transaction_count | Type: PositiveIntegerField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: 0
+Field: confidence_score | Type: DecimalField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Max digits: 5 | Decimal places: 2 | Default: 0
+Field: actual_demand_quantity | Type: PositiveIntegerField | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None
+Field: absolute_error | Type: PositiveIntegerField | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None
+Field: generated_at | Type: DateTimeField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None | Auto now add: True
+Unique together: ()
+Constraint: <CheckConstraint: condition=(AND: ('forecast_period_end__gte', F(forecast_period_start))) name='forecast_end_after_start'>
+Constraint: <CheckConstraint: condition=(AND: ('confidence_score__gte', 0), ('confidence_score__lte', 100)) name='forecast_score_0_100'>
+Index: <Index: fields=['medicine', 'forecast_period_start'] name='forecast_med_start_idx'>
+
+==========================================================================================
+MODEL: ProcurementRecommendation
+==========================================================================================
+Database table: core_procurementrecommendation
+Field: id | Type: BigAutoField | Null: False | Blank: True | Unique: True | Primary key: True | Max length: None
+Field: medicine | Type: ForeignKey | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Related model: Medicine | On delete: CASCADE
+Field: forecast | Type: ForeignKey | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None | Related model: DemandForecast | On delete: SET_NULL
+Field: recommended_quantity | Type: PositiveIntegerField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None
+Field: urgency_level | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 20 | Default: ProcurementRecommendation.Urgency.MEDIUM | Choices: [('LOW', 'Low'), ('MEDIUM', 'Medium'), ('HIGH', 'High')]
+Field: reasoning | Type: TextField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None
+Field: status | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 20 | Default: ProcurementRecommendation.Status.PENDING | Choices: [('Pending', 'Pending Review'), ('Approved', 'Approved'), ('Rejected', 'Rejected'), ('Actioned', 'Actioned'), ('Cancelled', 'Cancelled')]
+Field: is_actioned | Type: BooleanField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: False
+Field: raised_by | Type: ForeignKey | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None | Related model: user | On delete: SET_NULL
+Field: reviewed_by | Type: ForeignKey | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None | Related model: user | On delete: SET_NULL
+Field: created_at | Type: DateTimeField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None | Auto now add: True
+Field: updated_at | Type: DateTimeField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None | Auto now: True
+Unique together: ()
+Constraint: <CheckConstraint: condition=(AND: ('recommended_quantity__gte', 0)) name='recommend_qty_nonnegative'>
+Index: <Index: fields=['medicine', 'status'] name='recommend_med_status_idx'>
+
+==========================================================================================
+MODEL: PurchaseOrder
+==========================================================================================
+Database table: core_purchaseorder
+Field: id | Type: BigAutoField | Null: False | Blank: True | Unique: True | Primary key: True | Max length: None
+Field: medicine | Type: ForeignKey | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None | Related model: Medicine | On delete: CASCADE
+Field: supplier | Type: ForeignKey | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Related model: Supplier | On delete: CASCADE
+Field: recommendation | Type: OneToOneField | Null: True | Blank: True | Unique: True | Primary key: False | Max length: None | Related model: ProcurementRecommendation | On delete: SET_NULL
+Field: quantity_ordered | Type: IntegerField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: 0
+Field: total_amount | Type: DecimalField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Max digits: 12 | Decimal places: 2 | Default: 0.0
+Field: order_date | Type: DateTimeField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None | Auto now add: True
+Field: status | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 30 | Default: PurchaseOrder.Status.PENDING_ADMIN_REVIEW | Choices: [('PENDING', 'Legacy Pending'), ('Pending Admin Review', 'Pending Admin Review'), ('Approved', 'Approved'), ('Rejected', 'Rejected'), ('Placed with Supplier', 'Placed with Supplier')]
+Field: total_cost | Type: DecimalField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Max digits: 12 | Decimal places: 2 | Default: 0.0
+Field: raised_by | Type: ForeignKey | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None | Related model: user | On delete: SET_NULL
+Unique together: []
+
+==========================================================================================
+MODEL: GoodsReceipt
+==========================================================================================
+Database table: core_goodsreceipt
+Field: id | Type: BigAutoField | Null: False | Blank: True | Unique: True | Primary key: True | Max length: None
+Field: purchase_order | Type: ForeignKey | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Related model: PurchaseOrder | On delete: PROTECT
+Field: received_by | Type: ForeignKey | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None | Related model: user | On delete: SET_NULL
+Field: delivery_date | Type: DateField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Default: <function localdate at 0x0000013C52746560>
+Field: received_at | Type: DateTimeField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None | Auto now add: True
+Field: delivery_reference | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 100
+Field: notes | Type: TextField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None
+Unique together: ()
+
+==========================================================================================
+MODEL: GoodsReceiptItem
+==========================================================================================
+Database table: core_goodsreceiptitem
+Field: id | Type: BigAutoField | Null: False | Blank: True | Unique: True | Primary key: True | Max length: None
+Field: goods_receipt | Type: ForeignKey | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None | Related model: GoodsReceipt | On delete: PROTECT
+Field: batch_number | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 100
+Field: quantity_received | Type: PositiveIntegerField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None
+Field: expiry_date | Type: DateField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: None
+Field: storage_location | Type: CharField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: 100
+Field: inspection_status | Type: CharField | Null: False | Blank: False | Unique: False | Primary key: False | Max length: 20 | Default: GoodsReceiptItem.InspectionStatus.PENDING | Choices: [('Pending', 'Pending Inspection'), ('Accepted', 'Accepted'), ('Rejected', 'Rejected'), ('Quarantined', 'Quarantined')]
+Field: inspected_by | Type: ForeignKey | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None | Related model: user | On delete: SET_NULL
+Field: inspected_at | Type: DateTimeField | Null: True | Blank: True | Unique: False | Primary key: False | Max length: None
+Field: inspection_notes | Type: TextField | Null: False | Blank: True | Unique: False | Primary key: False | Max length: None
+Field: medicine_batch | Type: OneToOneField | Null: True | Blank: True | Unique: True | Primary key: False | Max length: None | Related model: MedicineBatch | On delete: PROTECT
+Unique together: ()
+Constraint: <CheckConstraint: condition=(AND: ('quantity_received__gt', 0)) name='goods_receipt_qty_positive'>

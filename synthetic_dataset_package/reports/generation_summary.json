@@ -1,0 +1,67 @@
+{
+    "project": "Demand-Driven Medicine Expiry Management System using FEFO",
+    "random_seed": 20261109,
+    "historical_start": "2024-11-01",
+    "historical_end": "2026-10-31",
+    "historical_reference_period_months": 18,
+    "historical_reference_period_start": "2024-11-01",
+    "historical_reference_period_end": "2026-04-30",
+    "forecast_method_history_window_days": 90,
+    "evaluation_period_months": 6,
+    "evaluation_origins": [
+        "2026-05-01",
+        "2026-06-01",
+        "2026-07-01",
+        "2026-08-01",
+        "2026-09-01",
+        "2026-10-01"
+    ],
+    "forecast_period": "2026-11-01 to 2026-11-30",
+    "forecast_origin": "2026-11-01",
+    "snapshot_period_start": "2026-11-01",
+    "snapshot_date": "2026-11-09",
+    "historical_transaction_rows": 42066,
+    "snapshot_period_transaction_rows": 551,
+    "dataset_record_counts": {
+        "medicines.csv": 100,
+        "suppliers.csv": 15,
+        "medicine_batches.csv": 2500,
+        "dispensing_transactions.csv": 42617,
+        "demand_forecasts_evaluation.csv": 600,
+        "demand_forecasts_november_2026.csv": 100,
+        "procurement_recommendations.csv": 2500,
+        "purchase_orders.csv": 2455,
+        "goods_receipts.csv": 2400,
+        "goods_receipt_items.csv": 2400
+    },
+    "forecast_evaluation_metrics": {
+        "MAE_30_day_equivalent": 9.09,
+        "WAPE_percent": 10.9,
+        "MAPE_percent": 11.28,
+        "MAPE_note": "MAPE excludes observations with zero normalized actual demand.",
+        "normalization_note": "Raw calendar-month actual demand is retained in the evaluation CSV. MAE, WAPE, MAPE and absolute_error use actual demand normalized to a 30-day equivalent.",
+        "absolute_error_field_note": "The CSV absolute_error field is the absolute difference between the forecast and the 30-day-normalized actual demand, rounded to two decimal places."
+    },
+    "methodological_notes": [
+        "The complete historical transaction dataset covers 24 consecutive calendar months, from November 2024 through October 2026.",
+        "The 18-month historical reference/development period runs from November 2024 through April 2026. It is not an 18-month fitted model training window.",
+        "Each forecast uses the 90 days immediately preceding its forecast origin.",
+        "Demand forecasting uses a three-period moving average based on the three most recent completed monthly demand periods.",
+        "November forecasts are generated before November snapshot-period dispensing transactions. Transactions from 1\u20139 November are excluded from the November forecast history.",
+        "November FEFO-eligible stock includes only active, positive-quantity batches that remain valid through the maximum 14-day prescription validity period.",
+        "The procurement review period is 30 days. Target stock is calculated using daily forecast demand multiplied by supplier lead time, review period and safety stock days.",
+        "Evaluation uses six rolling forecast origins from May through October 2026. Later origins can use actual demand observed in earlier evaluation months.",
+        "Procurement recommendations account for forecast demand, FEFO-eligible stock, incoming stock, supplier delivery lead time and safety stock.",
+        "Projected stock position is the sum of FEFO-eligible stock and incoming stock.",
+        "Recommended procurement quantity is the positive difference between target stock and projected stock position.",
+        "The November procurement snapshot assumes no outstanding incoming purchase orders."
+    ],
+    "generation_restrictions": [
+        "No connection to the Django database was made.",
+        "No records were imported into Django.",
+        "All supplier and patient identifiers are synthetic.",
+        "Synthetic costs are illustrative, not market quotations.",
+        "Generated identifiers are not Django primary keys.",
+        "All CSV files require independent cleaning and validation."
+    ]
+}
