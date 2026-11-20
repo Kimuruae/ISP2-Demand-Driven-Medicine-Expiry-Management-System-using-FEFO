@@ -28,3 +28,7 @@ Thumbs.db
 staticfiles/
 media/__pycache__/
 *.pyc
+
+# Local artefacts
+*.stackdump
+*.dump
