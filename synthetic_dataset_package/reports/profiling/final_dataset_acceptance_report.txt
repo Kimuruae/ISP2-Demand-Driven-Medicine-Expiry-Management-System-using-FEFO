@@ -1,0 +1,76 @@
+MEDICINE EXPIRY MANAGEMENT SYSTEM
+FINAL SYNTHETIC DATASET ACCEPTANCE REPORT
+============================================================
+
+ASSESSMENT: ACCEPT WITH DOCUMENTED LIMITATIONS
+
+1. DATASET RECORD COUNT VERIFICATION
+
+medicines:                         100
+suppliers:                          15
+medicine_batches:                 2500
+dispensing_transactions:         42617
+demand_forecasts_evaluation:       600
+demand_forecasts_november:         100
+procurement_recommendations:      2500
+purchase_orders:                  2455
+goods_receipts:                   2400
+goods_receipt_items:              2400
+
+Result: 10/10 datasets passed.
+
+2. DATA SYNCHRONIZATION AND INTEGRATION
+
+PO–goods receipt reconciliation: PASS
+Goods receipt–batch reconciliation: PASS
+Opening inventory reconciliation: PASS
+Batch stock ledger reconciliation: PASS
+FEFO stock–procurement reconciliation: PASS
+Forecast–recommendation synchronization: PASS
+Procurement formula reconciliation: PASS
+PO–recommendation reconciliation: PASS
+
+Result: 8/8 integration checks passed.
+
+3. KEY VERIFIED RESULTS
+
+Foreign-key violations: 0
+FEFO eligibility violations: 0
+Batch stock discrepancies: 0
+Goods receipt–batch quantity discrepancies: 0
+November FEFO stock discrepancies: 0
+Forecast demand discrepancies: 0
+Procurement formula discrepancies: 0
+PO recommendation linkage discrepancies: 0
+PO ordered quantity discrepancies: 0
+
+4. DOCUMENTED LIMITATIONS
+
+1. 2,400 historical procurement recommendations have no forecast_id.
+2. 100 opening inventory batches predate the goods receipt dataset;
+   all are depleted.
+3. 55 purchase orders have no goods receipt:
+   45 are not placed with suppliers and 10 are outstanding deliveries
+   expected after the snapshot.
+4. Supplier phone numbers may be inferred as numeric by pandas;
+   read them using string dtype.
+5. All synthetic suppliers have a seven-day lead time and fictional
+   generic addresses.
+6. Synthetic FEFO override reasons represent test scenarios,
+   not real hospital documentation.
+
+5. FINAL ACCEPTANCE DECISION
+
+Structural profiling: PASS
+Data integrity: PASS
+Data synchronization: PASS
+Integration reconciliation: PASS
+
+OVERALL CLASSIFICATION:
+ACCEPT WITH DOCUMENTED LIMITATIONS
+
+DATASET IMPORT STATUS:
+NOT YET APPROVED
+
+============================================================
+Report generated from the independent dataset profiling notebook.
