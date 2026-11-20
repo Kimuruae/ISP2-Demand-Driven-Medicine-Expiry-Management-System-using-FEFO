@@ -11,8 +11,7 @@ from django.views.decorators.http import require_POST
 from .models import AuditLog, GoodsReceipt, GoodsReceiptItem, MedicineBatch, PurchaseOrder
 
 def _has_role(user, *roles):
-    if user.is_superuser:
-        return True
+    if user.is_superuser: return True
     role_name = (getattr(getattr(user, "role", None), "name", "") or "").strip().casefold()
     return role_name in {r.casefold() for r in roles}
 
@@ -25,29 +24,12 @@ def receiving_dashboard(request):
     _require_role(request.user, "Store Manager")
 
     receipts = GoodsReceipt.objects.all()
-
     items = GoodsReceiptItem.objects.all()
-
-    placed_orders = PurchaseOrder.objects.filter(
-        status=PurchaseOrder.Status.PLACED_WITH_SUPPLIER,
-        medicine__isnull=False
-    )
-
-    pending_inspections = items.filter(
-        inspection_status=GoodsReceiptItem.InspectionStatus.PENDING
-    )
-
-    accepted_batches = items.filter(
-        inspection_status=GoodsReceiptItem.InspectionStatus.ACCEPTED
-    )
-
-    rejected_batches = items.filter(
-        inspection_status=GoodsReceiptItem.InspectionStatus.REJECTED
-    )
-
-    quarantined_batches = items.filter(
-        inspection_status=GoodsReceiptItem.InspectionStatus.QUARANTINED
-    )
+    placed_orders = PurchaseOrder.objects.filter(status=PurchaseOrder.Status.PLACED_WITH_SUPPLIER,medicine__isnull=False)
+    pending_inspections = items.filter(inspection_status=GoodsReceiptItem.InspectionStatus.PENDING)
+    accepted_batches = items.filter(inspection_status=GoodsReceiptItem.InspectionStatus.ACCEPTED)
+    rejected_batches = items.filter(inspection_status=GoodsReceiptItem.InspectionStatus.REJECTED)
+    quarantined_batches = items.filter(inspection_status=GoodsReceiptItem.InspectionStatus.QUARANTINED)
 
     recent_receipts = receipts.select_related(
         "purchase_order",
@@ -55,16 +37,12 @@ def receiving_dashboard(request):
         "purchase_order__supplier",
         "received_by"
     )[:8]
-
     outstanding_orders = []
 
     for po in placed_orders.select_related("medicine", "supplier"):
-        received = (
-            GoodsReceiptItem.objects.filter(
-                goods_receipt__purchase_order=po
-            ).aggregate(total=Sum("quantity_received"))["total"] or 0
+        received = (GoodsReceiptItem.objects.filter(
+                goods_receipt__purchase_order=po).aggregate(total=Sum("quantity_received"))["total"] or 0
         )
-
         remaining = po.quantity_ordered - received
 
         if remaining > 0:
@@ -84,26 +62,18 @@ def receiving_dashboard(request):
         "outstanding_orders": outstanding_orders,
         "recent_receipts": recent_receipts,
     }
+    return render(request,"receiving/receiving_dashboard.html",context)
 
-    return render(
-        request,
-        "receiving/receiving_dashboard.html",
-        context
-    )
 @login_required(login_url="/login/")
 def goods_receipt_list(request):
     _require_role(request.user, "Store Manager", "Hospital Admin", "Hospital Administrator")
     receipts = (GoodsReceipt.objects.select_related("purchase_order", "purchase_order__medicine",
-                "purchase_order__supplier", "received_by").prefetch_related("items")
-                .order_by("-received_at"))
-    placed_orders = (PurchaseOrder.objects.filter(
-        status=PurchaseOrder.Status.PLACED_WITH_SUPPLIER,
-        medicine__isnull=False,
+                "purchase_order__supplier", "received_by").prefetch_related("items").order_by("-received_at"))
+    placed_orders = (PurchaseOrder.objects.filter(status=PurchaseOrder.Status.PLACED_WITH_SUPPLIER,medicine__isnull=False,
     ).select_related("medicine", "supplier").order_by("-order_date"))
-    return render(request, "receiving/receipt_list.html", {
-        "receipts": receipts,
-        "placed_orders": placed_orders,
-    })
+
+    return render(request, "receiving/receipt_list.html", {"receipts":
+                  receipts,"placed_orders": placed_orders,})
 
 @login_required(login_url="/login/")
 @require_POST
@@ -114,17 +84,21 @@ def goods_receipt_create(request):
         delivery_date = date.fromisoformat(request.POST.get("delivery_date", ""))
         reference = request.POST.get("delivery_reference", "").strip()
         notes = request.POST.get("notes", "").strip()
+
         if delivery_date > timezone.localdate():
             raise ValueError("Delivery date cannot be in the future.")
+
         with transaction.atomic():
-            po = get_object_or_404(PurchaseOrder.objects.select_for_update(),
-                pk=po_id, status=PurchaseOrder.Status.PLACED_WITH_SUPPLIER,
-                medicine__isnull=False)
-            already_recorded = sum(
-                item.quantity_received
-                for item in GoodsReceiptItem.objects.filter(goods_receipt__purchase_order=po)
-            )
+            po = get_object_or_404(PurchaseOrder.objects.select_for_update(),pk=po_id,)
+
+            if (po.status != PurchaseOrder.Status.PLACED_WITH_SUPPLIER or po.medicine_id is None
+            ):
+                raise ValueError("Only purchase orders placed with a supplier and linked to a medicine can be received.")
+
+            already_recorded = sum(item.quantity_received
+                                   for item in GoodsReceiptItem.objects.filter(goods_receipt__purchase_order=po))
             remaining = po.quantity_ordered - already_recorded
+
             if remaining <= 0:
                 raise ValueError("This purchase order has already been fully received.")
             receipt = GoodsReceipt.objects.create(
@@ -135,6 +109,7 @@ def goods_receipt_create(request):
                 entity_type="GoodsReceipt", details=f"Receipt {receipt.pk}; PO {po.pk}; remaining order quantity before receipt {remaining}.",
                 ip_address=request.META.get("REMOTE_ADDR"))
         messages.success(request, f"Goods Receipt #{receipt.pk} created. Add each delivered batch for inspection.")
+
         return redirect("goods_receipt_detail", receipt_id=receipt.pk)
     except (ValueError, TypeError) as exc:
         messages.error(request, str(exc) or "Enter valid receipt details.")
@@ -155,11 +130,8 @@ def goods_receipt_detail(request, receipt_id):
 
 @login_required(login_url="/login/")
 def goods_receipt_inspect(request, receipt_id):
-    """
-    Displays all delivered batches associated with a goods receipt.
-
-    Only Store Managers can inspect delivered batches.
-    Accepted batches become usable MedicineBatch records.
+    """ Displays all delivered batches associated with a goods receipt.
+    Only Store Managers can inspect delivered batches. Accepted batches become usable MedicineBatch records.
     Rejected and quarantined batches do not enter usable inventory.
     """
 
@@ -187,22 +159,10 @@ def goods_receipt_inspect(request, receipt_id):
 
     total_items = items.count()
 
-    pending_count = items.filter(
-        inspection_status=pending_status
-    ).count()
-
-    accepted_count = items.filter(
-        inspection_status=accepted_status
-    ).count()
-
-    rejected_count = items.filter(
-        inspection_status=rejected_status
-    ).count()
-
-    quarantined_count = items.filter(
-        inspection_status=quarantined_status
-    ).count()
-
+    pending_count = items.filter(inspection_status=pending_status).count()
+    accepted_count = items.filter(inspection_status=accepted_status).count()
+    rejected_count = items.filter(inspection_status=rejected_status).count()
+    quarantined_count = items.filter(inspection_status=quarantined_status).count()
     inspection_decisions = [
         {
             "value": accepted_status,
@@ -235,10 +195,7 @@ def goods_receipt_inspect(request, receipt_id):
     }
 
     return render(
-        request,
-        "receiving/inspect_receipt.html",
-        context,
-    )
+        request,"receiving/inspect_receipt.html",context,)
 
 @login_required(login_url="/login/")
 @require_POST
@@ -249,24 +206,34 @@ def goods_receipt_add_item(request, receipt_id): #Store manager received batches
         batch_number = request.POST.get("batch_number", "").strip()
         quantity = int(request.POST.get("quantity_received", ""))
         location = request.POST.get("storage_location", "").strip()
+
         if not batch_number:
             raise ValueError("Batch number is required.")
+
         if quantity <= 0:
             raise ValueError("Quantity must be greater than zero.")
+
         if expiry_date <= timezone.localdate():
             raise ValueError("Expired or same-day-expiring stock cannot be accepted into inventory.")
+
         with transaction.atomic():
-            receipt = get_object_or_404(GoodsReceipt.objects.select_for_update().select_related("purchase_order__medicine"), pk=receipt_id)
+            receipt = get_object_or_404(GoodsReceipt.objects.select_for_update(of=("self",)).select_related(
+                "purchase_order__medicine"), pk=receipt_id)
             po = receipt.purchase_order
+
             if po.status != PurchaseOrder.Status.PLACED_WITH_SUPPLIER or not po.medicine_id:
                 raise ValueError("Only a placed purchase order with a medicine can be received.")
             recorded = sum(item.quantity_received for item in GoodsReceiptItem.objects.filter(goods_receipt__purchase_order=po))
+
             if recorded + quantity > po.quantity_ordered:
                 raise ValueError(f"This item exceeds the remaining PO quantity. Remaining: {po.quantity_ordered - recorded} units.")
+
             if MedicineBatch.objects.filter(medicine=po.medicine, batch_number=batch_number).exists():
                 raise ValueError("That batch number already exists for this medicine.")
+
             if GoodsReceiptItem.objects.filter(goods_receipt__purchase_order=po, batch_number=batch_number).exists():
                 raise ValueError("That batch number has already been recorded against this purchase order.")
+
             item = GoodsReceiptItem.objects.create(
                 goods_receipt=receipt, batch_number=batch_number,
                 quantity_received=quantity, expiry_date=expiry_date,
@@ -290,22 +257,28 @@ def goods_receipt_inspect_item(request, item_id):
     valid = {GoodsReceiptItem.InspectionStatus.ACCEPTED,
              GoodsReceiptItem.InspectionStatus.REJECTED,
              GoodsReceiptItem.InspectionStatus.QUARANTINED}
+
     if decision not in valid:
         messages.error(request, "Select a valid inspection decision.")
         item = get_object_or_404(GoodsReceiptItem, pk=item_id)
         return redirect("goods_receipt_detail", receipt_id=item.goods_receipt_id)
+
     try:
         with transaction.atomic():
-            item = get_object_or_404(GoodsReceiptItem.objects.select_for_update().select_related(
+            item = get_object_or_404(GoodsReceiptItem.objects.select_for_update(of=("self",)).select_related(
                 "goods_receipt__purchase_order__medicine"), pk=item_id)
+
             if item.inspection_status != GoodsReceiptItem.InspectionStatus.PENDING:
                 raise ValueError("This receipt item has already been inspected. Its decision cannot be overwritten.")
+
             if decision == GoodsReceiptItem.InspectionStatus.ACCEPTED:
                 if item.expiry_date <= timezone.localdate():
                     raise ValueError("An expired batch cannot be accepted.")
                 medicine = item.goods_receipt.purchase_order.medicine
+
                 if not medicine or not medicine.is_active:
                     raise ValueError("The purchase order does not reference an active medicine.")
+
                 if MedicineBatch.objects.filter(medicine=medicine, batch_number=item.batch_number).exists():
                     raise ValueError("A batch with this number already exists for this medicine.")
                 batch = MedicineBatch.objects.create(
@@ -323,10 +296,13 @@ def goods_receipt_inspect_item(request, item_id):
             item.inspected_at = timezone.now()
             item.inspection_notes = notes
             item.save()
+
             AuditLog.objects.create(user=request.user, action=f"Goods receipt item {decision.lower()}",
                 entity_type="GoodsReceiptItem", details=f"Item {item.pk}; batch {item.batch_number}; decision {decision}; notes: {notes or 'None'}.",
                 ip_address=request.META.get("REMOTE_ADDR"))
-        messages.success(request, "Inspection decision saved. Accepted stock is now available to FEFO inventory." if decision == GoodsReceiptItem.InspectionStatus.ACCEPTED else f"Item marked {decision.lower()}; it has not entered usable inventory.")
+        messages.success(request, "Inspection decision saved. Accepted stock is now available to FEFO inventory."
+        if decision == GoodsReceiptItem.InspectionStatus.ACCEPTED else f"Item marked {decision.lower()}; it has not entered usable inventory.")
+
     except (ValueError, ValidationError) as exc:
         messages.error(request, str(exc))
     return redirect("goods_receipt_detail", receipt_id=item.goods_receipt_id)
