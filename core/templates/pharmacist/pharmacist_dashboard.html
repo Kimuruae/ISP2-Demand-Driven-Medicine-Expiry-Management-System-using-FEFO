@@ -3,361 +3,291 @@
 {% block title %}Pharmacist Dashboard | Medicine Expiry Management System{% endblock %}
 {% block content %}
 
+<div class="ph-dashboard">
 <style>
-/* DASHBOARD PAGE HEADER */
-.pharmacist-hero {
-width: calc(100% +44px) !important;
-    max-width: none !important;
-    margin: 0 -22px 20px !important;
-    margin-bottom: 0 !important;
-    min-height: 145px;
-    padding: 30px 27px;
-    background: linear-gradient(115deg, #123b66, #087e8b);
-    color: #fff;
-    border-radius: 0;
+:root {
+    --ph-navy: #123b66;
+    --ph-dark: #0b2948;
+    --ph-teal: #087e8b;
+    --ph-light: #e6f7f7;
+    --ph-bg: #f4f7fb;
+    --ph-border: #e2e8f0;
+    --ph-text: #1e293b;
+    --ph-muted: #64748b;
+}
+
+.ph-dashboard,
+.ph-dashboard * {
+    box-sizing: border-box;
+}
+
+.ph-dashboard {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--ph-bg);
+    color: var(--ph-text);
+    font-family: Arial, sans-serif;
+}
+
+/* COMPACT HEADER */
+.ph-hero {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-    box-shadow: 0 5px 16px rgba(18, 59, 102, .12);
+    gap: 15px;
+    min-height: 105px;
+    padding: 17px 27px;
+    color: white;
+    background: linear-gradient(115deg, var(--ph-dark), var(--ph-navy) 60%, var(--ph-teal));
 }
 
-.pharmacist-eyebrow {
-    font-size: 10px;
+.ph-hero h1 {
+    margin: 5px 0;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.ph-hero p {
+    max-width: 680px;
+    margin: 0;
+    color: #e0f0f4;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.ph-eyebrow {
+    color: #c8e8eb;
+    font-size: 9px;
     font-weight: 800;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    color: #c8e8eb;
 }
 
-.pharmacist-hero h1 {
-    margin: 7px 0;
-    font-size: 25px;
-    font-weight: 800;
-    color: #fff;
-}
-
-.pharmacist-hero p {
-    margin: 0;
-    font-size: 12px;
-    line-height: 1.7;
-    color: #e0f0f4;
-    max-width: 700px;
-}
-
-.pharmacist-hero-tag {
-    padding: 10px 14px;
+.ph-hero-tag {
+    padding: 8px 12px;
     border: 1px solid rgba(255,255,255,.25);
+    border-radius: 8px;
     background: rgba(255,255,255,.12);
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
     white-space: nowrap;
-}
-
-/* RESPONSIVE HEADER */
-@media (max-width: 760px) {
-    .pharmacist-hero {
-        padding: 19px;
-    }
-
-    .pharmacist-hero h1 {
-        font-size: 21px;
-    }
-}
-
-@media (max-width: 450px) {
-    .pharmacist-hero-tag {
-        white-space: normal;
-    }
-}
-
-/* HEADER */
-.ph-header {
-    background: linear-gradient(115deg, #123b66, #087e8b);
-    color: #fff;
-    padding: 20px 27px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    box-shadow: 0 3px 12px rgba(0,0,0,.12);
-}
-
-.ph-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.ph-brand-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: rgba(255,255,255,.17);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 25px;
-    font-weight: 800;
-    flex-shrink: 0;
-}
-
-.ph-brand-title {
-    font-size: 18px;
-    font-weight: 800;
-}
-
-.ph-brand-subtitle {
-    font-size: 12px;
-    color: #d5edf0;
-    margin-top: 4px;
-}
-
-.ph-user-area {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    font-size: 13px;
-}
-
-.ph-workstation {
-    background: rgba(255,255,255,.15);
-    padding: 9px 12px;
-    border-radius: 8px;
-}
-
-.ph-user-info {
-    text-align: right;
-}
-
-.ph-user-role {
-    font-size: 11px;
-    color: #d5edf0;
-    margin-top: 3px;
 }
 
 /* MAIN LAYOUT */
 .ph-layout {
     display: grid;
-    grid-template-columns: 215px minmax(0, 1fr);
+    grid-template-columns: 225px minmax(0, 1fr);
     align-items: stretch;
-    gap: 0;
-    min-height: calc(100vh - 84px);
-    margin-bottom: 0;
+    gap: 18px;
+    min-height: calc(100vh - 105px);
+    padding: 16px 18px 20px;
 }
 
 /* SIDEBAR */
 .ph-sidebar {
-    width: 100%;
-    min-width: 0;
-    background: #082f46;
-    color: #fff;
-    padding:18px 13;
-    height: 100%;
-    margin: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
     align-self: stretch;
-    border-radius: 0!important;
-    overflow: hidden;
+    min-height: calc(100vh - 145px);
+    padding: 20px 13px;
+    border-radius: 13px;
+    color: #ffffff;
+    background: linear-gradient(180deg, #102f52 0%, #164d70 55%, #087e8b 100%);
+    box-shadow: 0 8px 24px rgba(18, 52, 90, .18);
 }
 
 .ph-sidebar-label {
-    background: #123f57;
-    border: 1px solid #28566d;
-    border-radius: 8px;
     padding: 12px;
     margin-bottom: 17px;
-    color: #fff;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 9px;
+    color: #ffffff;
+    background: rgba(255,255,255,.12);
     font-size: 10px;
     font-weight: 800;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
 }
 
 .ph-sidebar-label span {
-    color: #b9d4df;
+    display: block;
+    margin-top: 5px;
+    color: #c7e6ed;
+    font-size: 9px;
     font-weight: 400;
     letter-spacing: 0;
-    line-height: 1.5;
 }
 
 .ph-nav {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 8px;
 }
 
 .ph-nav a {
     display: flex;
     align-items: center;
-    gap: 11px;
-    padding: 11px 10px;
-    color: #d9eaf0;
+    gap: 10px;
+    min-height: 43px;
+    padding: 9px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #e6f2f8;
+    background: rgba(255,255,255,.055);
     text-decoration: none;
-    border-radius: 7px;
     font-size: 11px;
     font-weight: 700;
     transition: .2s ease;
 }
 
 .ph-nav a:hover {
-    background: #164f63;
-    color: #fff;
+    color: #ffffff;
+    background: rgba(255,255,255,.17);
+    transform: translateX(3px);
 }
 
 .ph-nav a.active {
-    background: #087f80;
-    color: #fff;
-    border-left: 3px solid #22a5a1;
+    color: var(--ph-navy);
+    background: #ffffff;
+    border-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
 }
 
 .ph-nav-icon {
-    width: 20px;
-    text-align: center;
-    font-size: 16px;
+    display: grid;
+    place-items: center;
+    width: 27px;
+    height: 27px;
     flex-shrink: 0;
+    border-radius: 7px;
+    color: #ffffff;
+    background: rgba(255,255,255,.16);
+    font-size: 14px;
+}
+
+.ph-nav a:nth-child(1) .ph-nav-icon { background: #2878b9; }
+.ph-nav a:nth-child(2) .ph-nav-icon { background: #159b83; }
+.ph-nav a:nth-child(3) .ph-nav-icon { background: #8264c7; }
+.ph-nav a:nth-child(4) .ph-nav-icon { background: #d18a2b; }
+.ph-nav a:nth-child(5) .ph-nav-icon { background: #438cba; }
+
+.ph-nav a.active .ph-nav-icon {
+    color: #ffffff;
+    background: var(--ph-teal);
 }
 
 .ph-sidebar-note {
-    margin: 25px 3px 0;
-    padding: 12px;
-    border: 1px solid #28566d;
-    border-radius: 8px;
-    color: #c3dce5;
+    margin-top: auto;
+    padding: 13px;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 9px;
+    color: #d7eaf1;
+    background: rgba(255,255,255,.09);
     font-size: 10px;
     line-height: 1.7;
+}
+
+.ph-sidebar-note strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #ffffff;
 }
 
 /* MAIN CONTENT */
 .ph-main {
     min-width: 0;
-    width: 100%;
-    padding: 25px;
+    padding: 3px 2px;
+}
+
+.ph-messages {
+    margin-bottom: 15px;
+}
+
+.ph-message {
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border: 1px solid #d9e8f1;
+    border-radius: 7px;
+    color: var(--ph-navy);
+    background: white;
+    font-size: 12px;
 }
 
 .ph-page-heading {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 22px;
-}
-
-.ph-breadcrumb {
-    color: #71869a;
-    font-size: 11px;
-    margin-bottom: 7px;
+    gap: 12px;
+    margin-bottom: 17px;
 }
 
 .ph-page-title {
-    color: #123b65;
-    font-size: 27px;
-    font-weight: 800;
     margin: 0;
+    color: var(--ph-navy);
+    font-size: 20px;
+    font-weight: 800;
 }
 
 .ph-page-description {
-    color: #61758b;
-    font-size: 13px;
-    margin: 7px 0 0;
-}
-
-.ph-primary-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: #07536c;
-    color: #fff;
-    text-decoration: none;
-    padding: 12px 17px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 700;
-    transition: .2s ease;
-}
-
-.ph-primary-button:hover {
-    background: #0b7183;
-    color: #fff;
-    transform: translateY(-1px);
-}
-
-/* DJANGO MESSAGES */
-.ph-messages {
-    margin-bottom: 18px;
-}
-
-.ph-message {
-    padding: 12px 15px;
-    margin-bottom: 8px;
-    border-radius: 7px;
-    font-size: 13px;
-    background: #fff;
-    border: 1px solid #d9e8f1;
-    color: #234665;
+    margin: 6px 0 0;
+    color: var(--ph-muted);
+    font-size: 11px;
 }
 
 /* KPI CARDS */
 .ph-kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
-    margin-bottom: 20px;
+    gap: 12px;
+    margin-bottom: 17px;
 }
 
 .ph-kpi-card {
-    background: #fff;
-    border: 1px solid #d9e8f1;
-    border-radius: 10px;
-    padding: 17px;
-    box-shadow: 0 3px 10px rgba(26,67,100,.04);
     min-width: 0;
+    padding: 15px;
+    border: 1px solid var(--ph-border);
+    border-top: 4px solid var(--ph-teal);
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 3px 10px rgba(15,23,42,.035);
+    transition: .2s ease;
+}
+
+.ph-kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 18px rgba(15,23,42,.09);
 }
 
 .ph-kpi-label {
-    font-size: 11px;
-    color: #60778d;
+    color: var(--ph-muted);
+    font-size: 10px;
     font-weight: 800;
-    letter-spacing: .3px;
 }
 
 .ph-kpi-value {
-    font-size: 30px;
-    color: #123b65;
+    margin: 9px 0 6px;
+    color: var(--ph-navy);
+    font-size: 26px;
     font-weight: 800;
-    margin: 10px 0 7px;
 }
 
 .ph-kpi-description {
-    font-size: 11px;
-    color: #60778d;
+    color: var(--ph-muted);
+    font-size: 10px;
     line-height: 1.5;
 }
 
-.ph-kpi-teal {
-    border-left: 5px solid #079b91;
-}
+.ph-kpi-orange { border-top-color: #d97706; }
+.ph-kpi-red { border-top-color: #dc5252; }
 
-.ph-kpi-orange {
-    border-left: 5px solid #f4a62a;
-}
-
-.ph-kpi-red {
-    border-left: 5px solid #e74755;
-}
-
-/* GENERAL PANELS */
+/* PANELS */
 .ph-panel {
-    background: #fff;
-    border: 1px solid #d9e8f1;
-    border-radius: 10px;
-    padding: 19px;
     min-width: 0;
-    box-shadow: 0 3px 10px rgba(26,67,100,.025);
+    padding: 17px;
+    border: 1px solid var(--ph-border);
+    border-radius: 11px;
+    background: white;
+    box-shadow: 0 3px 10px rgba(15,23,42,.035);
 }
 
 .ph-panel-heading {
@@ -366,103 +296,112 @@ width: calc(100% +44px) !important;
     align-items: center;
     flex-wrap: wrap;
     gap: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 14px;
 }
 
 .ph-panel-title {
-    font-size: 16px;
     margin: 0;
-    color: #123b65;
+    color: var(--ph-navy);
+    font-size: 14px;
     font-weight: 800;
 }
 
 .ph-panel-label {
-    font-size: 10px;
-    color: #07848b;
+    padding: 5px 9px;
+    border-radius: 20px;
+    color: var(--ph-teal);
+    background: var(--ph-light);
+    font-size: 9px;
     font-weight: 800;
-    letter-spacing: .4px;
 }
 
-/* FEFO AND EXPIRY PANELS */
+/* MONITORING */
 .ph-monitoring-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(280px, .9fr);
-    gap: 17px;
-    margin-bottom: 20px;
-    align-items: stretch;
+    gap: 15px;
+    margin-bottom: 17px;
 }
 
 .ph-table-scroll {
     width: 100%;
-    overflow: auto;
     max-height: 300px;
-    border-radius: 6px;
+    overflow: auto;
+    border: 1px solid var(--ph-border);
+    border-radius: 8px;
 }
 
 .ph-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
     text-align: left;
+    font-size: 10px;
 }
 
 .ph-table thead {
-    background: #f0f5f9;
-    color: #536c83;
     position: sticky;
     top: 0;
     z-index: 2;
+    color: white;
+    background: var(--ph-navy);
+}
+
+.ph-table th,
+.ph-table td {
+    padding: 11px 9px;
+    white-space: nowrap;
 }
 
 .ph-table th {
-    padding: 11px 9px;
-    white-space: nowrap;
+    font-size: 9px;
     font-weight: 800;
+    text-transform: uppercase;
 }
 
 .ph-table td {
-    padding: 12px 9px;
     border-bottom: 1px solid #edf2f7;
-    color: #415a70;
+    color: #475569;
 }
 
 .ph-table tbody tr:hover {
-    background: #f8fbfd;
+    background: var(--ph-light);
 }
 
 .ph-medicine-name {
+    color: var(--ph-navy);
     font-weight: 700;
-    color: #234665;
 }
 
 .ph-batch-number {
-    font-size: 10px;
-    color: #7a8da0;
     margin-top: 4px;
+    color: var(--ph-muted);
+    font-size: 9px;
 }
 
 .ph-empty {
-    padding: 23px 10px !important;
+    padding: 22px 10px !important;
+    color: var(--ph-muted) !important;
     text-align: center;
-    color: #71869a !important;
 }
 
 .ph-secondary-link {
     display: block;
-    margin-top: 13px;
-    text-align: center;
+    margin-top: 12px;
     padding: 10px;
-    border: 1px solid #0b7183;
+    border: 1px solid var(--ph-teal);
     border-radius: 7px;
+    color: var(--ph-navy);
+    background: #f0fbfb;
+    text-align: center;
     text-decoration: none;
-    color: #07536c;
-    font-size: 12px;
-    font-weight: 700;
-    transition: .2s ease;
+    font-size: 10px;
+    font-weight: 800;
+    transition: .2s;
 }
 
 .ph-secondary-link:hover {
-    background: #edf9f8;
+    color: white;
+    background: var(--ph-teal);
 }
 
 /* EXPIRY RISK */
@@ -477,82 +416,52 @@ width: calc(100% +44px) !important;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
+    padding: 13px;
+    border: 1px solid var(--ph-border);
+    border-left: 4px solid var(--ph-teal);
     border-radius: 8px;
-    padding: 13px 14px;
+    background: #f8fafc;
 }
 
-.ph-expiry-90 {
-    border: 1px solid #f5d9a6;
-    background: #fffaf1;
-}
-
-.ph-expiry-60 {
-    border: 1px solid #ffc9b8;
-    background: #fff5f1;
-}
-
-.ph-expiry-30 {
-    border: 1px solid #ffc6d0;
-    background: #fff3f5;
-}
+.ph-expiry-90 { border-left-color: #d97706; }
+.ph-expiry-60 { border-left-color: #ea7850; }
+.ph-expiry-30 { border-left-color: #dc5252; }
 
 .ph-expiry-name {
-    font-size: 14px;
+    color: var(--ph-navy);
+    font-size: 11px;
     font-weight: 800;
 }
 
 .ph-expiry-description {
-    font-size: 11px;
     margin-top: 5px;
-    line-height: 1.4;
+    color: var(--ph-muted);
+    font-size: 9px;
 }
 
 .ph-expiry-number {
-    font-size: 23px;
+    color: var(--ph-navy);
+    font-size: 22px;
     font-weight: 800;
-    flex-shrink: 0;
 }
 
-.ph-expiry-90 .ph-expiry-name,
-.ph-expiry-90 .ph-expiry-number {
-    color: #b86b05;
-}
-
-.ph-expiry-90 .ph-expiry-description {
-    color: #8a6a3d;
-}
-
-.ph-expiry-60 .ph-expiry-name,
-.ph-expiry-60 .ph-expiry-number {
-    color: #c74726;
-}
-
-.ph-expiry-60 .ph-expiry-description {
-    color: #94594b;
-}
-
-.ph-expiry-30 .ph-expiry-name,
-.ph-expiry-30 .ph-expiry-number {
-    color: #d52f42;
-}
-
-.ph-expiry-30 .ph-expiry-description {
-    color: #995b68;
-}
+.ph-expiry-90 .ph-expiry-number { color: #b86b05; }
+.ph-expiry-60 .ph-expiry-number { color: #c74726; }
+.ph-expiry-30 .ph-expiry-number { color: #d52f42; }
 
 .ph-information-note {
-    background: #f0f7fc;
-    border-radius: 7px;
-    padding: 11px;
-    font-size: 11px;
-    color: #59758c;
-    line-height: 1.6;
     margin-top: 12px;
+    padding: 11px;
+    border-radius: 7px;
+    color: var(--ph-muted);
+    background: var(--ph-light);
+    font-size: 10px;
+    line-height: 1.6;
 }
 
-/* TRANSACTION TABLE */
+/* TRANSACTIONS */
 .ph-transactions-panel {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .ph-transactions-scroll {
@@ -563,90 +472,40 @@ width: calc(100% +44px) !important;
     display: inline-block;
     padding: 5px 9px;
     border-radius: 20px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
-    white-space: nowrap;
 }
 
 .ph-status-fefo {
-    background: #d9f7ee;
     color: #087f68;
+    background: #d9f7ee;
 }
 
 .ph-status-override {
-    background: #fff0d5;
     color: #925500;
-}
-
-/* ACTION POINTS */
-.ph-action-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-}
-
-.ph-action-card {
-    border-radius: 8px;
-    padding: 14px;
-}
-
-.ph-action-title {
-    font-size: 13px;
-    font-weight: 800;
-    margin-bottom: 7px;
-}
-
-.ph-action-description {
-    font-size: 11px;
-    line-height: 1.7;
-}
-
-.ph-action-fefo {
-    border: 1px solid #b8eee4;
-    background: #effcf8;
-    color: #496d68;
-}
-
-.ph-action-fefo .ph-action-title {
-    color: #087f68;
-}
-
-.ph-action-expired {
-    border: 1px solid #ffc6d0;
-    background: #fff3f5;
-    color: #8e5862;
-}
-
-.ph-action-expired .ph-action-title {
-    color: #c72e43;
-}
-
-.ph-action-risk {
-    border: 1px solid #f5d9a6;
-    background: #fffaf1;
-    color: #8a6a3d;
-}
-
-.ph-action-risk .ph-action-title {
-    color: #a76508;
+    background: #fff0d5;
 }
 
 /* FOOTER */
 .ph-footer {
-    text-align: center;
-    padding: 22px 10px 5px;
+    padding: 20px 10px 5px;
     color: #8293a3;
-    font-size: 11px;
+    text-align: center;
+    font-size: 10px;
 }
 
 /* RESPONSIVE */
 @media (max-width: 1100px) {
+    .ph-layout {
+        grid-template-columns: 205px minmax(0, 1fr);
+    }
+
     .ph-kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .ph-monitoring-grid {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: 1fr;
     }
 }
 
@@ -654,16 +513,16 @@ width: calc(100% +44px) !important;
     .ph-layout {
         grid-template-columns: 1fr;
         min-height: auto;
+        padding: 14px;
     }
 
     .ph-sidebar {
-        width: 100%;
         min-height: auto;
-        padding: 12px;
+        height: auto;
     }
 
-    .ph-sidebar-label {
-        padding-bottom: 9px;
+    .ph-sidebar-note {
+        margin-top: 18px;
     }
 
     .ph-nav {
@@ -671,422 +530,265 @@ width: calc(100% +44px) !important;
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .ph-sidebar-note {
-        display: block;
+    .ph-hero {
+        min-height: auto;
+        padding: 17px 20px;
     }
 
-    .ph-main {
-        padding: 17px;
+    .ph-hero h1 {
+        font-size: 20px;
     }
 
-    .ph-page-title {
-        font-size: 23px;
-    }
-
-    .ph-action-grid {
-        grid-template-columns: 1fr;
+    .ph-hero-tag {
+        display: none;
     }
 }
 
 @media (max-width: 480px) {
-    .ph-header {
-        padding: 13px 15px;
+    .ph-layout {
+        padding: 10px;
     }
 
-    .ph-brand-title {
-        font-size: 14px;
-    }
-
-    .ph-workstation {
-        display: none;
+    .ph-nav {
+        grid-template-columns: 1fr;
     }
 
     .ph-kpi-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 9px;
+        gap: 8px;
     }
 
     .ph-kpi-card {
-        padding: 13px;
+        padding: 12px;
     }
 
     .ph-kpi-value {
-        font-size: 25px;
-    }
-
-    .ph-main {
-        padding: 13px;
+        font-size: 23px;
     }
 
     .ph-panel {
-        padding: 14px;
+        padding: 13px;
     }
 
-    .ph-nav a {
+    .ph-hero p {
         font-size: 11px;
-        padding: 10px;
     }
 }
 </style>
-<div class="pharmacist-dashboard">
-    <!-- TOP HEADER -->
-    <!-- DASHBOARD PAGE HEADER -->
-<header class="pharmacist-hero">
+
+<!-- HEADER -->
+<header class="ph-hero">
     <div>
-        <div class="pharmacist-eyebrow">
-            Pharmacist Workspace
-        </div>
-
+        <div class="ph-eyebrow">Pharmacist Workspace</div>
         <h1>Pharmacist Dashboard</h1>
-
         <p>
             Monitor medicine inventory, dispensing activities,
             FEFO compliance, expiry alerts and medicine availability
             across the facility.
         </p>
     </div>
-
-    <div class="pharmacist-hero-tag">
-        FEFO CONTROL · PHARMACY OPERATIONS
-    </div>
+    <div class="ph-hero-tag">FEFO CONTROL · PHARMACY OPERATIONS</div>
 </header>
 
-    <!-- MAIN LAYOUT -->
-    <div class="ph-layout">
-        <!-- PHARMACIST OPERATIONS CONTROL -->
-        <aside class="ph-sidebar">
-            <nav class="ph-nav" aria-label="Pharmacist navigation">
-                <a href="{% url 'pharmacist_dashboard' %}"
-                   class="active"
-                   aria-current="page">
-                    Dashboard
-                </a>
+<div class="ph-layout">
+    <!-- SIDEBAR -->
+    <aside class="ph-sidebar">
+        <div class="ph-sidebar-label">
+            PHARMACY OPERATIONS
+            <span>Clinical Workstation</span>
+        </div>
 
-                <a href="{% url 'dispense' %}">
-                    Dispense Medicine
-                </a>
+        <nav class="ph-nav" aria-label="Pharmacist navigation">
+            <a href="{% url 'pharmacist_dashboard' %}" class="active" aria-current="page">Dashboard</a>
+            <a href="{% url 'dispense' %}">Dispense Medicine</a>
+            <a href="{% url 'dispense_reports' %}">Pharmacist Reports</a>
+            <a href="{% url 'alerts' %}">Alerts Centre</a>
+            <a href="{% url 'profile' %}">My Profile</a>
+        </nav>
 
-                <a href="{% url 'dispense_reports' %}">
-                    Pharmacist Reports
-                </a>
+        <div class="ph-sidebar-note">
+            <strong>Dispensing Responsibility</strong>
+            Confirm the medicine, prescribed quantity and treatment duration before recording a transaction.
+        </div>
 
-                <a href="{% url 'alerts' %}">
-                    Alerts Centre
-                </a>
+        <div class="ph-sidebar-note">
+            <strong>Important Safety Rule</strong>
+            Expired, depleted or inactive batches must not be dispensed. Prescription-period expiry eligibility must be respected.
+        </div>
+    </aside>
 
-                <a href="{% url 'profile' %}">
-                    My Profile
-                </a>
-            </nav>
+    <!-- MAIN CONTENT -->
+    <main class="ph-main">
+        {% if messages %}
+        <div class="ph-messages">
+            {% for message in messages %}
+            <div role="status" class="ph-message">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
-            <div class="ph-sidebar-note">
-                <strong>Dispensing Responsibility</strong>
-                Confirm the medicine, prescribed quantity and treatment
-                duration before recording a transaction.
-            </div>
+        <!-- KPI CARDS -->
+        <div class="ph-kpi-grid">
+            <section class="ph-kpi-card">
+                <div class="ph-kpi-label">ELIGIBLE MEDICINES</div>
+                <div class="ph-kpi-value">{{ eligible_medicine_count|default:0 }}</div>
+                <div class="ph-kpi-description">Active medicines with eligible stock</div>
+            </section>
 
-            <div style="
-                margin-top:11px;
-                padding:12px;
-                border-radius:8px;
-                background:#fff5e6;
-                border:1px solid #f0d7ad;
-                color:#805b16;
-                font-size:10px;
-                line-height:1.7;
-            ">
-                <strong>Important Safety Rule</strong>
-                Expired, depleted or inactive batches must not be dispensed.
-                Prescription-period expiry eligibility must be respected.
-            </div>
-        </aside>
+            <section class="ph-kpi-card ph-kpi-orange">
+                <div class="ph-kpi-label">BATCHES NEAR EXPIRY</div>
+                <div class="ph-kpi-value">{{ near_expiry_count|default:0 }}</div>
+                <div class="ph-kpi-description">Batches expiring within 90 days</div>
+            </section>
 
-        <!-- DASHBOARD CONTENT -->
-        <main class="ph-main">
-            <!-- DJANGO MESSAGES -->
-            {% if messages %}
-                <div class="ph-messages">
-                    {% for message in messages %}
-                        <div role="status" class="ph-message">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+            <section class="ph-kpi-card ph-kpi-red">
+                <div class="ph-kpi-label">EXPIRED BATCHES</div>
+                <div class="ph-kpi-value">{{ expired_count|default:0 }}</div>
+                <div class="ph-kpi-description">Require quarantine and review</div>
+            </section>
 
-            <!-- KPI CARDS -->
-            <div class="ph-kpi-grid">
-                <section class="ph-kpi-card ph-kpi-teal">
-                    <div class="ph-kpi-label">
-                        ELIGIBLE MEDICINES
-                    </div>
+            <section class="ph-kpi-card">
+                <div class="ph-kpi-label">FEFO COMPLIANCE</div>
+                <div class="ph-kpi-value">{{ fefo_compliance|default:0 }}%</div>
+                <div class="ph-kpi-description">Transactions without recorded overrides</div>
+            </section>
+        </div>
 
-                    <div class="ph-kpi-value">
-                        {{ eligible_medicine_count|default:0 }}
-                    </div>
-
-                    <div class="ph-kpi-description">
-                        Active medicines with eligible stock
-                    </div>
-                </section>
-
-                <section class="ph-kpi-card ph-kpi-orange">
-                    <div class="ph-kpi-label">
-                        BATCHES NEAR EXPIRY
-                    </div>
-
-                    <div class="ph-kpi-value" style="color:#b86b05;">
-                        {{ near_expiry_count|default:0 }}
-                    </div>
-
-                    <div class="ph-kpi-description">
-                        Eligible batches expiring within 90 days
-                    </div>
-                </section>
-
-                <section class="ph-kpi-card ph-kpi-red">
-                    <div class="ph-kpi-label">
-                        EXPIRED BATCHES
-                    </div>
-
-                    <div class="ph-kpi-value" style="color:#d52f42;">
-                        {{ expired_count|default:0 }}
-                    </div>
-
-                    <div class="ph-kpi-description">
-                        Require quarantine and review
-                    </div>
-                </section>
-
-                <section class="ph-kpi-card ph-kpi-teal">
-                    <div class="ph-kpi-label">
-                        FEFO COMPLIANCE
-                    </div>
-
-                    <div class="ph-kpi-value" style="color:#087f75;">
-                        {{ fefo_compliance|default:0 }}%
-                    </div>
-
-                    <div class="ph-kpi-description">
-                        Transactions without recorded overrides
-                    </div>
-                </section>
-
-            </div>
-
-            <!-- FEFO QUEUE AND EXPIRY RISK -->
-            <div class="ph-monitoring-grid">
-                <!-- FEFO DISPENSING QUEUE -->
-                <section class="ph-panel">
-                    <div class="ph-panel-heading">
-
-                        <h2 class="ph-panel-title">
-                            FEFO Dispensing Queue
-                        </h2>
-
-                        <span class="ph-panel-label">
-                            EARLIEST EXPIRY FIRST
-                        </span>
-                    </div>
-
-                    <div class="ph-table-scroll">
-                        <table class="ph-table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Medicine / Batch</th>
-                                    <th scope="col">Available</th>
-                                    <th scope="col">Expiry</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {% for batch in fefo_queue %}
-                                    <tr>
-                                        <td>
-                                            <div class="ph-medicine-name">
-                                                {{ batch.medicine.medicine_name }}
-                                            </div>
-
-                                            <div class="ph-batch-number">
-                                                {{ batch.batch_number }}
-                                            </div>
-                                        </td>
-
-                                        <td>
-                                            {{ batch.quantity_available }}
-                                        </td>
-
-                                        <td style="white-space:nowrap;">
-                                            {{ batch.expiry_date|date:"d M Y" }}
-                                        </td>
-                                    </tr>
-
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="3" class="ph-empty">
-                                            No eligible batches available.
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <a href="{% url 'dispense' %}" class="ph-secondary-link">
-                        Open Dispensing Form →
-                    </a>
-                </section>
-
-                <!-- EXPIRY RISK OVERVIEW -->
-                <section class="ph-panel">
-                    <div class="ph-panel-heading">
-                        <h2 class="ph-panel-title">
-                            Expiry Risk Overview
-                        </h2>
-                    </div>
-
-                    <div class="ph-expiry-list">
-                        <div class="ph-expiry-item ph-expiry-90">
-                            <div>
-                                <div class="ph-expiry-name">
-                                    Within 90 Days
-                                </div>
-
-                                <div class="ph-expiry-description">
-                                    Monitor and prioritise
-                                </div>
-                            </div>
-
-                            <div class="ph-expiry-number">
-                                {{ expiry_90_count|default:0 }}
-                            </div>
-                        </div>
-
-                        <div class="ph-expiry-item ph-expiry-60">
-                            <div>
-                                <div class="ph-expiry-name">
-                                    Within 60 Days
-                                </div>
-
-                                <div class="ph-expiry-description">
-                                    Review stock rotation
-                                </div>
-                            </div>
-
-                            <div class="ph-expiry-number">
-                                {{ expiry_60_count|default:0 }}
-                            </div>
-                        </div>
-
-                        <div class="ph-expiry-item ph-expiry-30">
-                            <div>
-                                <div class="ph-expiry-name">
-                                    Within 30 Days
-                                </div>
-
-                                <div class="ph-expiry-description">
-                                    High-priority review
-                                </div>
-                            </div>
-
-                            <div class="ph-expiry-number">
-                                {{ expiry_30_count|default:0 }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="ph-information-note">
-                        Expiry indicators represent batch counts, not unique
-                        medicine counts. Expired batches must not be dispensed.
-                    </div>
-                </section>
-            </div>
-
-            <!-- RECENT DISPENSING TRANSACTIONS -->
-            <section class="ph-panel ph-transactions-panel">
+        <!-- FEFO AND EXPIRY -->
+        <div class="ph-monitoring-grid">
+            <section class="ph-panel">
                 <div class="ph-panel-heading">
-                    <h2 class="ph-panel-title">
-                        Recent Dispensing Transactions
-                    </h2>
-
-                    <span style="font-size:11px;color:#71869a;">
-                        Latest 8 records
-                    </span>
+                    <h2 class="ph-panel-title">FEFO Dispensing Queue</h2>
+                    <span class="ph-panel-label">EARLIEST EXPIRY FIRST</span>
                 </div>
 
-                <div class="ph-table-scroll ph-transactions-scroll">
+                <div class="ph-table-scroll">
                     <table class="ph-table">
                         <thead>
                             <tr>
-                                <th scope="col">Date &amp; Time</th>
-                                <th scope="col">Medicine</th>
-                                <th scope="col">Batch</th>
-                                <th scope="col">Quantity</th>
-                                <th scope="col">Dispensed By</th>
-                                <th scope="col">Status</th>
+                                <th scope="col">Medicine / Batch</th>
+                                <th scope="col">Available</th>
+                                <th scope="col">Expiry</th>
                             </tr>
                         </thead>
-
                         <tbody>
-                            {% for tx in recent_transactions %}
-                                <tr>
-                                    <td style="white-space:nowrap;">
-                                        {{ tx.dispensed_at|date:"d M Y H:i" }}
-                                    </td>
-
-                                    <td>
-                                        {% if tx.medicine %}
-                                            {{ tx.medicine.medicine_name }}
-                                        {% else %}
-                                            Medicine unavailable
-                                        {% endif %}
-                                    </td>
-
-                                    <td>
-                                        {{ tx.batch.batch_number }}
-                                    </td>
-
-                                    <td>
-                                        {{ tx.quantity_dispensed }}
-                                    </td>
-
-                                    <td>
-                                        {% if tx.dispensed_by %}
-                                            {{ tx.dispensed_by.username }}
-                                        {% else %}
-                                            Unknown
-                                        {% endif %}
-                                    </td>
-
-                                    <td>
-                                        {% if tx.is_override %}
-                                            <span class="ph-status ph-status-override">
-                                                Override
-                                            </span>
-                                        {% else %}
-                                            <span class="ph-status ph-status-fefo">
-                                                FEFO
-                                            </span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-
+                            {% for batch in fefo_queue %}
+                            <tr>
+                                <td>
+                                    <div class="ph-medicine-name">{{ batch.medicine.medicine_name }}</div>
+                                    <div class="ph-batch-number">{{ batch.batch_number }}</div>
+                                </td>
+                                <td>{{ batch.quantity_available }}</td>
+                                <td>{{ batch.expiry_date|date:"d M Y" }}</td>
+                            </tr>
                             {% empty %}
-                                <tr>
-                                    <td colspan="6" class="ph-empty">
-                                        No dispensing transactions recorded yet.
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td colspan="3" class="ph-empty">No eligible batches available.</td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-
-                <a href="{% url 'dispense_reports' %}" class="ph-secondary-link">
-                    View Pharmacist Reports →
-                </a>
+                <a href="{% url 'dispense' %}" class="ph-secondary-link">Open Dispensing Form →</a>
             </section>
-        </main>
-    </div>
+
+            <section class="ph-panel">
+                <div class="ph-panel-heading">
+                    <h2 class="ph-panel-title">Expiry Risk Overview</h2>
+                </div>
+
+                <div class="ph-expiry-list">
+                    <div class="ph-expiry-item ph-expiry-90">
+                        <div>
+                            <div class="ph-expiry-name">Within 90 Days</div>
+                            <div class="ph-expiry-description">Monitor and prioritise</div>
+                        </div>
+                        <div class="ph-expiry-number">{{ expiry_90_count|default:0 }}</div>
+                    </div>
+
+                    <div class="ph-expiry-item ph-expiry-60">
+                        <div>
+                            <div class="ph-expiry-name">Within 60 Days</div>
+                            <div class="ph-expiry-description">Review stock rotation</div>
+                        </div>
+                        <div class="ph-expiry-number">{{ expiry_60_count|default:0 }}</div>
+                    </div>
+
+                    <div class="ph-expiry-item ph-expiry-30">
+                        <div>
+                            <div class="ph-expiry-name">Within 30 Days</div>
+                            <div class="ph-expiry-description">High-priority review</div>
+                        </div>
+                        <div class="ph-expiry-number">{{ expiry_30_count|default:0 }}</div>
+                    </div>
+                </div>
+
+                <div class="ph-information-note">
+                    Expiry indicators represent batch counts, not unique medicine counts. Expired batches must not be dispensed.
+                </div>
+            </section>
+
+        </div>
+
+        <!-- RECENT TRANSACTIONS -->
+        <section class="ph-panel ph-transactions-panel">
+            <div class="ph-panel-heading">
+                <h2 class="ph-panel-title">Recent Dispensing Transactions</h2>
+                <span class="ph-panel-label">LATEST 8 RECORDS</span>
+            </div>
+
+            <div class="ph-table-scroll ph-transactions-scroll">
+                <table class="ph-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Date &amp; Time</th>
+                            <th scope="col">Medicine</th>
+                            <th scope="col">Batch</th>
+                            <th scope="col">Quantity</th>
+                            <th scope="col">Dispensed By</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in recent_transactions %}
+                        <tr>
+                            <td>{{ tx.dispensed_at|date:"d M Y H:i" }}</td>
+                            <td>
+                                {% if tx.medicine %}
+                                    {{ tx.medicine.medicine_name }}
+                                {% else %}
+                                    Medicine unavailable
+                                {% endif %}
+                            </td>
+                            <td>{{ tx.batch.batch_number }}</td>
+                            <td>{{ tx.quantity_dispensed }}</td>
+                            <td>
+                                {% if tx.dispensed_by %}
+                                    {{ tx.dispensed_by.username }}
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if tx.is_override %}
+                                    <span class="ph-status ph-status-override">Override</span>
+                                {% else %}
+                                    <span class="ph-status ph-status-fefo">FEFO</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="ph-empty">No dispensing transactions recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <a href="{% url 'dispense_reports' %}" class="ph-secondary-link">View Pharmacist Reports →</a>
+        </section>
+
+    </main>
+</div>
 </div>
 {% endblock %}

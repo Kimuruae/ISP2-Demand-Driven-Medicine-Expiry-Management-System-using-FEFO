@@ -1,0 +1,738 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Purchase Orders | Medicine Expiry Management{% endblock %}
+{% block header_title %}Purchase Orders{% endblock %}
+
+{% block content %}
+
+<style>
+:root {
+    --po-navy: #102a43;
+    --po-blue: #164e78;
+    --po-teal: #0f766e;
+    --po-green: #15803d;
+    --po-amber: #b45309;
+    --po-red: #b91c1c;
+    --po-bg: #f4f7fb;
+    --po-border: #e2e8f0;
+    --po-muted: #64748b;
+    --po-text: #1e293b;
+}
+
+.po-page {
+    padding: 24px;
+    min-height: 100vh;
+    background: var(--po-bg);
+    color: var(--po-text);
+}
+
+.po-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+.po-heading h2 {
+    margin: 0 0 7px;
+    font-size: 24px;
+    font-weight: 750;
+    color: var(--po-navy);
+}
+
+.po-heading p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--po-muted);
+}
+
+.po-heading-tag {
+    padding: 8px 12px;
+    background: #e0f2fe;
+    color: #075985;
+    border-radius: 7px;
+    font-size: 10px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.po-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.po-kpi {
+    background: #fff;
+    border: 1px solid var(--po-border);
+    border-radius: 11px;
+    padding: 17px;
+    display: flex;
+    gap: 13px;
+    align-items: center;
+}
+
+.po-kpi-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 19px;
+}
+
+.po-kpi-icon.amber { background: #fef3c7; color: #92400e; }
+.po-kpi-icon.blue { background: #dbeafe; color: #1e40af; }
+.po-kpi-icon.green { background: #dcfce7; color: #166534; }
+.po-kpi-icon.teal { background: #ccfbf1; color: #115e59; }
+
+.po-kpi-label {
+    color: var(--po-muted);
+    font-size: 11px;
+    margin-bottom: 5px;
+}
+
+.po-kpi-value {
+    color: var(--po-navy);
+    font-size: 23px;
+    font-weight: 750;
+}
+
+.po-kpi-note {
+    font-size: 10px;
+    color: var(--po-muted);
+    margin-top: 4px;
+}
+
+.po-section {
+    background: #fff;
+    border: 1px solid var(--po-border);
+    border-radius: 11px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.po-section-header {
+    padding: 17px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--po-border);
+}
+
+.po-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.po-section-title h3 {
+    margin: 0;
+    font-size: 14px;
+    color: var(--po-navy);
+    font-weight: 750;
+}
+
+.po-section-title p {
+    margin: 5px 0 0;
+    font-size: 11px;
+    color: var(--po-muted);
+}
+
+.po-count {
+    min-width: 27px;
+    height: 25px;
+    padding: 0 8px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+    background: #f1f5f9;
+    color: var(--po-navy);
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.po-section-body {
+    padding: 16px 20px 20px;
+}
+
+.po-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.po-search {
+    position: relative;
+    width: 300px;
+    max-width: 100%;
+}
+
+.po-search input {
+    width: 100%;
+    padding: 10px 12px 10px 34px;
+    border: 1px solid var(--po-border);
+    border-radius: 7px;
+    outline: none;
+    font-size: 11px;
+}
+
+.po-search input:focus {
+    border-color: var(--po-teal);
+    box-shadow: 0 0 0 3px rgba(15,118,110,.08);
+}
+
+.po-search span {
+    position: absolute;
+    left: 11px;
+    top: 9px;
+    color: var(--po-muted);
+}
+
+.po-filter {
+    padding: 9px 11px;
+    border: 1px solid var(--po-border);
+    border-radius: 7px;
+    background: white;
+    color: var(--po-text);
+    font-size: 11px;
+}
+
+.po-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.po-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+}
+
+.po-table th {
+    background: #f8fafc;
+    color: var(--po-muted);
+    text-transform: uppercase;
+    font-size: 9px;
+    letter-spacing: .4px;
+    text-align: left;
+    padding: 12px;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--po-border);
+}
+
+.po-table td {
+    padding: 13px 12px;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 11px;
+    vertical-align: middle;
+}
+
+.po-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.po-reference {
+    color: var(--po-blue);
+    font-weight: 750;
+}
+
+.po-main-text {
+    color: var(--po-navy);
+    font-weight: 700;
+}
+
+.po-sub-text {
+    color: var(--po-muted);
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+.po-status {
+    display: inline-flex;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.po-status.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.po-status.approved {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.po-status.placed {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.po-status.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.po-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.po-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 750;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.po-btn-view {
+    background: #e0f2fe;
+    color: #075985;
+}
+
+.po-btn-primary {
+    background: var(--po-teal);
+    color: #fff;
+}
+
+.po-empty {
+    text-align: center;
+    padding: 32px 15px;
+    color: var(--po-muted);
+    font-size: 11px;
+}
+
+.po-empty strong {
+    display: block;
+    color: var(--po-navy);
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.po-progress {
+    width: 100%;
+    min-width: 95px;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.po-progress span {
+    display: block;
+    height: 100%;
+    background: var(--po-teal);
+    border-radius: 20px;
+}
+
+.po-note {
+    padding: 14px 16px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    color: #1e40af;
+    font-size: 11px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.po-detail-row {
+    background: #f8fafc;
+}
+
+.po-detail-content {
+    padding: 15px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.po-detail-item label {
+    display: block;
+    font-size: 9px;
+    color: var(--po-muted);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.po-detail-item strong {
+    font-size: 11px;
+    color: var(--po-navy);
+}
+
+@media(max-width: 1000px) {
+    .po-summary { grid-template-columns: repeat(2, 1fr); }
+    .po-detail-content { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media(max-width: 600px) {
+    .po-page { padding: 14px; }
+    .po-heading { flex-direction: column; }
+    .po-summary { grid-template-columns: repeat(2, 1fr); gap: 9px; }
+    .po-kpi { padding: 11px; gap: 8px; }
+    .po-kpi-icon { width: 33px; height: 33px; font-size: 15px; }
+    .po-kpi-value { font-size: 19px; }
+    .po-section-header { align-items: flex-start; }
+    .po-detail-content { grid-template-columns: 1fr 1fr; }
+}
+</style>
+
+<div class="po-page">
+
+    <div class="po-heading">
+        <div>
+            <h2>Purchase Orders</h2>
+            <p>Monitor purchase order approvals, supplier fulfilment and outstanding deliveries.</p>
+        </div>
+        <div class="po-heading-tag">HOSPITAL ADMINISTRATION</div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="po-summary">
+
+        <div class="po-kpi">
+            <div class="po-kpi-icon amber">◷</div>
+            <div>
+                <div class="po-kpi-label">Pending Orders</div>
+                <div class="po-kpi-value">{{ pending_orders_count|default:"0" }}</div>
+                <div class="po-kpi-note">Awaiting administrative review</div>
+            </div>
+        </div>
+
+        <div class="po-kpi">
+            <div class="po-kpi-icon blue">▤</div>
+            <div>
+                <div class="po-kpi-label">Awaiting Approval</div>
+                <div class="po-kpi-value">{{ awaiting_approval_count|default:"0" }}</div>
+                <div class="po-kpi-note">Recommended procurement orders</div>
+            </div>
+        </div>
+
+        <div class="po-kpi">
+            <div class="po-kpi-icon green">✓</div>
+            <div>
+                <div class="po-kpi-label">Approved Orders</div>
+                <div class="po-kpi-value">{{ approved_orders_count|default:"0" }}</div>
+                <div class="po-kpi-note">Authorised for procurement</div>
+            </div>
+        </div>
+
+        <div class="po-kpi">
+            <div class="po-kpi-icon teal">🚚</div>
+            <div>
+                <div class="po-kpi-label">Awaiting Delivery</div>
+                <div class="po-kpi-value">{{ awaiting_delivery_count|default:"0" }}</div>
+                <div class="po-kpi-note">Pending supplier fulfilment</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="po-note">
+        <strong>Procurement workflow:</strong>
+        Recommendations are reviewed before purchase orders are approved.
+        Approved orders proceed to supplier fulfilment. The Store Manager records
+        deliveries and inspects received items before accepted stock becomes available
+        in the inventory.
+    </div>
+
+    <!-- SECTION 1: PENDING PURCHASE ORDERS -->
+    <div class="po-section">
+
+        <div class="po-section-header">
+            <div class="po-section-title">
+                <div>
+                    <h3>Pending Purchase Orders</h3>
+                    <p>Orders that have not yet completed the administrative approval process.</p>
+                </div>
+            </div>
+            <span class="po-count">{{ pending_orders_count|default:"0" }}</span>
+        </div>
+
+        <div class="po-section-body">
+
+            <div class="po-toolbar">
+                <div class="po-search">
+                    <span>⌕</span>
+                    <input type="text" class="po-search-input"
+                           placeholder="Search pending orders...">
+                </div>
+            </div>
+
+            <div class="po-table-wrap">
+                <table class="po-table">
+                    <thead>
+                        <tr>
+                            <th>Order Reference</th>
+                            <th>Supplier</th>
+                            <th>Medicine</th>
+                            <th>Quantity</th>
+                            <th>Estimated Value</th>
+                            <th>Date Created</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for order in pending_orders %}
+                        <tr>
+                            <td>
+                                <span class="po-reference">
+                                    {{ order.purchase_order_id|default:order.id }}
+                                </span>
+                            </td>
+                            <td>{{ order.supplier.name|default:"Not specified" }}</td>
+                            <td>
+                                <div class="po-main-text">
+                                    {{ order.medicine.name|default:"See order items" }}
+                                </div>
+                            </td>
+                            <td>{{ order.quantity|default:"—" }}</td>
+                            <td>
+                                {% if order.total_cost %}
+                                    KSh {{ order.total_cost|floatformat:2 }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>{{ order.created_at|date:"d M Y"|default:"—" }}</td>
+                            <td><span class="po-status pending">{{ order.status }}</span></td>
+                            <td>
+                                <button type="button" class="po-btn po-btn-view"
+                                        onclick="toggleOrderDetails('pending-{{ order.id }}')">
+                                    View details
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr class="po-detail-row" id="pending-{{ order.id }}" hidden>
+                            <td colspan="8">
+                                <div class="po-detail-content">
+                                    <div class="po-detail-item">
+                                        <label>Purchase Order ID</label>
+                                        <strong>{{ order.purchase_order_id|default:order.id }}</strong>
+                                    </div>
+                                    <div class="po-detail-item">
+                                        <label>Supplier</label>
+                                        <strong>{{ order.supplier.name|default:"Not specified" }}</strong>
+                                    </div>
+                                    <div class="po-detail-item">
+                                        <label>Created On</label>
+                                        <strong>{{ order.created_at|date:"d M Y"|default:"—" }}</strong>
+                                    </div>
+                                    <div class="po-detail-item">
+                                        <label>Current Status</label>
+                                        <strong>{{ order.status }}</strong>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="po-empty">
+                                <strong>No pending purchase orders</strong>
+                                There are currently no pending orders in this category.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: RECOMMENDED ORDERS AWAITING APPROVAL -->
+    <div class="po-section">
+
+        <div class="po-section-header">
+            <div class="po-section-title">
+                <div>
+                    <h3>Recommended Orders Awaiting Approval</h3>
+                    <p>Purchase orders submitted for administrative review and authorisation.</p>
+                </div>
+            </div>
+            <span class="po-count">{{ awaiting_approval_count|default:"0" }}</span>
+        </div>
+
+        <div class="po-section-body">
+
+            <div class="po-table-wrap">
+                <table class="po-table">
+                    <thead>
+                        <tr>
+                            <th>Order Reference</th>
+                            <th>Medicine</th>
+                            <th>Supplier</th>
+                            <th>Order Quantity</th>
+                            <th>Current Stock</th>
+                            <th>Estimated Value</th>
+                            <th>Submitted On</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for order in awaiting_approval_orders %}
+                        <tr>
+                            <td>
+                                <span class="po-reference">
+                                    {{ order.purchase_order_id|default:order.id }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="po-main-text">
+                                    {{ order.medicine.name|default:"See order items" }}
+                                </div>
+                            </td>
+                            <td>{{ order.supplier.name|default:"Not specified" }}</td>
+                            <td>{{ order.quantity|default:"—" }}</td>
+                            <td>{{ order.current_stock|default:"—" }}</td>
+                            <td>
+                                {% if order.total_cost %}
+                                    KSh {{ order.total_cost|floatformat:2 }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>{{ order.created_at|date:"d M Y"|default:"—" }}</td>
+                            <td><span class="po-status pending">{{ order.status }}</span></td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="po-empty">
+                                <strong>No orders awaiting approval</strong>
+                                Recommended purchase orders requiring approval will appear here.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 3: APPROVED ORDERS AWAITING DELIVERY -->
+    <div class="po-section">
+
+        <div class="po-section-header">
+            <div class="po-section-title">
+                <div>
+                    <h3>Approved Orders – Supplier Delivery</h3>
+                    <p>Orders authorised by the Hospital Admin and awaiting supplier fulfilment or receipt.</p>
+                </div>
+            </div>
+            <span class="po-count">{{ awaiting_delivery_count|default:"0" }}</span>
+        </div>
+
+        <div class="po-section-body">
+
+            <div class="po-table-wrap">
+                <table class="po-table">
+                    <thead>
+                        <tr>
+                            <th>Order Reference</th>
+                            <th>Supplier</th>
+                            <th>Medicine</th>
+                            <th>Quantity Ordered</th>
+                            <th>Order Value</th>
+                            <th>Approval Date</th>
+                            <th>Delivery Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for order in awaiting_delivery_orders %}
+                        <tr>
+                            <td>
+                                <span class="po-reference">
+                                    {{ order.purchase_order_id|default:order.id }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="po-main-text">
+                                    {{ order.supplier.name|default:"Not specified" }}
+                                </div>
+                                <div class="po-sub-text">
+                                    {{ order.supplier.phone|default:"Contact not recorded" }}
+                                </div>
+                            </td>
+                            <td>{{ order.medicine.name|default:"See order items" }}</td>
+                            <td>{{ order.quantity|default:"—" }}</td>
+                            <td>
+                                {% if order.total_cost %}
+                                    KSh {{ order.total_cost|floatformat:2 }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>{{ order.approved_at|date:"d M Y"|default:"—" }}</td>
+                            <td>
+                                {% if order.status == "Placed with Supplier" %}
+                                    <span class="po-status placed">Placed with Supplier</span>
+                                {% else %}
+                                    <span class="po-status approved">{{ order.status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="po-empty">
+                                <strong>No approved orders awaiting delivery</strong>
+                                Approved orders awaiting supplier fulfilment will appear here.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function toggleOrderDetails(id) {
+    const row = document.getElementById(id);
+    if (row) {
+        row.hidden = !row.hidden;
+    }
+}
+
+document.querySelectorAll(".po-search-input").forEach(function(input) {
+    input.addEventListener("input", function() {
+        const search = this.value.toLowerCase().trim();
+        const section = this.closest(".po-section");
+        const rows = section.querySelectorAll("tbody tr:not(.po-detail-row)");
+
+        rows.forEach(function(row) {
+            const matches = row.innerText.toLowerCase().includes(search);
+            row.style.display = matches ? "" : "none";
+
+            const detail = row.nextElementSibling;
+            if (detail && detail.classList.contains("po-detail-row")) {
+                detail.hidden = true;
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

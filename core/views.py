@@ -720,370 +720,494 @@ def hospital_admin_dashboard_view(request):
     return render(request, "hospital_admin/dashboard.html", context)
 
 @login_required
+@role_required("Hospital Admin", "Hospital Administrator")
 def hospital_admin_analytics_view(request):
-    today = date.today()
-    near_expiry_date = today + timedelta(days=30)
+        from datetime import date, timedelta
+        from django.db.models import Sum, Count, Q, F
+        from django.db.models.functions import TruncMonth
+        from django.utils import timezone
+        from django.shortcuts import render
 
-    # --------------------------------------------------
-    # 1. INVENTORY OVERVIEW
-    # --------------------------------------------------
-    total_medicines = Medicine.objects.count()
-    total_batches = MedicineBatch.objects.count()
+        today = timezone.localdate()
+        near_expiry_date = today + timedelta(days=30)
 
-    total_stock_volume = (
-        MedicineBatch.objects.aggregate(
-            total=Sum("quantity_available")
-        )["total"] or 0
-    )
+        # --------------------------------------------------
+        # 1. INVENTORY OVERVIEW
+        # --------------------------------------------------
 
-    stock_batches = MedicineBatch.objects.filter(
-        quantity_available__gt=0
-    )
+        total_medicines = Medicine.objects.count()
+        total_batches = MedicineBatch.objects.count()
 
-    expired_count = stock_batches.filter(
-        expiry_date__lt=today
-    ).count()
-
-    near_expiry_count = stock_batches.filter(
-        expiry_date__gte=today,
-        expiry_date__lte=near_expiry_date
-    ).count()
-
-    other_batches_count = stock_batches.filter(
-        expiry_date__gt=near_expiry_date
-    ).count()
-
-    # --------------------------------------------------
-    # 2. DISPENSING AND FEFO PERFORMANCE
-    # --------------------------------------------------
-    total_dispenses = DispensingTransaction.objects.count()
-
-    fefo_overrides = DispensingTransaction.objects.filter(
-        is_override=True
-    ).count()
-
-    fefo_compliant = total_dispenses - fefo_overrides
-
-    fefo_compliance_rate = (
-        round((fefo_compliant / total_dispenses) * 100, 2)
-        if total_dispenses else 0
-    )
-
-    # --------------------------------------------------
-    # 3. MONTHLY MEDICINE CONSUMPTION
-    # --------------------------------------------------
-    # Generate the previous 12 calendar months, including
-    # months with no dispensing transactions.
-    month_periods = []
-
-    for offset in range(11, -1, -1):
-        month_index = today.year * 12 + today.month - 1 - offset
-        year = month_index // 12
-        month = month_index % 12 + 1
-        month_periods.append(date(year, month, 1))
-
-    start_month = month_periods[0]
-
-    monthly_consumption = (
-        DispensingTransaction.objects
-        .filter(dispensed_at__gte=start_month)
-        .annotate(month=TruncMonth("dispensed_at"))
-        .values("month")
-        .annotate(
-            total_quantity=Sum("quantity_dispensed"),
-            transaction_count=Count("pk")
-        )
-        .order_by("month")
-    )
-
-    consumption_lookup = {
-        item["month"].strftime("%Y-%m"): item
-        for item in monthly_consumption
-    }
-
-    consumption_labels = []
-    consumption_values = []
-    consumption_transaction_counts = []
-
-    for month in month_periods:
-        month_key = month.strftime("%Y-%m")
-        month_data = consumption_lookup.get(month_key, {})
-
-        consumption_labels.append(month.strftime("%b %Y"))
-        consumption_values.append(
-            float(month_data.get("total_quantity") or 0)
-        )
-        consumption_transaction_counts.append(
-            month_data.get("transaction_count", 0)
+        total_stock_volume = (
+                MedicineBatch.objects.aggregate(
+                    total=Sum("quantity_available")
+                )["total"] or 0
         )
 
-    # --------------------------------------------------
-    # 4. MOST CONSUMED MEDICINES
-    # --------------------------------------------------
-    top_consumed_medicines = (
-        DispensingTransaction.objects
-        .values("medicine__medicine_name")
-        .annotate(
-            total_quantity=Sum("quantity_dispensed"),
-            transaction_count=Count("pk")
-        )
-        .order_by("-total_quantity")[:10]
-    )
-
-    top_medicine_labels = [
-        item["medicine__medicine_name"]
-        for item in top_consumed_medicines
-    ]
-
-    top_medicine_values = [
-        float(item["total_quantity"] or 0)
-        for item in top_consumed_medicines
-    ]
-
-    # --------------------------------------------------
-    # 5. LOW-STOCK AND REORDER MONITORING
-    # --------------------------------------------------
-    # Count only usable, unexpired stock when comparing
-    # available quantities against medicine reorder levels.
-    usable_stock = (
-        MedicineBatch.objects
-        .filter(
-            quantity_available__gt=0,
-            expiry_date__gte=today
-        )
-        .values("medicine_id")
-        .annotate(current_stock=Sum("quantity_available"))
-    )
-
-    stock_lookup = {
-        item["medicine_id"]: item["current_stock"] or 0
-        for item in usable_stock
-    }
-
-    low_stock_medicines = []
-
-    for medicine in Medicine.objects.filter(is_active=True):
-        current_stock = stock_lookup.get(medicine.pk, 0)
-        reorder_level = medicine.reorder_level or 0
-
-        if current_stock < reorder_level:
-            low_stock_medicines.append({
-                "medicine_name": medicine.medicine_name,
-                "current_stock": current_stock,
-                "reorder_level": reorder_level,
-                "stock_shortfall": reorder_level - current_stock,
-            })
-
-    low_stock_medicines.sort(
-        key=lambda item: item["stock_shortfall"],
-        reverse=True
-    )
-
-    total_low_stock_medicines = len(low_stock_medicines)
-
-    # --------------------------------------------------
-    # 6. PROCUREMENT STATUS OVERVIEW
-    # --------------------------------------------------
-    pending_po_count = PurchaseOrder.objects.filter(
-        Q(status="Pending Admin Review") | Q(status="PENDING")
-    ).count()
-
-    approved_po_count = PurchaseOrder.objects.filter(
-        status="Approved"
-    ).count()
-
-    placed_po_count = PurchaseOrder.objects.filter(
-        status="Placed with Supplier"
-    ).count()
-
-    rejected_po_count = PurchaseOrder.objects.filter(
-        status="Rejected"
-    ).count()
-
-    # --------------------------------------------------
-    # 7. MONTHLY PROCUREMENT ACTIVITY
-    # --------------------------------------------------
-    monthly_procurement = (
-        PurchaseOrder.objects
-        .filter(order_date__gte=start_month)
-        .annotate(month=TruncMonth("order_date"))
-        .values("month")
-        .annotate(
-            order_count=Count("pk"),
-            quantity_ordered=Sum("quantity_ordered")
-        )
-        .order_by("month")
-    )
-
-    procurement_lookup = {
-        item["month"].strftime("%Y-%m"): item
-        for item in monthly_procurement
-    }
-
-    procurement_labels = []
-    procurement_order_values = []
-    procurement_quantity_values = []
-
-    for month in month_periods:
-        month_key = month.strftime("%Y-%m")
-        month_data = procurement_lookup.get(month_key, {})
-
-        procurement_labels.append(month.strftime("%b %Y"))
-        procurement_order_values.append(
-            month_data.get("order_count", 0)
-        )
-        procurement_quantity_values.append(
-            float(month_data.get("quantity_ordered") or 0)
+        stock_batches = MedicineBatch.objects.filter(
+            quantity_available__gt=0
         )
 
-    # --------------------------------------------------
-    # 8. DEMAND FORECASTING
-    # --------------------------------------------------
-    forecast_field_names = {
-        field.name for field in DemandForecast._meta.get_fields()
-    }
+        expired_count = stock_batches.filter(
+            expiry_date__lt=today
+        ).count()
 
-    forecast_quantity_field = next(
-        (
-            field_name
-            for field_name in (
+        near_expiry_count = stock_batches.filter(
+            expiry_date__gte=today,
+            expiry_date__lte=near_expiry_date
+        ).count()
+
+        other_batches_count = stock_batches.filter(
+            expiry_date__gt=near_expiry_date
+        ).count()
+
+        # --------------------------------------------------
+        # 2. DISPENSING AND FEFO PERFORMANCE
+        # --------------------------------------------------
+
+        total_dispenses = DispensingTransaction.objects.count()
+
+        fefo_overrides = DispensingTransaction.objects.filter(
+            is_override=True
+        ).count()
+
+        fefo_compliant = total_dispenses - fefo_overrides
+
+        fefo_compliance_rate = (
+            round((fefo_compliant / total_dispenses) * 100, 2)
+            if total_dispenses else 0
+        )
+
+        # --------------------------------------------------
+        # 3. GENERATE PREVIOUS 12 CALENDAR MONTHS
+        # --------------------------------------------------
+
+        month_periods = []
+
+        for offset in range(11, -1, -1):
+            month_index = today.year * 12 + today.month - 1 - offset
+            year = month_index // 12
+            month = month_index % 12 + 1
+
+            month_periods.append(date(year, month, 1))
+
+        start_month = month_periods[0]
+
+        # --------------------------------------------------
+        # 4. MONTHLY MEDICINE CONSUMPTION
+        # --------------------------------------------------
+
+        monthly_consumption = (
+            DispensingTransaction.objects
+            .filter(dispensed_at__gte=start_month)
+            .annotate(month=TruncMonth("dispensed_at"))
+            .values("month")
+            .annotate(
+                total_quantity=Sum("quantity_dispensed"),
+                transaction_count=Count("pk")
+            )
+            .order_by("month")
+        )
+
+        consumption_lookup = {
+            item["month"].strftime("%Y-%m"): item
+            for item in monthly_consumption
+        }
+
+        consumption_labels = []
+        consumption_values = []
+        consumption_transaction_counts = []
+
+        for month in month_periods:
+            month_key = month.strftime("%Y-%m")
+            month_data = consumption_lookup.get(month_key, {})
+
+            consumption_labels.append(month.strftime("%b %Y"))
+
+            consumption_values.append(
+                float(month_data.get("total_quantity") or 0)
+            )
+
+            consumption_transaction_counts.append(
+                month_data.get("transaction_count", 0)
+            )
+
+        # --------------------------------------------------
+        # 5. MOST CONSUMED MEDICINES
+        # --------------------------------------------------
+
+        top_consumed_medicines = (
+            DispensingTransaction.objects
+            .values("medicine__medicine_name")
+            .annotate(
+                total_quantity=Sum("quantity_dispensed"),
+                transaction_count=Count("pk")
+            )
+            .order_by("-total_quantity")[:10]
+        )
+
+        top_medicine_labels = [
+            item["medicine__medicine_name"]
+            for item in top_consumed_medicines
+        ]
+
+        top_medicine_values = [
+            float(item["total_quantity"] or 0)
+            for item in top_consumed_medicines
+        ]
+
+        # --------------------------------------------------
+        # 6. LOW-STOCK AND REORDER MONITORING
+        # --------------------------------------------------
+
+        usable_stock = (
+            MedicineBatch.objects
+            .filter(
+                quantity_available__gt=0,
+                expiry_date__gte=today
+            )
+            .values("medicine_id")
+            .annotate(
+                current_stock=Sum("quantity_available")
+            )
+        )
+
+        stock_lookup = {
+            item["medicine_id"]: item["current_stock"] or 0
+            for item in usable_stock
+        }
+
+        low_stock_medicines = []
+
+        active_medicines = Medicine.objects.filter(
+            is_active=True
+        )
+
+        for medicine in active_medicines:
+            current_stock = stock_lookup.get(medicine.pk, 0)
+            reorder_level = medicine.reorder_level or 0
+
+            if current_stock < reorder_level:
+                low_stock_medicines.append({
+                    "medicine_name": medicine.medicine_name,
+                    "current_stock": current_stock,
+                    "reorder_level": reorder_level,
+                    "stock_shortfall": reorder_level - current_stock,
+                })
+
+        low_stock_medicines.sort(
+            key=lambda item: item["stock_shortfall"],
+            reverse=True
+        )
+
+        total_low_stock_medicines = len(low_stock_medicines)
+
+        # --------------------------------------------------
+        # 7. PROCUREMENT STATUS OVERVIEW
+        # --------------------------------------------------
+
+        pending_po_count = PurchaseOrder.objects.filter(
+            status=PurchaseOrder.Status.PENDING_ADMIN_REVIEW
+        ).count()
+
+        approved_po_count = PurchaseOrder.objects.filter(
+            status=PurchaseOrder.Status.APPROVED
+        ).count()
+
+        placed_po_count = PurchaseOrder.objects.filter(
+            status=PurchaseOrder.Status.PLACED_WITH_SUPPLIER
+        ).count()
+
+        rejected_po_count = PurchaseOrder.objects.filter(
+            status=PurchaseOrder.Status.REJECTED
+        ).count()
+
+        # --------------------------------------------------
+        # 8. MONTHLY PROCUREMENT ACTIVITY
+        # --------------------------------------------------
+
+        monthly_procurement = (
+            PurchaseOrder.objects
+            .filter(order_date__gte=start_month)
+            .annotate(month=TruncMonth("order_date"))
+            .values("month")
+            .annotate(
+                order_count=Count("pk"),
+                quantity_ordered=Sum("quantity_ordered")
+            )
+            .order_by("month")
+        )
+
+        procurement_lookup = {
+            item["month"].strftime("%Y-%m"): item
+            for item in monthly_procurement
+        }
+
+        procurement_labels = []
+        procurement_order_values = []
+        procurement_quantity_values = []
+
+        for month in month_periods:
+            month_key = month.strftime("%Y-%m")
+            month_data = procurement_lookup.get(month_key, {})
+
+            procurement_labels.append(month.strftime("%b %Y"))
+
+            procurement_order_values.append(
+                month_data.get("order_count", 0)
+            )
+
+            procurement_quantity_values.append(
+                float(month_data.get("quantity_ordered") or 0)
+            )
+
+        # --------------------------------------------------
+        # 9. DEMAND FORECASTING
+        # --------------------------------------------------
+
+        forecast_field_names = {
+            field.name
+            for field in DemandForecast._meta.get_fields()
+        }
+
+        forecast_quantity_field = next(
+            (
+                field_name
+                for field_name in (
                 "forecasted_quantity",
                 "forecasted_demand_quantity"
             )
-            if field_name in forecast_field_names
-        ),
-        None
-    )
+                if field_name in forecast_field_names
+            ),
+            None
+        )
 
-    recent_forecasts = (
-        DemandForecast.objects
-        .select_related("medicine")
-        .order_by("-forecast_period_start")
-    )
+        recent_forecasts = (
+            DemandForecast.objects
+            .select_related("medicine")
+            .order_by("-forecast_period_start")
+        )
 
-    if forecast_quantity_field:
-        if forecast_quantity_field != "forecasted_quantity":
-            recent_forecasts = recent_forecasts.annotate(
-                forecasted_quantity=F(forecast_quantity_field)
+        if forecast_quantity_field:
+            if forecast_quantity_field != "forecasted_quantity":
+                recent_forecasts = recent_forecasts.annotate(
+                    forecasted_quantity=F(forecast_quantity_field)
+                )
+
+        recent_forecasts = recent_forecasts[:10]
+
+        forecast_labels = []
+        historical_demand = []
+        forecast_demand = []
+
+        for forecast in recent_forecasts:
+            forecast_labels.append(
+                f"{forecast.medicine.medicine_name} "
+                f"({forecast.forecast_period_start:%b %Y})"
             )
 
-    recent_forecasts = recent_forecasts[:10]
+            actual_quantity = getattr(
+                forecast,
+                "actual_demand_quantity",
+                None
+            )
 
-    forecast_labels = []
-    historical_demand = []
-    forecast_demand = []
+            forecast_quantity = getattr(
+                forecast,
+                "forecasted_quantity",
+                None
+            )
 
-    for forecast in recent_forecasts:
-        forecast_labels.append(
-            f"{forecast.medicine.medicine_name} "
-            f"({forecast.forecast_period_start:%b %Y})"
+            historical_demand.append(
+                float(actual_quantity)
+                if actual_quantity is not None else None
+            )
+
+            forecast_demand.append(
+                float(forecast_quantity)
+                if forecast_quantity is not None else None
+            )
+
+        # --------------------------------------------------
+        # 10. RECENT BATCHES AND EXPIRY MONITORING
+        # --------------------------------------------------
+
+        batches = (
+            MedicineBatch.objects
+            .select_related("medicine")
+            .filter(quantity_available__gt=0)
+            .order_by("expiry_date")[:20]
         )
 
-        actual_quantity = getattr(
-            forecast, "actual_demand_quantity", None
+        # --------------------------------------------------
+        # 11. CHART DATA
+        # --------------------------------------------------
+
+        analytics_chart_data = {
+            # Inventory expiry
+            "expired": expired_count,
+            "near_expiry": near_expiry_count,
+            "other_batches": other_batches_count,
+
+            # FEFO
+            "fefo_compliant": fefo_compliant,
+            "fefo_overrides": fefo_overrides,
+
+            # Procurement status
+            "pending_pos": pending_po_count,
+            "approved_pos": approved_po_count,
+            "placed_pos": placed_po_count,
+            "rejected_pos": rejected_po_count,
+
+            # Monthly consumption
+            "consumption_labels": consumption_labels,
+            "consumption_values": consumption_values,
+            "consumption_transaction_counts": consumption_transaction_counts,
+
+            # Most consumed medicines
+            "top_medicine_labels": top_medicine_labels,
+            "top_medicine_values": top_medicine_values,
+
+            # Demand forecasts
+            "forecast_labels": forecast_labels,
+            "historical_demand": historical_demand,
+            "forecast_demand": forecast_demand,
+
+            # Monthly procurement
+            "procurement_labels": procurement_labels,
+            "procurement_order_values": procurement_order_values,
+            "procurement_quantity_values": procurement_quantity_values,
+        }
+
+        # --------------------------------------------------
+        # 12. PAGE CONTEXT
+        # --------------------------------------------------
+
+        context = {
+            "today": today,
+            "near_expiry_date": near_expiry_date,
+
+            # Inventory
+            "total_medicines": total_medicines,
+            "total_batches": total_batches,
+            "total_stock_volume": total_stock_volume,
+            "expired_count": expired_count,
+            "near_expiry_count": near_expiry_count,
+
+            # Dispensing and FEFO
+            "total_dispenses": total_dispenses,
+            "fefo_compliant": fefo_compliant,
+            "fefo_overrides": fefo_overrides,
+            "fefo_compliance_rate": fefo_compliance_rate,
+
+            # Medicine consumption
+            "top_consumed_medicines": top_consumed_medicines,
+
+            # Low-stock monitoring
+            "low_stock_medicines": low_stock_medicines,
+            "total_low_stock_medicines": total_low_stock_medicines,
+
+            # Procurement
+            "pending_po_count": pending_po_count,
+            "approved_po_count": approved_po_count,
+            "placed_po_count": placed_po_count,
+            "rejected_po_count": rejected_po_count,
+
+            # Forecasting and expiry records
+            "recent_forecasts": recent_forecasts,
+            "batches": batches,
+
+            # Chart datasets
+            "analytics_chart_data": analytics_chart_data,
+        }
+
+        return render(
+            request,
+            "hospital_admin/analytics.html",
+            context
         )
 
-        forecast_quantity = getattr(
-            forecast, "forecasted_quantity", None
-        )
 
-        historical_demand.append(
-            float(actual_quantity)
-            if actual_quantity is not None else None
-        )
+@role_required('Hospital Admin', 'Hospital Administrator')
+def hospital_admin_inventory_view(request):
+    today = timezone.localdate()
+    near_expiry_date = today + timedelta(days=30)
 
-        forecast_demand.append(
-            float(forecast_quantity)
-            if forecast_quantity is not None else None
-        )
+    active_medicines = Medicine.objects.filter(is_active=True)
 
-    # --------------------------------------------------
-    # 9. RECENT BATCHES AND EXPIRY MONITORING
-    # --------------------------------------------------
-    batches = (
-        MedicineBatch.objects
-        .select_related("medicine")
-        .filter(quantity_available__gt=0)
-        .order_by("expiry_date")[:20]
+    all_batches = MedicineBatch.objects.select_related(
+        'medicine'
     )
 
-    # --------------------------------------------------
-    # 10. CHART DATA
-    # --------------------------------------------------
-    analytics_chart_data = {
-        # Inventory expiry
-        "expired": expired_count,
-        "near_expiry": near_expiry_count,
-        "other_batches": other_batches_count,
+    active_batches = all_batches.filter(
+        quantity_available__gt=0,
+        expiry_date__gte=today,
+        medicine__is_active=True
+    )
 
-        # FEFO
-        "fefo_compliant": fefo_compliant,
-        "fefo_overrides": fefo_overrides,
+    expired_batches = all_batches.filter(
+        quantity_available__gt=0,
+        expiry_date__lt=today
+    )
 
-        # Procurement status
-        "pending_pos": pending_po_count,
-        "approved_pos": approved_po_count,
-        "placed_pos": placed_po_count,
-        "rejected_pos": rejected_po_count,
+    near_expiry_batches = all_batches.filter(
+        quantity_available__gt=0,
+        expiry_date__gte=today,
+        expiry_date__lte=near_expiry_date
+    )
 
-        # Monthly consumption
-        "consumption_labels": consumption_labels,
-        "consumption_values": consumption_values,
-        "consumption_transaction_counts": consumption_transaction_counts,
+    total_medicines = active_medicines.count()
+    active_batches_count = active_batches.count()
 
-        # Most consumed medicines
-        "top_medicine_labels": top_medicine_labels,
-        "top_medicine_values": top_medicine_values,
+    total_stock_volume = active_batches.aggregate(
+        total=Sum('quantity_available')
+    )['total'] or 0
 
-        # Demand forecasts
-        "forecast_labels": forecast_labels,
-        "historical_demand": historical_demand,
-        "forecast_demand": forecast_demand,
+    expired_count = expired_batches.count()
+    near_expiry_count = near_expiry_batches.count()
 
-        # Monthly procurement
-        "procurement_labels": procurement_labels,
-        "procurement_order_values": procurement_order_values,
-        "procurement_quantity_values": procurement_quantity_values,
-    }
+    out_of_stock_count = all_batches.filter(
+        quantity_available__lte=0
+    ).count()
 
-    # --------------------------------------------------
-    # 11. PAGE CONTEXT
-    # --------------------------------------------------
+    low_stock_count = 0
+
+    for medicine in active_medicines:
+        current_stock = MedicineBatch.objects.filter(
+            medicine=medicine,
+            quantity_available__gt=0,
+            expiry_date__gte=today
+        ).aggregate(
+            total=Sum('quantity_available')
+        )['total'] or 0
+
+        if current_stock < medicine.reorder_level:
+            low_stock_count += 1
+
+    batches = all_batches.filter(
+        quantity_available__gt=0
+    ).order_by('expiry_date')[:100]
+
     context = {
-        "today": today,
-        "near_expiry_date": near_expiry_date,
-
-        "total_medicines": total_medicines,
-        "total_batches": total_batches,
-        "total_stock_volume": total_stock_volume,
-
-        "expired_count": expired_count,
-        "near_expiry_count": near_expiry_count,
-
-        "total_dispenses": total_dispenses,
-        "fefo_compliant": fefo_compliant,
-        "fefo_overrides": fefo_overrides,
-        "fefo_compliance_rate": fefo_compliance_rate,
-
-        "top_consumed_medicines": top_consumed_medicines,
-
-        "low_stock_medicines": low_stock_medicines,
-        "total_low_stock_medicines": total_low_stock_medicines,
-
-        "pending_po_count": pending_po_count,
-        "approved_po_count": approved_po_count,
-        "placed_po_count": placed_po_count,
-        "rejected_po_count": rejected_po_count,
-
-        "recent_forecasts": recent_forecasts,
-        "batches": batches,
-
-        "analytics_chart_data": analytics_chart_data,
+        'today': today,
+        'near_expiry_date': near_expiry_date,
+        'total_medicines': total_medicines,
+        'total_batches': all_batches.count(),
+        'active_batches': active_batches,
+        'active_batches_count': active_batches_count,
+        'total_stock_volume': total_stock_volume,
+        'expired_batches': expired_batches,
+        'expired_count': expired_count,
+        'near_expiry_batches': near_expiry_batches,
+        'near_expiry_count': near_expiry_count,
+        'out_of_stock_count': out_of_stock_count,
+        'low_stock_count': low_stock_count,
+        'batches': batches,
     }
 
     return render(
         request,
-        "hospital_admin/analytics.html",
+        'hospital_admin/inventory_overview.html',
         context
     )
 
@@ -1169,6 +1293,247 @@ def procurement_reports_view(request):
         "total_orders": purchase_orders.count(),
     }
     return render(request,"procurement/procurement_reports.html",context,)
+
+@role_required('Hospital Admin', 'Hospital Administrator')
+def hospital_admin_procurement_review_view(request):
+    purchase_orders = PurchaseOrder.objects.select_related(
+        'medicine',
+        'supplier',
+        'raised_by',
+        'recommendation'
+    ).order_by('-order_date')
+
+    pending_pos = purchase_orders.filter(
+        status=PurchaseOrder.Status.PENDING_ADMIN_REVIEW
+    )
+
+    approved_pos = purchase_orders.filter(
+        status=PurchaseOrder.Status.APPROVED
+    )
+
+    placed_pos = purchase_orders.filter(
+        status=PurchaseOrder.Status.PLACED_WITH_SUPPLIER
+    )
+
+    rejected_pos = purchase_orders.filter(
+        status=PurchaseOrder.Status.REJECTED
+    )
+
+    pending_recommendations = ProcurementRecommendation.objects.filter(
+        status=ProcurementRecommendation.Status.PENDING,
+        purchase_order__isnull=True
+    ).select_related(
+        'medicine',
+        'raised_by'
+    ).order_by('-created_at')
+
+    context = {
+        'purchase_orders': purchase_orders,
+        'pending_pos': pending_pos,
+        'pending_review_count': pending_pos.count(),
+        'approved_orders': approved_pos,
+        'approved_orders_count': approved_pos.count(),
+        'placed_orders': placed_pos,
+        'placed_orders_count': placed_pos.count(),
+        'rejected_orders': rejected_pos,
+        'rejected_orders_count': rejected_pos.count(),
+        'pending_recommendations': pending_recommendations,
+        'pending_recommendations_count': pending_recommendations.count(),
+        'today': timezone.localdate(),
+    }
+
+    return render(
+        request,
+        'hospital_admin/procurement_review.html',
+        context
+    )
+
+@role_required('Hospital Admin', 'Hospital Administrator')
+def hospital_admin_purchase_orders_view(request):
+    pending_recommendations = ProcurementRecommendation.objects.filter(
+        status=ProcurementRecommendation.Status.PENDING,
+        purchase_order__isnull=True
+    ).select_related(
+        'medicine',
+        'raised_by'
+    ).order_by('-created_at')
+
+    awaiting_approval_orders = PurchaseOrder.objects.filter(
+        status=PurchaseOrder.Status.PENDING_ADMIN_REVIEW
+    ).select_related(
+        'medicine',
+        'supplier',
+        'raised_by'
+    ).order_by('-order_date')
+
+    approved_orders = PurchaseOrder.objects.filter(
+        status=PurchaseOrder.Status.APPROVED
+    ).select_related(
+        'medicine',
+        'supplier',
+        'raised_by'
+    ).order_by('-order_date')
+
+    awaiting_delivery_orders = PurchaseOrder.objects.filter(
+        status=PurchaseOrder.Status.PLACED_WITH_SUPPLIER
+    ).select_related(
+        'medicine',
+        'supplier',
+        'raised_by'
+    ).order_by('-order_date')
+
+    rejected_orders = PurchaseOrder.objects.filter(
+        status=PurchaseOrder.Status.REJECTED
+    ).select_related(
+        'medicine',
+        'supplier',
+        'raised_by'
+    ).order_by('-order_date')
+
+    context = {
+        'pending_recommendations': pending_recommendations,
+        'pending_recommendations_count': pending_recommendations.count(),
+
+        'awaiting_approval_orders': awaiting_approval_orders,
+        'awaiting_approval_count': awaiting_approval_orders.count(),
+
+        'approved_orders': approved_orders,
+        'approved_orders_count': approved_orders.count(),
+
+        'awaiting_delivery_orders': awaiting_delivery_orders,
+        'awaiting_delivery_count': awaiting_delivery_orders.count(),
+
+        'rejected_orders': rejected_orders,
+        'rejected_orders_count': rejected_orders.count(),
+
+        'today': timezone.localdate(),
+    }
+    return render(request,'hospital_admin/purchase_orders.html',context)
+
+@role_required('Hospital Admin', 'Hospital Administrator')
+def hospital_admin_reports_view(request):
+    today = timezone.localdate()
+    default_start_date = today - timedelta(days=365)
+
+    start_date = parse_date(request.GET.get('start_date', '')) or default_start_date
+    end_date = parse_date(request.GET.get('end_date', '')) or today
+
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+
+    all_batches = MedicineBatch.objects.filter(
+        quantity_available__gt=0
+    )
+
+    active_batches = all_batches.filter(
+        expiry_date__gte=today,
+        medicine__is_active=True
+    )
+
+    expired_batches = all_batches.filter(
+        expiry_date__lt=today
+    )
+
+    expiry_30 = all_batches.filter(
+        expiry_date__gte=today,
+        expiry_date__lte=today + timedelta(days=30)
+    )
+
+    expiry_60 = all_batches.filter(
+        expiry_date__gte=today,
+        expiry_date__lte=today + timedelta(days=60)
+    )
+
+    expiry_90 = all_batches.filter(
+        expiry_date__gte=today,
+        expiry_date__lte=today + timedelta(days=90)
+    )
+
+    transactions = DispensingTransaction.objects.filter(
+        dispensed_at__date__gte=start_date,
+        dispensed_at__date__lte=end_date
+    ).select_related(
+        'medicine',
+        'batch',
+        'dispensed_by'
+    ).order_by('-dispensed_at')
+
+    dispensing_summary = transactions.aggregate(
+        total_quantity=Sum('quantity_dispensed'),
+        total_transactions=Count('id')
+    )
+
+    pending_admin_review_count = PurchaseOrder.objects.filter(
+        status=PurchaseOrder.Status.PENDING_ADMIN_REVIEW
+    ).count()
+
+    approved_order_count = PurchaseOrder.objects.filter(
+        status=PurchaseOrder.Status.APPROVED
+    ).count()
+
+    placed_with_supplier_count = PurchaseOrder.objects.filter(
+        status=PurchaseOrder.Status.PLACED_WITH_SUPPLIER
+    ).count()
+
+    rejected_order_count = PurchaseOrder.objects.filter(
+        status=PurchaseOrder.Status.REJECTED
+    ).count()
+
+    context = {
+        'today': today,
+        'start_date': start_date,
+        'end_date': end_date,
+
+        # Inventory
+        'total_medicines': Medicine.objects.filter(
+            is_active=True
+        ).count(),
+
+        'active_batches': active_batches.count(),
+
+        'total_stock_volume': active_batches.aggregate(
+            total=Sum('quantity_available')
+        )['total'] or 0,
+
+        # Expiry
+        'expiry_risk_count': expiry_30.count(),
+
+        'expired_batch_count': expired_batches.count(),
+
+        'expired_quantity': expired_batches.aggregate(
+            total=Sum('quantity_available')
+        )['total'] or 0,
+
+        'expiry_30_days_count': expiry_30.count(),
+
+        'expiry_30_days_quantity': expiry_30.aggregate(
+            total=Sum('quantity_available')
+        )['total'] or 0,
+
+        'expiry_60_days_count': expiry_60.count(),
+
+        'expiry_60_days_quantity': expiry_60.aggregate(
+            total=Sum('quantity_available')
+        )['total'] or 0,
+
+        'expiry_90_days_count': expiry_90.count(),
+
+        'expiry_90_days_quantity': expiry_90.aggregate(
+            total=Sum('quantity_available')
+        )['total'] or 0,
+
+        # Dispensing
+        'transactions': transactions,
+        'dispensing_transactions': dispensing_summary['total_transactions'] or 0,
+        'total_dispensed_quantity': dispensing_summary['total_quantity'] or 0,
+
+        # Procurement
+        'pending_admin_review_count': pending_admin_review_count,
+        'approved_order_count': approved_order_count,
+        'placed_with_supplier_count': placed_with_supplier_count,
+        'rejected_order_count': rejected_order_count,
+    }
+    return render(request,'hospital_admin/reports.html',context)
 
 #System admin views based on their roles ( Access control, user's management, system settings,audit logs*,System health)
 @login_required(login_url="/login/")

@@ -1,0 +1,728 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Management Reports | Medicine Expiry Management{% endblock %}
+{% block header_title %}Management Reports{% endblock %}
+
+{% block content %}
+
+<style>
+:root {
+    --rp-navy: #102a43;
+    --rp-blue: #164e78;
+    --rp-teal: #0f766e;
+    --rp-green: #15803d;
+    --rp-amber: #b45309;
+    --rp-red: #b91c1c;
+    --rp-bg: #f4f7fb;
+    --rp-border: #e2e8f0;
+    --rp-muted: #64748b;
+    --rp-text: #1e293b;
+}
+
+.reports-page {
+    padding: 24px;
+    min-height: 100vh;
+    background: var(--rp-bg);
+    color: var(--rp-text);
+}
+
+.rp-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+.rp-heading h2 {
+    margin: 0 0 7px;
+    color: var(--rp-navy);
+    font-size: 24px;
+    font-weight: 750;
+}
+
+.rp-heading p {
+    margin: 0;
+    color: var(--rp-muted);
+    font-size: 12px;
+}
+
+.rp-tag {
+    padding: 8px 12px;
+    border-radius: 7px;
+    background: #e0f2fe;
+    color: #075985;
+    font-size: 10px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.rp-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.rp-kpi {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 17px;
+    background: #fff;
+    border: 1px solid var(--rp-border);
+    border-radius: 11px;
+}
+
+.rp-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    font-size: 19px;
+}
+
+.rp-icon.blue { background: #dbeafe; color: #1e40af; }
+.rp-icon.teal { background: #ccfbf1; color: #115e59; }
+.rp-icon.amber { background: #fef3c7; color: #92400e; }
+.rp-icon.green { background: #dcfce7; color: #166534; }
+
+.rp-kpi-label {
+    font-size: 11px;
+    color: var(--rp-muted);
+    margin-bottom: 5px;
+}
+
+.rp-kpi-value {
+    font-size: 22px;
+    font-weight: 750;
+    color: var(--rp-navy);
+}
+
+.rp-kpi-note {
+    font-size: 10px;
+    color: var(--rp-muted);
+    margin-top: 4px;
+}
+
+.rp-panel {
+    background: #fff;
+    border: 1px solid var(--rp-border);
+    border-radius: 11px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.rp-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 17px 20px;
+    border-bottom: 1px solid var(--rp-border);
+}
+
+.rp-panel-header h3 {
+    margin: 0;
+    color: var(--rp-navy);
+    font-size: 14px;
+    font-weight: 750;
+}
+
+.rp-panel-header p {
+    margin: 5px 0 0;
+    color: var(--rp-muted);
+    font-size: 11px;
+}
+
+.rp-filter-area {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #fff;
+}
+
+.rp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 150px;
+}
+
+.rp-field label {
+    color: var(--rp-muted);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.rp-field input,
+.rp-field select {
+    min-height: 37px;
+    padding: 8px 10px;
+    border: 1px solid var(--rp-border);
+    border-radius: 7px;
+    color: var(--rp-text);
+    background: white;
+    font-size: 11px;
+    outline: none;
+}
+
+.rp-field input:focus,
+.rp-field select:focus {
+    border-color: var(--rp-teal);
+}
+
+.rp-button {
+    min-height: 37px;
+    padding: 9px 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 0;
+    border-radius: 7px;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.rp-button-primary {
+    background: var(--rp-teal);
+    color: white;
+}
+
+.rp-button-secondary {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.rp-button-outline {
+    background: white;
+    border: 1px solid var(--rp-border);
+    color: var(--rp-navy);
+}
+
+.rp-button:hover {
+    filter: brightness(.96);
+}
+
+.rp-categories {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+    padding: 18px 20px;
+}
+
+.rp-report-card {
+    border: 1px solid var(--rp-border);
+    border-radius: 10px;
+    padding: 17px;
+    transition: border-color .2s, transform .2s;
+}
+
+.rp-report-card:hover {
+    border-color: #94a3b8;
+    transform: translateY(-2px);
+}
+
+.rp-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.rp-card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+}
+
+.rp-card-icon.inventory { background: #dbeafe; color: #1e40af; }
+.rp-card-icon.expiry { background: #fee2e2; color: #991b1b; }
+.rp-card-icon.dispensing { background: #ccfbf1; color: #115e59; }
+.rp-card-icon.procurement { background: #fef3c7; color: #92400e; }
+.rp-card-icon.forecast { background: #ede9fe; color: #6d28d9; }
+
+.rp-card-type {
+    padding: 5px 8px;
+    border-radius: 20px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 9px;
+    font-weight: 750;
+}
+
+.rp-report-card h4 {
+    color: var(--rp-navy);
+    font-size: 13px;
+    margin: 0 0 7px;
+}
+
+.rp-report-card p {
+    color: var(--rp-muted);
+    font-size: 11px;
+    line-height: 1.6;
+    min-height: 36px;
+    margin: 0 0 14px;
+}
+
+.rp-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.rp-table-wrap {
+    overflow-x: auto;
+}
+
+.rp-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+}
+
+.rp-table th {
+    padding: 12px 14px;
+    background: #f8fafc;
+    color: var(--rp-muted);
+    font-size: 9px;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    border-bottom: 1px solid var(--rp-border);
+}
+
+.rp-table td {
+    padding: 13px 14px;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 11px;
+}
+
+.rp-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.rp-table strong {
+    color: var(--rp-navy);
+}
+
+.rp-status {
+    display: inline-flex;
+    padding: 5px 8px;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 750;
+}
+
+.rp-status.high {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.rp-status.medium {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.rp-status.low {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.rp-empty {
+    text-align: center;
+    padding: 28px 15px;
+    color: var(--rp-muted);
+    font-size: 11px;
+}
+
+.rp-empty strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.rp-footer {
+    padding: 14px 16px;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.rp-report-meta {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--rp-border);
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    color: var(--rp-muted);
+    font-size: 10px;
+}
+
+@media(max-width: 1000px) {
+    .rp-summary { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media(max-width: 650px) {
+    .reports-page { padding: 14px; }
+    .rp-heading { flex-direction: column; }
+    .rp-summary { gap: 9px; }
+    .rp-kpi { padding: 11px; gap: 8px; }
+    .rp-icon { width: 34px; height: 34px; font-size: 15px; }
+    .rp-kpi-value { font-size: 19px; }
+    .rp-categories { grid-template-columns: 1fr; padding: 13px; }
+    .rp-filter-area { padding: 13px; }
+    .rp-field { flex: 1; min-width: 130px; }
+}
+</style>
+
+<div class="reports-page">
+
+    <!-- PAGE HEADING -->
+    <div class="rp-heading">
+        <div>
+            <h2>Management Reports</h2>
+            <p>Review hospital inventory, medicine expiry, dispensing and procurement performance.</p>
+        </div>
+        <div class="rp-tag">HOSPITAL ADMINISTRATION</div>
+    </div>
+
+    <!-- SUMMARY INDICATORS -->
+    <div class="rp-summary">
+
+        <div class="rp-kpi">
+            <div class="rp-icon blue">▤</div>
+            <div>
+                <div class="rp-kpi-label">Registered Medicines</div>
+                <div class="rp-kpi-value">{{ total_medicines|default:"0" }}</div>
+                <div class="rp-kpi-note">Medicines in the catalogue</div>
+            </div>
+        </div>
+
+        <div class="rp-kpi">
+            <div class="rp-icon teal">▦</div>
+            <div>
+                <div class="rp-kpi-label">Active Batches</div>
+                <div class="rp-kpi-value">{{ active_batches|default:"0" }}</div>
+                <div class="rp-kpi-note">Currently available batches</div>
+            </div>
+        </div>
+
+        <div class="rp-kpi">
+            <div class="rp-icon amber">◷</div>
+            <div>
+                <div class="rp-kpi-label">Expiry Risk</div>
+                <div class="rp-kpi-value">{{ expiry_risk_count|default:"0" }}</div>
+                <div class="rp-kpi-note">Batches approaching expiry</div>
+            </div>
+        </div>
+
+        <div class="rp-kpi">
+            <div class="rp-icon green">✓</div>
+            <div>
+                <div class="rp-kpi-label">Dispensing Transactions</div>
+                <div class="rp-kpi-value">{{ dispensing_transactions|default:"0" }}</div>
+                <div class="rp-kpi-note">Recorded dispensing activity</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- REPORT FILTERS -->
+    <div class="rp-panel">
+        <div class="rp-panel-header">
+            <div>
+                <h3>Report Period</h3>
+                <p>Select the reporting period for the available management reports.</p>
+            </div>
+        </div>
+
+        <form method="GET" class="rp-filter-area">
+            <div class="rp-field">
+                <label for="start_date">Start date</label>
+                <input type="date" id="start_date" name="start_date"
+                       value="{{ start_date|default:'' }}">
+            </div>
+
+            <div class="rp-field">
+                <label for="end_date">End date</label>
+                <input type="date" id="end_date" name="end_date"
+                       value="{{ end_date|default:'' }}">
+            </div>
+
+            <div class="rp-field">
+                <label for="report_type">Report category</label>
+                <select name="report_type" id="report_type">
+                    <option value="">All reports</option>
+                    <option value="inventory" {% if request.GET.report_type == "inventory" %}selected{% endif %}>Inventory</option>
+                    <option value="expiry" {% if request.GET.report_type == "expiry" %}selected{% endif %}>Expiry and Wastage</option>
+                    <option value="dispensing" {% if request.GET.report_type == "dispensing" %}selected{% endif %}>Dispensing</option>
+                    <option value="procurement" {% if request.GET.report_type == "procurement" %}selected{% endif %}>Procurement</option>
+                    <option value="forecast" {% if request.GET.report_type == "forecast" %}selected{% endif %}>Forecasting</option>
+                </select>
+            </div>
+
+            <button type="submit" class="rp-button rp-button-primary">
+                Apply Filters
+            </button>
+
+            <a href="{% url 'admin_reports' %}" class="rp-button rp-button-secondary">
+                Reset
+            </a>
+        </form>
+    </div>
+
+    <!-- REPORT CATEGORIES -->
+    <div class="rp-panel">
+        <div class="rp-panel-header">
+            <div>
+                <h3>Available Management Reports</h3>
+                <p>Select a report category to review the relevant operational information.</p>
+            </div>
+        </div>
+
+        <div class="rp-categories">
+
+            <div class="rp-report-card">
+                <div class="rp-card-top">
+                    <div class="rp-card-icon inventory">▤</div>
+                    <span class="rp-card-type">INVENTORY</span>
+                </div>
+                <h4>Inventory Summary Report</h4>
+                <p>
+                    Provides an overview of registered medicines, available stock,
+                    batch distribution, low-stock medicines and stock availability.
+                </p>
+                <div class="rp-card-actions">
+                    <a href="{% url 'inventory_overview' %}"
+                       class="rp-button rp-button-primary">
+                        View Inventory
+                    </a>
+                </div>
+            </div>
+
+            <div class="rp-report-card">
+                <div class="rp-card-top">
+                    <div class="rp-card-icon expiry">◷</div>
+                    <span class="rp-card-type">EXPIRY CONTROL</span>
+                </div>
+                <h4>Expiry and Wastage Report</h4>
+                <p>
+                    Identifies expired and near-expiry batches, expiry exposure
+                    and medicine wastage patterns.
+                </p>
+                <div class="rp-card-actions">
+                    <a href="{% url 'hospital_admin_analytics' %}"
+                       class="rp-button rp-button-primary">
+                        View Expiry Analytics
+                    </a>
+                </div>
+            </div>
+
+            <div class="rp-report-card">
+                <div class="rp-card-top">
+                    <div class="rp-card-icon dispensing">▦</div>
+                    <span class="rp-card-type">CONSUMPTION</span>
+                </div>
+                <h4>Dispensing and Consumption Report</h4>
+                <p>
+                    Summarises medicine dispensing activity and consumption
+                    patterns recorded by the pharmacy.
+                </p>
+                <div class="rp-card-actions">
+                    <a href="{% url 'hospital_admin_analytics' %}"
+                       class="rp-button rp-button-primary">
+                        View Consumption Analytics
+                    </a>
+                </div>
+            </div>
+
+            <div class="rp-report-card">
+                <div class="rp-card-top">
+                    <div class="rp-card-icon procurement">▣</div>
+                    <span class="rp-card-type">PROCUREMENT</span>
+                </div>
+                <h4>Procurement Performance Report</h4>
+                <p>
+                    Reviews purchase orders, approval outcomes, supplier
+                    fulfilment and outstanding deliveries.
+                </p>
+                <div class="rp-card-actions">
+                    <a href="{% url 'admin_purchase_orders' %}"
+                       class="rp-button rp-button-primary">
+                        View Purchase Orders
+                    </a>
+                </div>
+            </div>
+
+            <div class="rp-report-card">
+                <div class="rp-card-top">
+                    <div class="rp-card-icon forecast">⌁</div>
+                    <span class="rp-card-type">DEMAND PLANNING</span>
+                </div>
+                <h4>Demand Forecast and Stock Planning</h4>
+                <p>
+                    Presents forecasted demand, available stock, recommended
+                    procurement quantities and stock planning indicators.
+                </p>
+                <div class="rp-card-actions">
+                    <a href="{% url 'hospital_admin_analytics' %}"
+                       class="rp-button rp-button-primary">
+                        View Planning Analytics
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- EXPIRY RISK REPORT -->
+    <div class="rp-panel">
+        <div class="rp-panel-header">
+            <div>
+                <h3>Medicine Expiry Risk Overview</h3>
+                <p>Current batch exposure based on recorded expiry information.</p>
+            </div>
+        </div>
+
+        <div class="rp-report-meta">
+            <span>Report: Expiry Risk Overview</span>
+            <span>Reporting date: {{ today|date:"d M Y"|default:"Current date" }}</span>
+        </div>
+
+        <div class="rp-table-wrap">
+            <table class="rp-table">
+                <thead>
+                    <tr>
+                        <th>Expiry Category</th>
+                        <th>Number of Batches</th>
+                        <th>Quantity at Risk</th>
+                        <th>Management Priority</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Expired</strong></td>
+                        <td>{{ expired_batch_count|default:"0" }}</td>
+                        <td>{{ expired_quantity|default:"0" }}</td>
+                        <td><span class="rp-status high">Immediate attention</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expiring within 30 days</strong></td>
+                        <td>{{ expiry_30_days_count|default:"0" }}</td>
+                        <td>{{ expiry_30_days_quantity|default:"0" }}</td>
+                        <td><span class="rp-status high">High</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expiring within 60 days</strong></td>
+                        <td>{{ expiry_60_days_count|default:"0" }}</td>
+                        <td>{{ expiry_60_days_quantity|default:"0" }}</td>
+                        <td><span class="rp-status medium">Monitor</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expiring within 90 days</strong></td>
+                        <td>{{ expiry_90_days_count|default:"0" }}</td>
+                        <td>{{ expiry_90_days_quantity|default:"0" }}</td>
+                        <td><span class="rp-status low">Routine monitoring</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PROCUREMENT REPORT -->
+    <div class="rp-panel">
+        <div class="rp-panel-header">
+            <div>
+                <h3>Procurement Status Overview</h3>
+                <p>Management summary of the purchase order workflow.</p>
+            </div>
+        </div>
+
+        <div class="rp-table-wrap">
+            <table class="rp-table">
+                <thead>
+                    <tr>
+                        <th>Procurement Status</th>
+                        <th>Number of Orders</th>
+                        <th>Management Interpretation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Pending Admin Review</strong></td>
+                        <td>{{ pending_admin_review_count|default:"0" }}</td>
+                        <td>Requires administrative approval or rejection.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Approved</strong></td>
+                        <td>{{ approved_order_count|default:"0" }}</td>
+                        <td>Authorised to proceed through procurement.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Placed with Supplier</strong></td>
+                        <td>{{ placed_with_supplier_count|default:"0" }}</td>
+                        <td>Awaiting supplier fulfilment and delivery recording.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Rejected</strong></td>
+                        <td>{{ rejected_order_count|default:"0" }}</td>
+                        <td>Not authorised to proceed.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="rp-footer">
+        <strong>Management note:</strong>
+        Reports should support oversight of medicine availability, expiry exposure,
+        consumption and procurement decisions. Inventory quantities should only be
+        updated through the authorised receiving and inspection workflow.
+    </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const start = document.getElementById("start_date");
+    const end = document.getElementById("end_date");
+
+    if (start && end) {
+        start.addEventListener("change", function () {
+            end.min = this.value || "";
+            if (end.value && this.value && end.value < this.value) {
+                end.value = "";
+            }
+        });
+
+        end.addEventListener("change", function () {
+            if (start.value && this.value && this.value < start.value) {
+                alert("The end date cannot be earlier than the start date.");
+                this.value = "";
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}

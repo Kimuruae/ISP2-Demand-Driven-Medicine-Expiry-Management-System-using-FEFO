@@ -53,10 +53,55 @@ path("system-admin/audit-logs/",views.system_admin_audit_logs_view,name="system_
 path("system-admin/health/",views.system_admin_health_view,name="system_admin_health",),
 
 
-#Hopital Admin Portal
-path('hospital_admin/dashboard/', views.hospital_admin_dashboard_view, name='admin_dashboard'),
-path('hospital_admin/dashboard/po/<int:po_id>/<str:action>/', views.hospital_admin_process_po_view, name='admin_process_po'),
-path("hospital-admin/analytics/",views.hospital_admin_analytics_view,name="hospital_admin_analytics"),
+# HOSPITAL ADMIN PORTAL
+path(
+    'hospital_admin/dashboard/',
+    views.hospital_admin_dashboard_view,
+    name='admin_dashboard'
+),
+
+# Inventory overview
+path(
+    'hospital_admin/inventory/',
+    views.hospital_admin_inventory_view,
+    name='inventory_overview'
+),
+
+# Procurement review
+path(
+    'hospital_admin/procurement-review/',
+    views.hospital_admin_procurement_review_view,
+    name='procurement_review'
+),
+
+# Purchase orders
+path(
+    'hospital_admin/purchase-orders/',
+    views.hospital_admin_purchase_orders_view,
+    name='admin_purchase_orders'
+),
+
+# Management reports
+path(
+    'hospital_admin/reports/',
+    views.hospital_admin_reports_view,
+    name='admin_reports'
+),
+
+# Purchase order approval and rejection
+path(
+    'hospital_admin/dashboard/po/<int:po_id>/<str:action>/',
+    views.hospital_admin_process_po_view,
+    name='admin_process_po'
+),
+
+# Hospital analytics
+path(
+    'hospital-admin/analytics/',
+    views.hospital_admin_analytics_view,
+    name='hospital_admin_analytics'
+),
+
 
 #Pharmacist portal
 path('pharmacist/dispense/', views.dispense_view, name='dispense'),

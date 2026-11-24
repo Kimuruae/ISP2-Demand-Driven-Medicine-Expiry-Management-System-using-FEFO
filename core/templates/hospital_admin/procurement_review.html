@@ -1,0 +1,776 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Procurement Review | Medicine Expiry Management{% endblock %}
+{% block header_title %}Procurement Review{% endblock %}
+
+{% block content %}
+
+<style>
+:root {
+    --pr-navy: #102a43;
+    --pr-blue: #164e78;
+    --pr-teal: #0f766e;
+    --pr-green: #15803d;
+    --pr-red: #b91c1c;
+    --pr-amber: #b45309;
+    --pr-bg: #f4f7fb;
+    --pr-border: #e2e8f0;
+    --pr-muted: #64748b;
+    --pr-text: #1e293b;
+}
+
+.procurement-page {
+    padding: 24px;
+    background: var(--pr-bg);
+    min-height: 100vh;
+    color: var(--pr-text);
+}
+
+.procurement-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.procurement-heading h2 {
+    margin: 0 0 7px;
+    font-size: 24px;
+    font-weight: 750;
+    color: var(--pr-navy);
+}
+
+.procurement-heading p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--pr-muted);
+}
+
+.pr-heading-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 11px;
+    background: #e0f2fe;
+    color: #075985;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pr-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.pr-stat {
+    background: #fff;
+    border: 1px solid var(--pr-border);
+    border-radius: 11px;
+    padding: 17px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+}
+
+.pr-stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    flex-shrink: 0;
+}
+
+.pr-stat-icon.blue { background: #e0f2fe; color: #0369a1; }
+.pr-stat-icon.amber { background: #fef3c7; color: #b45309; }
+.pr-stat-icon.green { background: #dcfce7; color: #15803d; }
+.pr-stat-icon.red { background: #fee2e2; color: #b91c1c; }
+
+.pr-stat-label {
+    font-size: 11px;
+    color: var(--pr-muted);
+    margin-bottom: 5px;
+}
+
+.pr-stat-value {
+    font-size: 23px;
+    line-height: 1.1;
+    font-weight: 750;
+    color: var(--pr-navy);
+}
+
+.pr-stat-note {
+    font-size: 10px;
+    color: var(--pr-muted);
+    margin-top: 5px;
+}
+
+.pr-panel {
+    background: #fff;
+    border: 1px solid var(--pr-border);
+    border-radius: 11px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.pr-panel-header {
+    padding: 17px 20px;
+    border-bottom: 1px solid var(--pr-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.pr-panel-header h3 {
+    margin: 0;
+    font-size: 15px;
+    color: var(--pr-navy);
+    font-weight: 750;
+}
+
+.pr-panel-header p {
+    margin: 5px 0 0;
+    color: var(--pr-muted);
+    font-size: 11px;
+}
+
+.pr-toolbar {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--pr-border);
+    flex-wrap: wrap;
+}
+
+.pr-search {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 340px;
+}
+
+.pr-search input {
+    width: 100%;
+    padding: 10px 12px 10px 35px;
+    border: 1px solid var(--pr-border);
+    border-radius: 7px;
+    outline: none;
+    font-size: 12px;
+    background: #fff;
+}
+
+.pr-search input:focus {
+    border-color: #0f766e;
+    box-shadow: 0 0 0 3px rgba(15,118,110,.08);
+}
+
+.pr-search span {
+    position: absolute;
+    left: 12px;
+    top: 9px;
+    color: var(--pr-muted);
+}
+
+.pr-filter {
+    padding: 9px 11px;
+    border: 1px solid var(--pr-border);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--pr-text);
+    font-size: 12px;
+    outline: none;
+}
+
+.pr-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.pr-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 850px;
+}
+
+.pr-table th {
+    padding: 12px 15px;
+    background: #f8fafc;
+    color: #64748b;
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .45px;
+    font-weight: 750;
+    border-bottom: 1px solid var(--pr-border);
+    white-space: nowrap;
+}
+
+.pr-table td {
+    padding: 14px 15px;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 12px;
+    vertical-align: middle;
+}
+
+.pr-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.pr-order-id {
+    font-weight: 750;
+    color: var(--pr-blue);
+}
+
+.pr-medicine {
+    font-weight: 700;
+    color: var(--pr-navy);
+}
+
+.pr-secondary {
+    color: var(--pr-muted);
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+.pr-status {
+    display: inline-flex;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.pr-status.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.pr-status.approved {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.pr-status.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.pr-status.placed {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.pr-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pr-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    border: 0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 10px;
+    font-weight: 750;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.pr-btn-view {
+    color: #075985;
+    background: #e0f2fe;
+}
+
+.pr-btn-approve {
+    color: #fff;
+    background: var(--pr-green);
+}
+
+.pr-btn-reject {
+    color: #fff;
+    background: var(--pr-red);
+}
+
+.pr-btn:hover {
+    filter: brightness(.95);
+}
+
+.pr-empty {
+    text-align: center;
+    padding: 45px 20px;
+    color: var(--pr-muted);
+}
+
+.pr-empty-icon {
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+.pr-empty h4 {
+    margin: 0 0 6px;
+    color: var(--pr-navy);
+    font-size: 14px;
+}
+
+.pr-empty p {
+    margin: 0;
+    font-size: 12px;
+}
+
+.pr-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.pr-info-card {
+    padding: 17px 19px;
+    background: #fff;
+    border: 1px solid var(--pr-border);
+    border-radius: 11px;
+}
+
+.pr-info-card h4 {
+    font-size: 13px;
+    color: var(--pr-navy);
+    margin: 0 0 8px;
+}
+
+.pr-info-card p {
+    color: var(--pr-muted);
+    font-size: 11px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.pr-footer-note {
+    padding: 13px 16px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.pr-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(15,23,42,.55);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.pr-modal-backdrop.active {
+    display: flex;
+}
+
+.pr-modal {
+    background: #fff;
+    width: 100%;
+    max-width: 440px;
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.2);
+}
+
+.pr-modal h3 {
+    color: var(--pr-navy);
+    font-size: 17px;
+    margin: 0 0 8px;
+}
+
+.pr-modal p {
+    color: var(--pr-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.pr-modal textarea {
+    width: 100%;
+    min-height: 95px;
+    padding: 10px;
+    border: 1px solid var(--pr-border);
+    border-radius: 7px;
+    resize: vertical;
+    font: inherit;
+    font-size: 12px;
+    margin: 8px 0 14px;
+}
+
+.pr-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.pr-btn-cancel {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+@media (max-width: 1000px) {
+    .pr-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 650px) {
+    .procurement-page { padding: 14px; }
+    .procurement-heading { flex-direction: column; }
+    .pr-stats { grid-template-columns: 1fr 1fr; gap: 9px; }
+    .pr-stat { padding: 12px; gap: 8px; }
+    .pr-stat-icon { width: 34px; height: 34px; font-size: 15px; }
+    .pr-stat-value { font-size: 19px; }
+    .pr-info-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="procurement-page">
+
+    <div class="procurement-heading">
+        <div>
+            <h2>Procurement Review</h2>
+            <p>Review and oversee medicine purchase orders before supplier fulfilment.</p>
+        </div>
+        <div class="pr-heading-label">
+            <span>●</span> HOSPITAL ADMINISTRATION
+        </div>
+    </div>
+
+    <!-- PROCUREMENT SUMMARY -->
+    <div class="pr-stats">
+
+        <div class="pr-stat">
+            <div class="pr-stat-icon amber">◷</div>
+            <div>
+                <div class="pr-stat-label">Pending Review</div>
+                <div class="pr-stat-value">{{ pending_review_count|default:"0" }}</div>
+                <div class="pr-stat-note">Orders awaiting a decision</div>
+            </div>
+        </div>
+
+        <div class="pr-stat">
+            <div class="pr-stat-icon green">✓</div>
+            <div>
+                <div class="pr-stat-label">Approved Orders</div>
+                <div class="pr-stat-value">{{ approved_orders_count|default:"0" }}</div>
+                <div class="pr-stat-note">Orders approved by administration</div>
+            </div>
+        </div>
+
+        <div class="pr-stat">
+            <div class="pr-stat-icon blue">▣</div>
+            <div>
+                <div class="pr-stat-label">Orders Placed</div>
+                <div class="pr-stat-value">{{ placed_orders_count|default:"0" }}</div>
+                <div class="pr-stat-note">Orders placed with suppliers</div>
+            </div>
+        </div>
+
+        <div class="pr-stat">
+            <div class="pr-stat-icon red">!</div>
+            <div>
+                <div class="pr-stat-label">Rejected Orders</div>
+                <div class="pr-stat-value">{{ rejected_orders_count|default:"0" }}</div>
+                <div class="pr-stat-note">Orders not approved</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- REVIEW GUIDANCE -->
+    <div class="pr-info-grid">
+        <div class="pr-info-card">
+            <h4>Administrative Oversight</h4>
+            <p>
+                Examine each purchase order against the hospital's medicine requirements,
+                available stock information, recommended quantities and supplier details
+                before making an approval decision.
+            </p>
+        </div>
+
+        <div class="pr-info-card">
+            <h4>Procurement Control</h4>
+            <p>
+                Approval authorises the Procurement Officer to proceed with the supplier
+                workflow. It does not automatically record a delivery or increase inventory.
+                Stock is updated through the goods-receiving and inspection process.
+            </p>
+        </div>
+    </div>
+
+    <!-- PURCHASE ORDER REVIEW TABLE -->
+    <div class="pr-panel">
+
+        <div class="pr-panel-header">
+            <div>
+                <h3>Purchase Orders</h3>
+                <p>Review submitted orders and their current approval status.</p>
+            </div>
+        </div>
+
+        <div class="pr-toolbar">
+            <div class="pr-search">
+                <span>⌕</span>
+                <input type="text" id="orderSearch"
+                       placeholder="Search order, supplier or medicine...">
+            </div>
+
+            <select class="pr-filter" id="statusFilter">
+                <option value="">All statuses</option>
+                <option value="pending">Pending Admin Review</option>
+                <option value="approved">Approved</option>
+                <option value="placed">Placed with Supplier</option>
+                <option value="rejected">Rejected</option>
+            </select>
+        </div>
+
+        <div class="pr-table-wrap">
+            <table class="pr-table" id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>Purchase Order</th>
+                        <th>Supplier</th>
+                        <th>Medicine</th>
+                        <th>Quantity</th>
+                        <th>Order Value</th>
+                        <th>Date Created</th>
+                        <th>Status</th>
+                        <th>Administrative Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for order in purchase_orders %}
+                    <tr class="order-row"
+                        data-search="{{ order.purchase_order_id|default:order.id }} {{ order.supplier.name }} {{ order.medicine.name }}"
+                        data-status="{{ order.status|lower }}">
+
+                        <td>
+                            <div class="pr-order-id">
+                                {{ order.purchase_order_id|default:order.id }}
+                            </div>
+                            <div class="pr-secondary">Purchase order</div>
+                        </td>
+
+                        <td>
+                            <strong>{{ order.supplier.name|default:"Not specified" }}</strong>
+                        </td>
+
+                        <td>
+                            <div class="pr-medicine">
+                                {{ order.medicine.name|default:"Multiple / Not specified" }}
+                            </div>
+                        </td>
+
+                        <td>
+                            {{ order.quantity|default:"—" }}
+                        </td>
+
+                        <td>
+                            {% if order.total_cost %}
+                                KSh {{ order.total_cost|floatformat:2 }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ order.created_at|date:"d M Y"|default:"—" }}
+                        </td>
+
+                        <td>
+                            {% with current_status=order.status|lower %}
+                                {% if "pending" in current_status %}
+                                    <span class="pr-status pending">{{ order.status }}</span>
+                                {% elif "reject" in current_status %}
+                                    <span class="pr-status rejected">{{ order.status }}</span>
+                                {% elif "placed" in current_status %}
+                                    <span class="pr-status placed">{{ order.status }}</span>
+                                {% elif "approv" in current_status %}
+                                    <span class="pr-status approved">{{ order.status }}</span>
+                                {% else %}
+                                    <span class="pr-status">{{ order.status }}</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+
+                        <td>
+                            <div class="pr-actions">
+
+                                <!-- Replace with the actual order-detail URL if available. -->
+                                <a href="#order-{{ order.id }}" class="pr-btn pr-btn-view"
+                                   onclick="showOrderDetails(event, '{{ order.id }}')">
+                                    View
+                                </a>
+
+                                {% if "Pending Admin Review" in order.status %}
+                                <!-- Connect these forms to the actual backend action names. -->
+                                <form method="POST" action=""
+                                      onsubmit="return confirm('Approve this purchase order?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" class="pr-btn pr-btn-approve">
+                                        Approve
+                                    </button>
+                                </form>
+
+                                <button type="button" class="pr-btn pr-btn-reject"
+                                        onclick="openRejectModal('{{ order.id }}')">
+                                    Reject
+                                </button>
+                                {% endif %}
+
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr id="order-{{ order.id }}" class="order-detail-row" hidden>
+                        <td colspan="8">
+                            <strong>Order details</strong>
+                            <div class="pr-secondary">
+                                Order reference: {{ order.purchase_order_id|default:order.id }}
+                                &nbsp; | &nbsp;
+                                Supplier: {{ order.supplier.name|default:"Not specified" }}
+                                &nbsp; | &nbsp;
+                                Status: {{ order.status }}
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="8">
+                            <div class="pr-empty">
+                                <div class="pr-empty-icon">▤</div>
+                                <h4>No purchase orders available</h4>
+                                <p>Purchase orders submitted for administrative review will appear here.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="pr-footer-note">
+        <strong>Important:</strong> Approval and rejection decisions should be recorded
+        through the system's existing purchase-order workflow. Approved orders proceed
+        to supplier placement by the Procurement Officer. Goods received are recorded
+        separately by the Store Manager.
+    </div>
+
+</div>
+
+<!-- REJECTION MODAL -->
+<div class="pr-modal-backdrop" id="rejectModal">
+    <div class="pr-modal">
+        <h3>Reject Purchase Order</h3>
+        <p>Provide a reason for rejecting this purchase order. The reason should be recorded for accountability.</p>
+
+        <form method="POST" action="" id="rejectForm">
+            {% csrf_token %}
+            <input type="hidden" name="order_id" id="rejectOrderId">
+            <input type="hidden" name="action" value="reject">
+
+            <label for="rejectionReason" style="font-size:12px;font-weight:700;">
+                Reason for rejection
+            </label>
+            <textarea id="rejectionReason" name="rejection_reason"
+                      placeholder="Enter the reason for rejecting this order..."
+                      required></textarea>
+
+            <div class="pr-modal-actions">
+                <button type="button" class="pr-btn pr-btn-cancel"
+                        onclick="closeRejectModal()">Cancel</button>
+                <button type="submit" class="pr-btn pr-btn-reject">
+                    Confirm Rejection
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("orderSearch");
+    const statusFilter = document.getElementById("statusFilter");
+    const rows = document.querySelectorAll(".order-row");
+
+    function filterOrders() {
+        const search = searchInput.value.toLowerCase().trim();
+        const status = statusFilter.value.toLowerCase();
+
+        rows.forEach(function (row) {
+            const searchText = (row.dataset.search || "").toLowerCase();
+            const rowStatus = (row.dataset.status || "").toLowerCase();
+
+            const matchesSearch = searchText.includes(search);
+            const matchesStatus = !status || rowStatus.includes(status);
+
+            row.style.display =
+                matchesSearch && matchesStatus ? "" : "none";
+
+            const detailRow = document.getElementById(
+                row.querySelector("a.pr-btn-view")?.getAttribute("href")?.replace("#order-", "order-")
+            );
+
+            if (detailRow) detailRow.hidden = true;
+        });
+    }
+
+    searchInput.addEventListener("input", filterOrders);
+    statusFilter.addEventListener("change", filterOrders);
+});
+
+function showOrderDetails(event, orderId) {
+    event.preventDefault();
+    const row = document.getElementById("order-" + orderId);
+
+    if (row) {
+        row.hidden = !row.hidden;
+    }
+}
+
+function openRejectModal(orderId) {
+    document.getElementById("rejectOrderId").value = orderId;
+    document.getElementById("rejectModal").classList.add("active");
+}
+
+function closeRejectModal() {
+    document.getElementById("rejectModal").classList.remove("active");
+}
+
+document.getElementById("rejectModal").addEventListener("click", function (event) {
+    if (event.target === this) {
+        closeRejectModal();
+    }
+});
+</script>
+
+{% endblock %}
