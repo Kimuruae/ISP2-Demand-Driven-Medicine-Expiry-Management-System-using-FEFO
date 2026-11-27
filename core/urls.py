@@ -3,6 +3,7 @@ from . import views
 from django.contrib.auth import views as auth_views
 from .views import pharmacist_dashboard_view
 from . import receiving_views
+from . import procurement_views
 
 urlpatterns = [
 #Public Website landing pages and authentication links
@@ -124,14 +125,21 @@ path("receiving/receipts/<int:receipt_id>/",receiving_views.goods_receipt_detail
 path("receiving/receipts/<int:receipt_id>/add-item/",receiving_views.goods_receipt_add_item,name="goods_receipt_add_item"),
 path("receiving/items/<int:item_id>/inspect/",receiving_views.goods_receipt_inspect_item,name="goods_receipt_inspect_item"),
 
-#Procurement Officer Portal
-path('procurement/', views.procurement_dashboard_view, name='procurement'),
-path("procurement/reports/",views.procurement_reports_view, name="procurement_reports",),
-path('procurement/po/<int:po_id>/place/', views.place_supplier_order_view, name='place_supplier_order'),
+    # Procurement Officer Portal
+    path('procurement/', views.procurement_dashboard_view, name='procurement'),
+    path('procurement/alerts/', procurement_views.procurement_alerts_view, name='procurement_alerts'),
+    path('procurement/recommendations/', procurement_views.procurement_recommendations_view,
+         name='procurement_recommendations'),
+    path('procurement/orders/', procurement_views.procurement_orders_view, name='procurement_orders'),
+    path('procurement/delivery/', procurement_views.procurement_delivery_view, name='procurement_delivery'),
+    path('procurement/analytics/', procurement_views.procurement_analytics_view, name='procurement_analytics'),
+    path("procurement/reports/", procurement_views.procurement_reports_view, name="procurement_reports"),
+    path('procurement/po/<int:po_id>/place/', views.place_supplier_order_view, name='place_supplier_order'),
 
-path("alerts/", views.alerts_view, name="alerts"),
 path("alerts/<int:alert_id>/acknowledge/",views.acknowledge_user_alert,name="acknowledge_user_alert"),
 path("alerts/<int:alert_id>/resolve/",views.resolve_user_alert,name="resolve_user_alert"),
 
 path("profile/", views.profile_view, name="profile"),
+
+path("alerts/",views.alerts_entry_view,name="alerts",),
 ]

@@ -1,58 +1,162 @@
 
 {% extends "base.html" %}
 
+{% block title %}Account Details | Medicine Expiry Management System{% endblock %}
+
 {% block content %}
+
 <style>
+    :root {
+        --green-dark: #064e3b;
+        --green-primary: #0f766e;
+        --green-mid: #0d9488;
+        --green-light: #ccfbf1;
+        --blue-accent: #164e63;
+        --blue-soft: #e0f2fe;
+        --white: #ffffff;
+        --text-dark: #1e293b;
+    }
+
+    /* PAGE */
     .profile-page {
-        max-width: 1050px;
+        max-width: 1150px;
         margin: 0 auto;
         padding: 24px;
-        color: #1E293B;
+        color: var(--text-dark);
         font-family: "Segoe UI", Arial, sans-serif;
     }
 
+    /* PROFILE BANNER */
     .profile-banner {
-        padding: 28px;
+        padding: 36px;
         border-radius: 16px;
-        background: linear-gradient(120deg, #16324F, #0F766E);
+        background: linear-gradient(120deg, #064e3b 0%, #0f766e 65%, #164e63 100%);
         color: white;
         margin-bottom: 22px;
+        min-height: 205px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 30px;
+        box-shadow: 0 6px 20px rgba(6, 95, 86, .16);
     }
 
-    .profile-banner h1 {
-        margin: 0 0 8px;
-        font-size: 28px;
+    .profile-banner-main {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
     }
 
-    .profile-banner p {
-        margin: 0;
-        color: #D5E2EE;
-    }
-
-    .profile-grid {
+    .profile-avatar {
+        width: 70px;
+        height: 70px;
+        flex-shrink: 0;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 20px;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--green-light);
+        color: var(--green-dark);
+        font-size: 27px;
+        font-weight: 800;
     }
 
-    .profile-card {
-        background: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 14px;
-        padding: 24px;
-        box-shadow: 0 4px 16px #16324F0A;
+    .profile-identity {
+        flex: 1;
+        min-width: 180px;
+    }
+
+    .profile-identity h1 {
+        margin: 0 0 7px;
+        color: white;
+        font-size: 27px;
+        font-weight: 750;
+        overflow-wrap: anywhere;
+    }
+
+    .profile-identity p {
+        margin: 0;
+        color: #d1fae5;
+        font-size: 13px;
+    }
+
+    .profile-banner-meta {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,.22);
+    }
+
+    .profile-banner-meta div {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
         min-width: 0;
     }
 
-    .profile-card h2 {
-        margin: 0 0 20px;
-        font-size: 18px;
-        color: #16324F;
+    .profile-banner-meta span {
+        color: #a7f3d0;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .8px;
     }
 
+    .profile-banner-meta strong {
+        color: white;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+    /* ACCOUNT STATUS */
+    .profile-status {
+        display: inline-block;
+        padding: 7px 12px;
+        border-radius: 20px;
+        background: #dcfce7;
+        color: #166534;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .profile-status.inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* MAIN GRID */
+    .profile-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        align-items: stretch;
+    }
+
+    /* PROFILE CARDS */
+    .profile-card {
+        min-width: 0;
+        padding: 24px;
+        background: linear-gradient(145deg, #0f766e 0%, #0d9488 72%, #155e75 100%);
+        border: 1px solid #0f766e;
+        border-top: 4px solid var(--blue-accent);
+        border-radius: 14px;
+        box-shadow: 0 5px 16px rgba(15, 118, 110, .13);
+        color: white;
+    }
+
+    .profile-card h3 {
+        margin: 0 0 18px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(255,255,255,.22);
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    /* PERSONAL DETAILS */
     .profile-field {
         padding: 13px 0;
-        border-bottom: 1px solid #E2E8F0;
+        border-bottom: 1px solid rgba(255,255,255,.17);
     }
 
     .profile-field:last-child {
@@ -61,137 +165,286 @@
 
     .profile-label {
         display: block;
-        margin-bottom: 5px;
-        color: #64748B;
-        font-size: 12px;
+        margin-bottom: 6px;
+        color: #bff7eb;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .5px;
     }
 
     .profile-value {
+        color: white;
+        font-size: 13px;
         font-weight: 600;
         overflow-wrap: anywhere;
     }
 
-    .profile-role {
-        display: inline-block;
-        padding: 6px 11px;
-        border-radius: 20px;
-        background: #CCFBF1;
-        color: #115E59;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .profile-status {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 20px;
-        background: #DCFCE7;
-        color: #166534;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .profile-form p {
-        margin-bottom: 15px;
-    }
-
+    /* FORM CONTENT */
     .profile-form label {
         display: block;
-        margin-bottom: 7px;
-        font-size: 13px;
-        font-weight: 600;
+        margin-bottom: 8px;
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
     }
 
     .profile-form input {
         width: 100%;
-        padding: 11px;
-        border: 1px solid #CBD5E1;
-        border-radius: 8px;
         box-sizing: border-box;
-        font: inherit;
+        padding: 12px 13px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background: white;
+        color: #1e293b;
+        font-family: inherit;
+        font-size: 13px;
+        transition: border-color .2s, box-shadow .2s;
     }
 
     .profile-form input:focus {
-        outline: 3px solid #0F766E20;
-        border-color: #0F766E;
+        outline: none;
+        border-color: var(--blue-accent);
+        box-shadow: 0 0 0 3px rgba(224,242,254,.35);
     }
 
     .profile-form .helptext {
         display: block;
-        margin-top: 6px;
-        color: #64748B;
-        font-size: 12px;
+        margin-top: 7px;
+        color: #d1fae5;
+        font-size: 11px;
+        line-height: 1.6;
     }
 
     .profile-form ul.errorlist {
-        color: #B91C1C;
+        padding-left: 18px;
+        color: #fecaca;
         font-size: 12px;
     }
 
+    .profile-form p {
+        margin: 0 0 16px;
+    }
+
+    .profile-help {
+        margin: 0 0 18px;
+        color: #d1fae5;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    /* BUTTONS */
     .profile-button {
         width: 100%;
-        padding: 12px;
-        border: none;
+        padding: 12px 15px;
+        border: 1px solid var(--blue-accent);
         border-radius: 8px;
-        background: #0F766E;
-        color: white;
-        font-weight: 700;
+        background: var(--blue-soft);
+        color: var(--blue-accent);
+        font-size: 13px;
+        font-weight: 750;
         cursor: pointer;
+        transition: background .2s ease, transform .2s ease;
     }
 
     .profile-button:hover {
-        background: #115E59;
+        background: #bae6fd;
+        transform: translateY(-1px);
     }
 
+    .profile-button:focus-visible {
+        outline: 3px solid #a5f3fc;
+        outline-offset: 3px;
+    }
+
+    /* FULL-WIDTH PASSWORD CARD */
+    .password-card {
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 18px;
+    }
+
+    .password-fields {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        align-items: start;
+    }
+
+    .password-fields > div {
+        min-width: 0;
+    }
+
+    .password-fields input {
+        width: 100%;
+    }
+
+    .password-button {
+        max-width: 260px;
+        margin-top: 8px;
+    }
+
+    /* MESSAGES */
     .profile-messages {
-        margin-bottom: 16px;
+        margin-bottom: 18px;
     }
 
     .profile-message {
-        padding: 12px;
-        border-radius: 8px;
+        padding: 12px 14px;
         margin-bottom: 8px;
-        background: #DCFCE7;
+        border-radius: 8px;
+        background: #dcfce7;
         color: #166534;
+        font-size: 13px;
     }
 
     .profile-error {
         padding: 12px;
+        margin-bottom: 14px;
         border-radius: 8px;
-        margin-bottom: 12px;
-        background: #FEE2E2;
-        color: #991B1B;
-    }
-
-    .profile-help {
-        margin-top: 16px;
-        color: #64748B;
+        background: #fee2e2;
+        color: #991b1b;
         font-size: 12px;
-        line-height: 1.6;
     }
 
-    @media (max-width: 700px) {
-        .profile-grid {
-            grid-template-columns: 1fr;
+    /* TABLET */
+    @media (max-width: 900px) {
+        .profile-page {
+            padding: 18px;
         }
 
+        .profile-banner {
+            padding: 28px;
+        }
+
+        .profile-card {
+            padding: 19px;
+        }
+
+        .password-fields {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    /* MOBILE */
+    @media (max-width: 760px) {
         .profile-page {
             padding: 14px;
         }
 
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+
         .profile-banner {
-            padding: 22px;
+            padding: 23px;
+            min-height: auto;
+            gap: 24px;
+        }
+
+        .profile-banner-meta {
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .password-fields {
+            grid-template-columns: 1fr;
+        }
+
+        .password-button {
+            max-width: 100%;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .profile-banner {
+            padding: 19px;
+        }
+
+        .profile-avatar {
+            width: 52px;
+            height: 52px;
+            font-size: 21px;
+        }
+
+        .profile-identity h1 {
+            font-size: 21px;
+        }
+
+        .profile-card {
+            padding: 17px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .profile-button,
+        .profile-form input {
+            transition: none;
         }
     }
 </style>
 
 <div class="profile-page">
 
+    <!-- ACCOUNT BANNER -->
     <header class="profile-banner">
-        <h1>My Profile</h1>
-        <p>View your account details, assigned role and security settings.</p>
+        <div class="profile-banner-main">
+
+            <div class="profile-avatar">
+                {{ profile_user.first_name|default:profile_user.username|first|upper }}
+            </div>
+
+            <div class="profile-identity">
+                <h1>
+                    {% with full_name=profile_user.get_full_name %}
+                        {{ full_name|default:profile_user.username }}
+                    {% endwith %}
+                </h1>
+
+                <p>
+                    {% if assigned_role %}
+                        {{ assigned_role.name }}
+                    {% else %}
+                        Role not assigned
+                    {% endif %}
+                </p>
+            </div>
+
+            <div>
+                {% if profile_user.is_active %}
+                    <span class="profile-status">Active Account</span>
+                {% else %}
+                    <span class="profile-status inactive">Inactive Account</span>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="profile-banner-meta">
+            <div>
+                <span>USERNAME</span>
+                <strong>{{ profile_user.username }}</strong>
+            </div>
+
+            <div>
+                <span>DATE JOINED</span>
+                <strong>{{ profile_user.date_joined|date:"d M Y" }}</strong>
+            </div>
+
+            <div>
+                <span>LAST LOGIN</span>
+                <strong>
+                    {% if profile_user.last_login %}
+                        {{ profile_user.last_login|date:"d M Y, H:i" }}
+                    {% else %}
+                        No previous login
+                    {% endif %}
+                </strong>
+            </div>
+        </div>
     </header>
 
+    <!-- MESSAGES -->
     {% if messages %}
         <div class="profile-messages">
             {% for message in messages %}
@@ -200,28 +453,39 @@
         </div>
     {% endif %}
 
+    <!-- PERSONAL DETAILS AND PHONE UPDATE -->
     <div class="profile-grid">
 
-        <!-- Account information -->
+        <!-- PERSONAL DETAILS -->
         <section class="profile-card">
-            <h2>Account Information</h2>
+            <h3>Personal Details</h3>
 
             <div class="profile-field">
-                <span class="profile-label">Full Name</span>
+                <span class="profile-label">First Name</span>
                 <div class="profile-value">
-                    {% with full_name=profile_user.get_full_name %}
-                        {% if full_name %}
-                            {{ full_name }}
-                        {% else %}
-                            {{ profile_user.username }}
-                        {% endif %}
-                    {% endwith %}
+                    {{ profile_user.first_name|default:"Not provided" }}
+                </div>
+            </div>
+
+            <div class="profile-field">
+                <span class="profile-label">Second Name</span>
+                <div class="profile-value">
+                    {{ profile_user.middle_name|default:"Not provided" }}
+                </div>
+            </div>
+
+            <div class="profile-field">
+                <span class="profile-label">Last Name</span>
+                <div class="profile-value">
+                    {{ profile_user.last_name|default:"Not provided" }}
                 </div>
             </div>
 
             <div class="profile-field">
                 <span class="profile-label">Username</span>
-                <div class="profile-value">{{ profile_user.username }}</div>
+                <div class="profile-value">
+                    {{ profile_user.username }}
+                </div>
             </div>
 
             <div class="profile-field">
@@ -237,59 +501,61 @@
                     {{ profile_user.phone_number|default:"Not provided" }}
                 </div>
             </div>
-
-            <div class="profile-field">
-                <span class="profile-label">Assigned Role</span>
-                <div class="profile-value">
-                    {% if assigned_role %}
-                        <span class="profile-role">
-                            {{ assigned_role.name }}
-                        </span>
-                    {% else %}
-                        Not assigned
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="profile-field">
-                <span class="profile-label">Account Status</span>
-                <div class="profile-value">
-                    {% if profile_user.is_active %}
-                        <span class="profile-status">Active</span>
-                    {% else %}
-                        <span class="profile-role">Inactive</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="profile-field">
-                <span class="profile-label">Member Since</span>
-                <div class="profile-value">
-                    {{ profile_user.date_joined|date:"d M Y" }}
-                </div>
-            </div>
         </section>
 
-        <!-- Password management -->
+        <!-- UPDATE PHONE NUMBER -->
         <section class="profile-card">
-            <h2>Change Password</h2>
+            <h3>Update Phone Number</h3>
 
             <p class="profile-help">
-                Enter your current password, then choose and confirm
-                your new password.
+                Maintain an up-to-date contact number associated with your account.
             </p>
 
             <form method="post" class="profile-form">
                 {% csrf_token %}
+                <input type="hidden" name="form_type" value="phone">
 
-                {% if password_form.non_field_errors %}
-                    <div class="profile-error">
-                        {{ password_form.non_field_errors }}
-                    </div>
-                {% endif %}
+                <p>
+                    <label for="phone_number">Phone Number</label>
+                    <input
+                        type="tel"
+                        id="phone_number"
+                        name="phone_number"
+                        value="{{ profile_user.phone_number|default:'' }}"
+                        placeholder="Enter phone number"
+                        autocomplete="tel"
+                    >
+                </p>
 
+                <button type="submit" class="profile-button">
+                    Update Phone Number
+                </button>
+            </form>
+        </section>
+
+    </div>
+
+    <!-- CHANGE PASSWORD: FULL WIDTH BELOW -->
+    <section class="profile-card password-card">
+        <h3>Change Password</h3>
+
+        <p class="profile-help">
+            Enter your current password and choose a new password.
+        </p>
+
+        <form method="post" class="profile-form">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="password">
+
+            {% if password_form.non_field_errors %}
+                <div class="profile-error">
+                    {{ password_form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="password-fields">
                 {% for field in password_form %}
-                    <p>
+                    <div>
                         <label for="{{ field.id_for_label }}">
                             {{ field.label }}
                         </label>
@@ -303,24 +569,19 @@
                         {% endif %}
 
                         {% for error in field.errors %}
-                            <span style="color:#B91C1C;font-size:12px;">
+                            <span style="display:block;color:#fecaca;font-size:12px;margin-top:5px;">
                                 {{ error }}
                             </span>
                         {% endfor %}
-                    </p>
+                    </div>
                 {% endfor %}
+            </div>
 
-                <button type="submit" class="profile-button">
-                    Update Password
-                </button>
-            </form>
+            <button type="submit" class="profile-button password-button">
+                Update Password
+            </button>
+        </form>
+    </section>
 
-            <p class="profile-help">
-                Use a strong, unique password. Your current password
-                is required to authorise the change.
-            </p>
-        </section>
-
-    </div>
 </div>
 {% endblock %}

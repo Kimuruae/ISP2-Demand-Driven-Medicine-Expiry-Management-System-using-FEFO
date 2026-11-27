@@ -1,0 +1,696 @@
+{% extends 'base.html' %}
+{% block title %}Hospital Administration | Medicine Expiry Management{% endblock %}
+{% block nav_dash %}active{% endblock %}
+{% block header_title %}Hospital Operations{% endblock %}
+
+{% comment %}
+HOSPITAL ADMIN BASE
+Every Hospital Admin page extends this file. It owns the left sidebar (the only
+place navigation lives), the single banner, the message area and all shared
+styles. A page fills in these blocks:
+
+    title            browser tab title
+    banner_eyebrow   small line above the banner heading (optional)
+    banner_title     banner heading
+    banner_text      banner paragraph
+    banner_actions   right-hand side of the banner (optional)
+    extra_css        page-only styles (optional)
+    page_content     the page itself
+    extra_js         page-only scripts (optional)
+
+Card height: change --ha-card-height below to resize every scrolling card.
+{% endcomment %}
+
+{% block content %}
+<div class="admin-shell">
+    <style>
+        .admin-shell {
+            --admin-navy: #102f4b;
+            --admin-navy-2: #17496b;
+            --admin-teal: #087f80;
+            --admin-mint: #32c6ad;
+            --admin-ink: #1b2d43;
+            --admin-muted: #718096;
+            --admin-border: #e5ebf1;
+            --admin-bg: #f4f7fa;
+            --admin-white: #ffffff;
+            --ha-card-height: 400px;
+            color: var(--admin-ink);
+            font-family: Arial, sans-serif;
+            width: 100%;
+        }
+        .admin-shell *,
+        .admin-shell *::before,
+        .admin-shell *::after { box-sizing: border-box; }
+
+        /* ---------- LAYOUT: SIDEBAR + MAIN ---------- */
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 238px minmax(0, 1fr);
+            gap: 20px;
+            align-items: start;
+            width: 100%;
+        }
+        .admin-sidebar {
+            position: sticky;
+            top: 16px;
+            min-height: calc(100vh - 32px);
+            display: flex;
+            flex-direction: column;
+            padding: 22px 13px 15px;
+            color: #fff;
+            background: linear-gradient(180deg, #102f4b 0%, #123c59 100%);
+            border-radius: 13px;
+            box-shadow: 0 8px 24px rgba(16, 47, 75, .12);
+        }
+        .admin-brand {
+            padding: 5px 11px 21px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid rgba(255,255,255,.13);
+        }
+        .admin-brand-mark {
+            display: grid;
+            place-items: center;
+            width: 37px;
+            height: 37px;
+            margin-bottom: 13px;
+            border-radius: 9px;
+            color: #8df0dd;
+            background: rgba(50,198,173,.16);
+            font-size: 19px;
+            font-weight: 800;
+        }
+        .admin-brand strong {
+            display: block;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: .5px;
+        }
+        .admin-brand span {
+            display: block;
+            margin-top: 5px;
+            color: #adc2d1;
+            font-size: 10px;
+            line-height: 1.5;
+        }
+        .admin-nav-label {
+            padding: 0 11px;
+            margin: 0 0 9px;
+            color: #83a2b8;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+        .admin-nav { display: flex; flex-direction: column; gap: 5px; }
+        .admin-nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 43px;
+            padding: 10px 11px;
+            border-radius: 8px;
+            color: #c6d6e1;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 700;
+            transition: background .18s ease, color .18s ease;
+        }
+        .admin-nav a:hover { color: #fff; background: rgba(255,255,255,.09); }
+        .admin-nav a.active {
+            color: #fff;
+            background: var(--admin-teal);
+            box-shadow: 0 5px 12px rgba(0,0,0,.12);
+        }
+        .admin-nav-icon {
+            display: grid;
+            place-items: center;
+            width: 22px;
+            flex: 0 0 22px;
+            font-size: 16px;
+        }
+        .admin-sidebar-footer {
+            margin-top: auto;
+            padding: 17px 11px 3px;
+            border-top: 1px solid rgba(255,255,255,.13);
+            color: #9fb7c7;
+            font-size: 9px;
+            line-height: 1.7;
+        }
+        .admin-main { min-width: 0; padding: 0 0 24px; }
+
+        /* ---------- THE ONE BANNER ---------- */
+        .sm-header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 22px;
+            min-height: 148px;
+            margin: 0 0 22px;
+            padding: 26px 31px;
+            overflow: hidden;
+            isolation: isolate;
+            border-radius: 13px;
+            background: linear-gradient(112deg, #102f4b 0%, #17496b 58%, #087f80 100%);
+            color: #fff;
+            box-shadow: 0 8px 22px rgba(16,47,75,.13);
+        }
+        .sm-header::before {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            width: 250px;
+            height: 250px;
+            right: 15%;
+            top: -145px;
+            border: 1px solid rgba(255,255,255,.10);
+            border-radius: 50%;
+            box-shadow: 0 0 0 28px rgba(255,255,255,.025), 0 0 0 58px rgba(255,255,255,.02);
+        }
+        .sm-header::after {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            width: 5px;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            background: var(--admin-mint);
+        }
+        .sm-header-content { min-width: 0; }
+        .sm-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 11px;
+            color: #a9e8df;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+        }
+        .sm-eyebrow::before {
+            content: "";
+            width: 18px;
+            height: 2px;
+            border-radius: 2px;
+            background: var(--admin-mint);
+        }
+        .sm-header h1 {
+            margin: 0 0 8px;
+            color: #fff;
+            font-size: clamp(22px, 2.4vw, 29px);
+            line-height: 1.2;
+            font-weight: 800;
+            letter-spacing: -.5px;
+        }
+        .sm-header p {
+            max-width: 620px;
+            margin: 0;
+            color: #d2e2ec;
+            font-size: 11px;
+            line-height: 1.7;
+        }
+        .sm-header-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            flex: 0 0 auto;
+        }
+        .sm-header-status {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 12px 14px;
+            border: 1px solid rgba(255,255,255,.18);
+            border-radius: 9px;
+            background: rgba(255,255,255,.09);
+        }
+        .sm-status-copy strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+        }
+        .sm-status-copy span { color: #c5dce7; font-size: 9px; }
+
+        /* ---------- MESSAGES ---------- */
+        .ha-messages { display: flex; flex-direction: column; gap: 8px; margin: 0 0 18px; }
+        .ha-message {
+            padding: 11px 14px;
+            border: 1px solid #cfdcf2;
+            border-left: 4px solid #4779c7;
+            border-radius: 8px;
+            background: #edf3ff;
+            color: #244a82;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .ha-message.success { background: #eaf7ef; border-color: #c4e6d1; border-left-color: #218653; color: #1c6e45; }
+        .ha-message.warning { background: #fff6e5; border-color: #f1dfb8; border-left-color: #d99a2b; color: #8a5a00; }
+        .ha-message.error   { background: #fff0ef; border-color: #f2cac7; border-left-color: #c83e3e; color: #a02d2d; }
+
+        /* ---------- SECTIONS AND GRIDS ---------- */
+        .ha-section { margin-top: 22px; }
+        .ha-section:first-of-type { margin-top: 0; }
+        .ha-section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 0 1px 12px;
+        }
+        .ha-section-head h3 { margin: 0 0 4px; color: var(--admin-ink); font-size: 13px; font-weight: 800; }
+        .ha-section-head p { margin: 0; color: var(--admin-muted); font-size: 10px; }
+        .ha-link {
+            color: var(--admin-teal);
+            text-decoration: none;
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .ha-link:hover { text-decoration: underline; }
+        .ha-grid { display: grid; gap: 14px; align-items: start; }
+        .ha-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .ha-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .ha-stack > * + * { margin-top: 14px; }
+
+        /* ---------- KPI TILES ---------- */
+        .ha-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 11px; }
+        .ha-kpi {
+            --tone: #4779c7;
+            --tone-bg: #edf3ff;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            min-width: 0;
+            padding: 14px 13px;
+            border: 1px solid var(--admin-border);
+            border-left: 4px solid var(--tone);
+            border-radius: 9px;
+            background: #fff;
+            color: inherit;
+            text-decoration: none;
+            box-shadow: 0 3px 10px rgba(20,45,70,.025);
+        }
+        a.ha-kpi { transition: transform .18s ease, box-shadow .18s ease; }
+        a.ha-kpi:hover { transform: translateY(-2px); box-shadow: 0 7px 16px rgba(16,47,75,.08); }
+        .ha-kpi--danger { --tone: #c83e3e; --tone-bg: #fff0ef; }
+        .ha-kpi--warn   { --tone: #d99a2b; --tone-bg: #fff6e5; }
+        .ha-kpi--ok     { --tone: #218653; --tone-bg: #eaf7ef; }
+        .ha-kpi--teal   { --tone: #087f80; --tone-bg: #eaf5f4; }
+        .ha-kpi--purple { --tone: #7955b5; --tone-bg: #f2edfb; }
+        .ha-kpi-icon {
+            display: grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            flex: 0 0 34px;
+            border-radius: 8px;
+            background: var(--tone-bg);
+            color: var(--tone);
+            font-size: 15px;
+            font-weight: 800;
+        }
+        .ha-kpi-copy { min-width: 0; }
+        .ha-kpi-value {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--admin-ink);
+            font-size: 21px;
+            line-height: 1.1;
+            font-weight: 800;
+        }
+        .ha-kpi-label { display: block; color: var(--admin-ink); font-size: 10px; font-weight: 700; line-height: 1.4; }
+        .ha-kpi-note { display: block; margin-top: 2px; color: var(--admin-muted); font-size: 9px; line-height: 1.4; }
+
+        /* ---------- THE SCROLLING CARD ---------- */
+        .ha-card {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            max-height: var(--ha-card-height);
+            overflow: hidden;
+            border: 1px solid var(--admin-border);
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 3px 10px rgba(20,45,70,.025);
+        }
+        .ha-card-head {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--admin-border);
+        }
+        .ha-card-head h4 { margin: 0; color: var(--admin-ink); font-size: 12px; font-weight: 800; }
+        .ha-card-head p { margin: 3px 0 0; color: var(--admin-muted); font-size: 10px; line-height: 1.5; }
+        .ha-count {
+            padding: 5px 9px;
+            border-radius: 20px;
+            background: #edf4f8;
+            color: var(--admin-navy-2);
+            font-size: 9px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .ha-card-tools {
+            flex: 0 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-bottom: 1px solid #edf1f5;
+            background: #fbfcfd;
+        }
+        .ha-card-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #bccad6 transparent;
+            /* soft shadows at the top and bottom edges show that there is more to scroll */
+            background:
+                linear-gradient(#fff 30%, rgba(255,255,255,0)) center top,
+                linear-gradient(rgba(255,255,255,0), #fff 70%) center bottom,
+                radial-gradient(farthest-side at 50% 0, rgba(16,47,75,.13), rgba(16,47,75,0)) center top,
+                radial-gradient(farthest-side at 50% 100%, rgba(16,47,75,.13), rgba(16,47,75,0)) center bottom;
+            background-repeat: no-repeat;
+            background-size: 100% 36px, 100% 36px, 100% 12px, 100% 12px;
+            background-attachment: local, local, scroll, scroll;
+        }
+        .ha-card-body::-webkit-scrollbar { width: 8px; height: 8px; }
+        .ha-card-body::-webkit-scrollbar-thumb { background: #c3d0db; border-radius: 8px; }
+        .ha-card-body::-webkit-scrollbar-thumb:hover { background: #a9bac9; }
+        .ha-pad { padding: 14px 16px; }
+        .ha-card-foot {
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 9px 16px;
+            border-top: 1px solid var(--admin-border);
+            background: #fbfcfd;
+            color: var(--admin-muted);
+            font-size: 10px;
+        }
+
+        /* ---------- TABLES ---------- */
+        .ha-table { width: 100%; min-width: 600px; border-collapse: collapse; }
+        .ha-table--fit { min-width: 0; }
+        .ha-table th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            padding: 10px 14px;
+            background: #f8fafc;
+            box-shadow: inset 0 -1px 0 var(--admin-border);
+            color: #718096;
+            text-align: left;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: .6px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .ha-table td {
+            padding: 11px 14px;
+            border-top: 1px solid #edf1f5;
+            color: #526174;
+            font-size: 11px;
+            vertical-align: middle;
+        }
+        .ha-table tbody tr:first-child td { border-top: 0; }
+        .ha-table td strong { color: var(--admin-ink); font-weight: 700; }
+        .ha-table tbody tr:hover { background: rgba(8,127,128,.035); }
+        .ha-table th.ha-num, .ha-table td.ha-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .ha-nowrap { white-space: nowrap; }
+        .ha-sub { display: block; margin-top: 2px; color: var(--admin-muted); font-size: 10px; }
+        .ha-ref { color: var(--admin-navy-2); font-weight: 800; white-space: nowrap; }
+        .ha-wrap { min-width: 180px; max-width: 320px; white-space: normal; line-height: 1.5; }
+        .ha-empty { padding: 26px !important; color: var(--admin-muted) !important; text-align: center; }
+
+        /* ---------- LISTS INSIDE CARDS ---------- */
+        .ha-list { margin: 0; padding: 0; list-style: none; }
+        .ha-list-item { padding: 13px 16px; border-top: 1px solid #edf1f5; }
+        .ha-list-item:first-child { border-top: 0; }
+        .ha-list-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
+        .ha-list-title { color: var(--admin-ink); font-size: 11px; font-weight: 800; }
+        .ha-list-text { margin: 0; color: #526174; font-size: 10px; line-height: 1.6; }
+        .ha-list-meta { margin-top: 6px; color: var(--admin-muted); font-size: 9px; }
+
+        /* ---------- PILLS ---------- */
+        .ha-pill {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 20px;
+            background: #edf1f5;
+            color: #526174;
+            font-size: 9px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .ha-pill--ok     { background: #eaf7ef; color: #218653; }
+        .ha-pill--warn   { background: #fff6e5; color: #a66b00; }
+        .ha-pill--danger { background: #fff0ef; color: #bd3434; }
+        .ha-pill--info   { background: #edf3ff; color: #2f5fa8; }
+        .ha-pill--purple { background: #f2edfb; color: #6d49a8; }
+
+        /* ---------- BUTTONS AND FORM CONTROLS ---------- */
+        .ha-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 13px;
+            border: 1px solid #cfdbe5;
+            border-radius: 7px;
+            background: #fff;
+            color: var(--admin-ink);
+            font: inherit;
+            font-size: 10px;
+            font-weight: 800;
+            text-decoration: none;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background .15s ease, border-color .15s ease;
+        }
+        .ha-btn:hover { border-color: #a9d9d4; background: #f6fbfb; }
+        .ha-btn--primary { border-color: var(--admin-teal); background: var(--admin-teal); color: #fff; }
+        .ha-btn--primary:hover { border-color: #066b6c; background: #066b6c; }
+        .ha-btn--danger { border-color: #efc3c0; color: #bd3434; }
+        .ha-btn--danger:hover { border-color: #e3a29d; background: #fff0ef; }
+        .ha-btn--light { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.12); color: #fff; }
+        .ha-btn--light:hover { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.22); }
+        .ha-btn--sm { padding: 6px 10px; font-size: 9px; }
+        .ha-inline-form { display: inline; margin: 0; }
+        .ha-actions { display: flex; align-items: center; gap: 6px; }
+        .ha-input, .ha-select, .ha-textarea {
+            min-width: 0;
+            padding: 8px 10px;
+            border: 1px solid #d5e0e9;
+            border-radius: 7px;
+            background: #fff;
+            color: var(--admin-ink);
+            font: inherit;
+            font-size: 11px;
+        }
+        .ha-input:focus, .ha-select:focus, .ha-textarea:focus {
+            outline: 2px solid rgba(8,127,128,.25);
+            border-color: var(--admin-teal);
+        }
+        .ha-search { flex: 1 1 220px; }
+        .ha-textarea { width: 100%; resize: vertical; }
+        .ha-field { display: flex; flex-direction: column; gap: 5px; }
+        .ha-field label { color: var(--admin-muted); font-size: 9px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
+
+        /* ---------- TABS ---------- */
+        .ha-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--admin-border);
+            background: #fbfcfd;
+        }
+        .ha-tabs--bar { margin-bottom: 14px; border: 1px solid var(--admin-border); border-radius: 10px; background: #fff; }
+        .ha-tab {
+            padding: 7px 13px;
+            border: 0;
+            border-radius: 20px;
+            background: transparent;
+            color: var(--admin-muted);
+            font: inherit;
+            font-size: 10px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .ha-tab:hover { background: #edf4f8; color: var(--admin-ink); }
+        .ha-tab[aria-selected="true"] { background: var(--admin-teal); color: #fff; }
+        .ha-tab small {
+            margin-left: 6px;
+            padding: 1px 6px;
+            border-radius: 10px;
+            background: rgba(0,0,0,.09);
+            font-size: 9px;
+            font-weight: 800;
+        }
+        .ha-tabpanel[hidden] { display: none !important; }
+
+        /* ---------- NOTE STRIP ---------- */
+        .ha-note {
+            margin-top: 22px;
+            padding: 12px 15px;
+            border: 1px solid #cfe6e3;
+            border-left: 4px solid var(--admin-teal);
+            border-radius: 9px;
+            background: #f2faf9;
+            color: #40596b;
+            font-size: 10px;
+            line-height: 1.7;
+        }
+        .ha-note strong { color: var(--admin-ink); }
+
+        .dashboard-footer {
+            margin-top: 22px;
+            padding: 14px 0 4px;
+            border-top: 1px solid var(--admin-border);
+            color: #8795a5;
+            text-align: center;
+            font-size: 9px;
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 1100px) {
+            .admin-layout { grid-template-columns: 215px minmax(0, 1fr); gap: 15px; }
+            .ha-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 900px) {
+            .ha-grid-2, .ha-grid-3 { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 760px) {
+            .admin-layout { grid-template-columns: 1fr; }
+            .admin-sidebar { position: relative; top: auto; min-height: auto; }
+            .admin-brand { padding-bottom: 13px; margin-bottom: 13px; }
+            .admin-brand-mark { display: none; }
+            .admin-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .admin-sidebar-footer { margin-top: 14px; }
+            .admin-main { padding: 0 0 20px; }
+        }
+        @media (max-width: 540px) {
+            .sm-header { align-items: flex-start; flex-direction: column; padding: 22px 21px; gap: 15px; }
+            .sm-header-actions { width: 100%; }
+        }
+
+        /* ---------- PRINTING: no sidebar, no clipped cards ---------- */
+        @media print {
+            .admin-sidebar, .no-print { display: none !important; }
+            .admin-layout { display: block; }
+            .ha-card { max-height: none !important; }
+            .ha-card-body { overflow: visible !important; background: none !important; }
+            .ha-tabs { display: none !important; }
+            .ha-tabpanel[hidden] { display: block !important; }
+            .ha-table th { position: static; }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+    <div class="admin-layout">
+        <!-- LEFT NAVIGATION: the only place where admin navigation is defined -->
+        <aside class="admin-sidebar">
+            <nav class="admin-nav" aria-label="Hospital administration navigation">
+                <a href="{% url 'admin_dashboard' %}"
+                   class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'inventory_overview' %}"
+                   class="{% if request.resolver_match.url_name == 'inventory_overview' %}active{% endif %}">
+                    <span>Inventory Overview</span>
+                </a>
+                <a href="{% url 'procurement_review' %}"
+                   class="{% if request.resolver_match.url_name == 'procurement_review' %}active{% endif %}">
+                    <span>Procurement Review</span>
+                </a>
+                <a href="{% url 'admin_purchase_orders' %}"
+                   class="{% if request.resolver_match.url_name == 'admin_purchase_orders' %}active{% endif %}">
+                    <span>Purchase Orders</span>
+                </a>
+                <a href="{% url 'hospital_admin_analytics' %}"
+                   class="{% if request.resolver_match.url_name == 'hospital_admin_analytics' %}active{% endif %}">
+                    <span>Hospital Analytics</span>
+                </a>
+                <a href="{% url 'admin_reports' %}"
+                   class="{% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">
+                    <span>Reports</span>
+                </a>
+                <a href="{% url 'alerts' %}"
+                   class="{% if request.resolver_match.url_name == 'alerts' %}active{% endif %}">
+                    <span>Alerts Centre</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <!-- THE ONE BANNER -->
+            <header class="sm-header">
+                <div class="sm-header-content">
+                    <div class="sm-eyebrow">{% block banner_eyebrow %}Hospital Admin Workspace{% endblock %}</div>
+                    <h1>{% block banner_title %}Hospital Administration{% endblock %}</h1>
+                    <p>{% block banner_text %}{% endblock %}</p>
+                </div>
+                {% block banner_actions %}{% endblock %}
+            </header>
+
+            <!-- Django messages (delete this block if base.html already prints them) -->
+            {% if messages %}
+            <div class="ha-messages" role="status">
+                {% for message in messages %}
+                <div class="ha-message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block page_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script>
+/* Tabs: a wrapper with data-ha-tabs-scope holds buttons [data-ha-tab="x"] and panels [data-ha-panel="x"]. */
+(function () {
+    document.querySelectorAll("[data-ha-tabs-scope]").forEach(function (scope) {
+        var tabs = scope.querySelectorAll("[data-ha-tab]");
+        var panels = scope.querySelectorAll("[data-ha-panel]");
+        if (!tabs.length) return;
+
+        function show(name, updateHash) {
+            tabs.forEach(function (tab) {
+                tab.setAttribute("aria-selected", tab.dataset.haTab === name ? "true" : "false");
+            });
+            panels.forEach(function (panel) {
+                panel.hidden = panel.dataset.haPanel !== name;
+            });
+            if (updateHash) history.replaceState(null, "", "#" + name);
+            window.dispatchEvent(new Event("resize"));
+            document.dispatchEvent(new CustomEvent("ha:tabchange", { detail: { tab: name } }));
+        }
+
+        tabs.forEach(function (tab) {
+            tab.addEventListener("click", function () { show(tab.dataset.haTab, true); });
+        });
+
+        var wanted = location.hash.replace("#", "");
+        var known = Array.prototype.some.call(tabs, function (tab) { return tab.dataset.haTab === wanted; });
+        show(known ? wanted : tabs[0].dataset.haTab, false);
+    });
+})();
+</script>
+{% block extra_js %}{% endblock %}
+{% endblock %}

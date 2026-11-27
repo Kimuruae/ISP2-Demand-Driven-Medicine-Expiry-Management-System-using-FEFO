@@ -1,49 +1,166 @@
-
 {% extends "base.html" %}
+{% block title %}Activate Your Account | Medicine Expiry Management{% endblock %}
 
 {% block content %}
-<div style="max-width: 480px; margin: 60px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+<style>
+    /* Opened from an email, before the person has signed in: no sidebar, just one focused card. */
+    .act {
+        --navy: #16324F;
+        --teal: #0F766E;
+        --muted: #64748B;
+        max-width: 520px;
+        margin: 36px auto;
+        padding: 0 16px;
+        color: #1E293B;
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 14px;
+    }
+    .act *, .act *::before, .act *::after { box-sizing: border-box; }
+    .act-card {
+        overflow: hidden;
+        border: 1px solid #D7E5E8;
+        border-radius: 16px;
+        background: #FFFFFF;
+        box-shadow: 0 8px 24px #16324F14;
+    }
+    .act-head {
+        padding: 22px 26px;
+        background: linear-gradient(135deg, #16324F 0%, #0F766E 100%);
+        color: #FFFFFF;
+    }
+    .act-head .eyebrow { color: #99F6E4; font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; }
+    .act-head h1 { margin: 6px 0 4px; color: #FFFFFF; font-size: 24px; letter-spacing: -.4px; }
+    .act-head p { margin: 0; opacity: .88; font-size: 13px; line-height: 1.6; }
+    .act-body { padding: 22px 26px 26px; }
+    .act-who {
+        margin-bottom: 18px;
+        padding: 12px 14px;
+        border-left: 4px solid var(--teal);
+        border-radius: 8px;
+        background: #F0FDFA;
+        color: #134E4A;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+    .act-who strong { color: var(--navy); }
+    .act-messages { display: grid; gap: 8px; margin-bottom: 16px; }
+    .act-message {
+        padding: 10px 13px;
+        border: 1px solid #BFD3F2;
+        border-left: 4px solid #3B82F6;
+        border-radius: 9px;
+        background: #EFF6FF;
+        color: #1E40AF;
+        font-size: 13px;
+        font-weight: 650;
+    }
+    .act-message.success { background: #F0FDF4; border-color: #BBF7D0; border-left-color: #16A34A; color: #166534; }
+    .act-message.error   { background: #FEF2F2; border-color: #FECACA; border-left-color: #DC2626; color: #991B1B; }
+    .act-field { margin-bottom: 14px; }
+    .act-field label { display: block; margin-bottom: 5px; color: #475569; font-size: 12px; font-weight: 750; }
+    .act-field input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #CBD5E1;
+        border-radius: 8px;
+        font: inherit;
+    }
+    .act-field input:focus { outline: 3px solid #0F766E25; border-color: var(--teal); }
+    .act-hint { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .act-hint.bad { color: #B91C1C; font-weight: 650; }
+    .act-rules { margin: 0 0 16px; padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .act button {
+        width: 100%;
+        padding: 11px 14px;
+        border: 1px solid var(--teal);
+        border-radius: 8px;
+        background: var(--teal);
+        color: #FFFFFF;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 750;
+        cursor: pointer;
+    }
+    .act button:hover { background: #115E59; }
+    .act button:disabled { opacity: .6; cursor: not-allowed; }
+</style>
 
-    <h2>Activate Your Account</h2>
-
-    <p>
-        Establish your password to activate your Medicine FEFO System account.
-    </p>
-
-    <p>
-        <strong>Email:</strong> {{ target_user.email }}
-    </p>
-
-    <form method="POST">
-        {% csrf_token %}
-
-        <div style="margin-bottom: 18px;">
-            <label for="password">New Password</label>
-            <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                autocomplete="new-password"
-                style="display:block; width:100%; padding:12px; margin-top:6px;"
-            >
+<div class="act">
+    <div class="act-card">
+        <div class="act-head">
+            <span class="eyebrow">Account activation</span>
+            <h1>Set your password</h1>
+            <p>Your System Administrator has created an account for you. Choose a password to switch it on.</p>
         </div>
 
-        <div style="margin-bottom: 18px;">
-            <label for="confirm_password">Confirm Password</label>
-            <input
-                id="confirm_password"
-                name="confirm_password"
-                type="password"
-                required
-                autocomplete="new-password"
-                style="display:block; width:100%; padding:12px; margin-top:6px;"
-            >
-        </div>
+        <div class="act-body">
+            <div class="act-who">
+                Activating the account for
+                <strong>{% if target_user.first_name or target_user.last_name %}{{ target_user.first_name }} {{ target_user.last_name }}{% else %}{{ target_user.username }}{% endif %}</strong><br>
+                Username: <strong>{{ target_user.username }}</strong>
+                {% if target_user.role %}<br>Role: <strong>{{ target_user.role.name }}</strong>{% endif %}
+            </div>
 
-        <button type="submit" style="padding:12px 20px; cursor:pointer;">
-            Establish Password and Activate Account
-        </button>
-    </form>
+            <!-- Django messages (delete this block if base.html already prints them) -->
+            {% if messages %}
+            <div class="act-messages" role="status">
+                {% for message in messages %}
+                <div class="act-message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" id="activateForm" novalidate>
+                {% csrf_token %}
+
+                <div class="act-field">
+                    <label for="password">New password</label>
+                    <input id="password" name="password" type="password" autocomplete="new-password" required>
+                </div>
+
+                <div class="act-field">
+                    <label for="confirm_password">Confirm password</label>
+                    <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required>
+                    <p class="act-hint" id="matchHint" aria-live="polite"></p>
+                </div>
+
+                <ul class="act-rules">
+                    <li>Use at least 8 characters.</li>
+                    <li>Do not use only numbers, or a very common password.</li>
+                    <li>Do not use your username or personal details.</li>
+                </ul>
+
+                <button type="submit" id="activateButton">Activate my account</button>
+            </form>
+        </div>
+    </div>
 </div>
+
+<script>
+(function () {
+    var pw = document.getElementById("password");
+    var confirm = document.getElementById("confirm_password");
+    var hint = document.getElementById("matchHint");
+    var button = document.getElementById("activateButton");
+    var form = document.getElementById("activateForm");
+
+    function check() {
+        if (!confirm.value) { hint.textContent = ""; hint.className = "act-hint"; return true; }
+        var same = pw.value === confirm.value;
+        hint.textContent = same ? "Passwords match." : "The passwords do not match yet.";
+        hint.className = "act-hint" + (same ? "" : " bad");
+        return same;
+    }
+    pw.addEventListener("input", check);
+    confirm.addEventListener("input", check);
+    form.addEventListener("submit", function (event) {
+        if (!pw.value || !confirm.value || !check()) {
+            event.preventDefault();
+            if (!confirm.value) { hint.textContent = "Enter the password twice."; hint.className = "act-hint bad"; }
+            return;
+        }
+        window.setTimeout(function () { button.disabled = true; button.textContent = "Activating..."; }, 0);
+    });
+})();
+</script>
 {% endblock %}

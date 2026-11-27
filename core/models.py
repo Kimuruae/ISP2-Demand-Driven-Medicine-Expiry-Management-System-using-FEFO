@@ -343,6 +343,17 @@ class PurchaseOrder(models.Model):
     total_cost = models.DecimalField(max_digits=12,decimal_places=2,default=0.00,)
     raised_by = models.ForeignKey( user,on_delete=models.SET_NULL,null=True,blank=True,)
 
+    # Hospital Admin decision (approve / reject)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_purchase_orders",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    decision_reason = models.TextField(blank=True)
+
     def __str__(self): return f"PO-{self.purchase_order_id}"
 
 class GoodsReceipt(models.Model): #Records physical delivery against approved purchase orders that have been placed with the supplier.

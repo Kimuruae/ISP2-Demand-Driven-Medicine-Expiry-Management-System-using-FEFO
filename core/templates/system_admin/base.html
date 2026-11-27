@@ -1,6 +1,25 @@
 {% extends "base.html" %}
-{% block content %}
+{% block title %}System Administration | Medicine Expiry Management{% endblock %}
 
+{% comment %}
+SYSTEM ADMIN BASE
+Every System Administrator page extends this file. It owns the left navigation
+(the only place the menu is defined), the one banner, the message area and all
+shared styles. A page fills in these blocks:
+
+    banner_eyebrow   small line above the banner heading
+    banner_title     banner heading
+    banner_text      banner paragraph
+    banner_actions   right-hand side of the banner (optional)
+    extra_css        page-only styles (optional)
+    admin_content    the page itself
+    extra_js         page-only scripts (optional)
+
+Card size: CARD_MIN, CARD_MAX and CARD_GAP in the script at the bottom of this file control every scrolling card.
+{% endcomment %}
+
+{% block content %}
+<div class="sa" id="saRoot">
 <style>
     .sa {
         --primary: #0F766E;
@@ -10,199 +29,247 @@
         --text: #1E293B;
         --muted: #64748B;
         --border: #E2E8F0;
-        --background: #F8FAFC;
+        --card-border: #D7E5E8;
         --success: #15803D;
         --warning: #B45309;
         --danger: #B91C1C;
 
-        max-width: 1600px;
-        margin: auto;
-        padding: 24px;
+        /* Scrolling cards follow the screen. This is the starting height; the script at the bottom
+           of this file then stretches each card down to just above the footer. */
+        --sa-card-height: clamp(260px, calc(100vh - 430px), 560px);
+        --sa-sidebar-width: 240px;
+
+        width: 100%;
+        background: #F1F5F9;
         color: var(--text);
         font-family: "Segoe UI", Arial, sans-serif;
         font-size: 14px;
     }
+    .sa *, .sa *::before, .sa *::after { box-sizing: border-box; }
 
-    .sa * { box-sizing: border-box; }
-
+    /* ---------- LAYOUT: the sidebar runs from the screen's left edge down to the footer ---------- */
     .sa-layout {
         display: grid;
-        grid-template-columns: 235px minmax(0, 1fr);
-        gap: 22px;
-        align-items: start;
+        grid-template-columns: var(--sa-sidebar-width) minmax(0, 1fr);
+        align-items: stretch;
     }
-
     .sa-sidebar {
-        position: sticky;
-        top: 15px;
-        padding: 18px 12px;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        background: var(--navy);
-        box-shadow: 0 5px 20px #0f172a12;
+        background: linear-gradient(180deg, #16324F 0%, #123A5A 100%);
+        color: #fff;
     }
-
+    .sa-sidebar-inner {
+        position: sticky;
+        top: 0;
+        padding: 24px 12px 18px;
+    }
     .sa-brand {
         padding: 6px 12px 18px;
+        margin-bottom: 14px;
         border-bottom: 1px solid #ffffff25;
-        margin-bottom: 12px;
     }
-
-    .sa-brand strong {
-        color: #99F6E4;
-        font-size: 11px;
-        letter-spacing: 1px;
-    }
-
-    .sa-brand p {
-        margin: 6px 0 0;
-        color: #FFFFFF;
-        font-size: 15px;
-        font-weight: 800;
-    }
-
+    .sa-brand strong { color: #99F6E4; font-size: 11px; letter-spacing: 1px; }
+    .sa-brand p { margin: 6px 0 0; color: #FFFFFF; font-size: 15px; font-weight: 800; }
     .sa-nav { display: grid; gap: 5px; }
-
     .sa-nav a {
-        display: block;
-        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 11px 12px;
         border: 1px solid transparent;
         border-left: 3px solid transparent;
         border-radius: 9px;
         color: #D5E2EE;
+        font-size: 13px;
         font-weight: 650;
         text-decoration: none;
         transition: background .15s ease, color .15s ease;
     }
-
-    .sa-nav a:hover,
-    .sa-nav a.active {
+    .sa-nav a:hover, .sa-nav a.active {
         color: #FFFFFF;
         background: #0F766E;
         border-color: #2DD4BF;
     }
-
-    .sa-nav a.active {
-        border-left-color: #99F6E4;
+    .sa-nav a.active { border-left-color: #99F6E4; }
+    .sa-nav-icon { width: 20px; flex: 0 0 20px; text-align: center; font-size: 15px; }
+    .sa-user {
+        margin: 18px 4px 0;
+        padding: 12px;
+        border: 1px solid #ffffff22;
+        border-radius: 9px;
+        background: #ffffff0f;
+        color: #B8CCDD;
+        font-size: 11px;
+        line-height: 1.5;
     }
+    .sa-user strong { display: block; color: #fff; font-size: 12px; }
 
-    .sa-main { min-width: 0; }
-
+    /* ---------- MAIN COLUMN: the banner starts at the same height as the sidebar ---------- */
+    .sa-main { min-width: 0; padding: 0 26px 24px; }
     .sa-header {
-        padding: 26px;
-        margin-bottom: 20px;
-        border: 1px solid #B2DFDB;
-        border-radius: 16px;
-        background: linear-gradient(120deg, #FFFFFF, #ECFDF5);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        min-height: 104px;
+        margin: 0 0 16px;
+        padding: 18px 28px;
+        border-radius: 0 0 16px 16px;
+        background: linear-gradient(135deg, #16324F 0%, #0F766E 100%);
+        color: #FFFFFF;
+        box-shadow: 0 8px 24px #16324F20;
     }
-
     .sa-header .eyebrow {
-        color: var(--primary);
+        color: #99F6E4;
         font-size: 11px;
         font-weight: 800;
-        letter-spacing: 1px;
+        letter-spacing: 1.2px;
         text-transform: uppercase;
     }
-
     .sa-header h1 {
-        margin: 8px 0;
-        color: var(--navy);
-        font-size: clamp(24px, 3vw, 34px);
-        letter-spacing: -.6px;
+        margin: 4px 0;
+        color: #FFFFFF;
+        font-size: clamp(22px, 2.6vw, 30px);
+        letter-spacing: -.5px;
     }
+    .sa-header p { margin: 0; max-width: 640px; color: #FFFFFF; opacity: .88; line-height: 1.6; font-size: 13px; }
+    .sa-header-actions { display: flex; flex-wrap: wrap; gap: 10px; flex: 0 0 auto; }
 
-    .sa-header p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.7;
+    /* ---------- MESSAGES ---------- */
+    .sa-messages { display: grid; gap: 8px; margin: 0 0 16px; }
+    .sa-message {
+        padding: 11px 14px;
+        border: 1px solid #BFD3F2;
+        border-left: 4px solid #3B82F6;
+        border-radius: 9px;
+        background: #EFF6FF;
+        color: #1E40AF;
+        font-size: 13px;
+        font-weight: 650;
     }
+    .sa-message.success { background: #F0FDF4; border-color: #BBF7D0; border-left-color: #16A34A; color: #166534; }
+    .sa-message.warning { background: #FFFBEB; border-color: #FDE68A; border-left-color: #D97706; color: #92400E; }
+    .sa-message.error   { background: #FEF2F2; border-color: #FECACA; border-left-color: #DC2626; color: #991B1B; }
 
-    .sa-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 14px;
-        margin-bottom: 20px;
+    /* ---------- METRIC CARDS ---------- */
+    .sa-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .sa-card {
+        display: block;
+        min-width: 0;
+        padding: 14px 16px;
+        border: 1px solid var(--card-border);
+        border-top: 4px solid var(--primary);
+        border-radius: 12px;
+        background: #FFFFFF;
+        color: inherit;
+        text-decoration: none;
+        box-shadow: 0 4px 14px #16324F0D;
     }
+    a.sa-card { transition: transform .15s ease, box-shadow .15s ease; }
+    a.sa-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px #16324F1A; }
+    .sa-card small { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; }
+    .sa-number { margin: 6px 0 2px; color: var(--navy); font-size: 28px; line-height: 1.1; font-weight: 850; }
+    .sa-card .sa-muted { margin: 0; font-size: 12px; line-height: 1.4; }
+    .sa-card--sky    { border-top-color: #0284C7; }
+    .sa-card--amber  { border-top-color: #D97706; }
+    .sa-card--green  { border-top-color: #16A34A; }
+    .sa-card--purple { border-top-color: #7C3AED; }
+    .sa-card--slate  { border-top-color: #475569; }
+    .sa-card--red    { border-top-color: #DC2626; }
 
-    .sa-card,
+    /* ---------- PANELS: the scrolling card ---------- */
     .sa-panel {
         min-width: 0;
-        padding: 20px;
-        border: 1px solid var(--border);
+        margin-bottom: 16px;
+        border: 1px solid var(--card-border);
         border-radius: 14px;
         background: #FFFFFF;
-        box-shadow: 0 5px 20px #0f172a08;
+        box-shadow: 0 4px 14px #16324F0D;
     }
-
-    .sa-card {
-        border-top: 3px solid var(--primary);
-        transition: transform .15s ease, box-shadow .15s ease;
+    .sa-scroll { display: flex; flex-direction: column; max-height: var(--sa-card-height); overflow: hidden; }
+    .sa-panel-head {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 11px 18px;
+        border-bottom: 1px solid #E6EEF0;
     }
-
-    .sa-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px #0f172a12;
+    .sa-panel-head h2 { margin: 0; color: var(--navy); font-size: 15px; }
+    .sa-panel-head p { margin: 3px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .sa-panel-tools {
+        flex: 0 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 18px;
+        border-bottom: 1px solid #E6EEF0;
+        background: #F8FBFB;
     }
-
-    .sa-card small {
+    .sa-panel-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #B6C6D3 transparent;
+        /* soft shadows at the top and bottom edges show that there is more to scroll */
+        background:
+            linear-gradient(#fff 30%, rgba(255,255,255,0)) center top,
+            linear-gradient(rgba(255,255,255,0), #fff 70%) center bottom,
+            radial-gradient(farthest-side at 50% 0, rgba(22,50,79,.13), rgba(22,50,79,0)) center top,
+            radial-gradient(farthest-side at 50% 100%, rgba(22,50,79,.13), rgba(22,50,79,0)) center bottom;
+        background-repeat: no-repeat;
+        background-size: 100% 36px, 100% 36px, 100% 12px, 100% 12px;
+        background-attachment: local, local, scroll, scroll;
+    }
+    .sa-panel-body::-webkit-scrollbar { width: 8px; height: 8px; }
+    .sa-panel-body::-webkit-scrollbar-thumb { background: #B6C6D3; border-radius: 8px; }
+    .sa-panel-foot {
+        flex: 0 0 auto;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 18px;
+        border-top: 1px solid #E6EEF0;
+        background: #F8FBFB;
         color: var(--muted);
+        font-size: 12px;
+    }
+    .sa-pad { padding: 14px 18px; }
+    .sa-muted { color: var(--muted); line-height: 1.6; }
+    .sa-count {
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: #E6F4F1;
+        color: #164E48;
         font-size: 11px;
         font-weight: 800;
-        text-transform: uppercase;
+        white-space: nowrap;
     }
 
-    .sa-number {
-        margin: 10px 0 4px;
-        color: var(--navy);
-        font-size: 32px;
-        font-weight: 850;
-    }
-
-    .sa-panel { margin-bottom: 20px; }
-
-    .sa-panel h2 {
-        margin: 0 0 8px;
-        color: var(--navy);
-        font-size: 17px;
-    }
-
-    .sa-muted {
-        color: var(--muted);
-        line-height: 1.65;
-    }
-
-    .sa-form {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 10px;
-        align-items: center;
-        margin: 16px 0;
-    }
-
-    .sa input,
-    .sa select,
-    .sa textarea {
+    /* ---------- FORMS AND BUTTONS ---------- */
+    .sa-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 12px; align-items: end; }
+    .sa-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .sa-field label { color: #475569; font-size: 11px; font-weight: 750; }
+    .sa input, .sa select, .sa textarea {
         width: 100%;
         min-width: 0;
-        padding: 10px 11px;
+        padding: 8px 10px;
         border: 1px solid #CBD5E1;
         border-radius: 8px;
         background: #FFFFFF;
         color: var(--text);
         font: inherit;
+        font-size: 13px;
     }
-
-    .sa input:focus,
-    .sa select:focus,
-    .sa textarea:focus {
-        outline: 3px solid #0F766E25;
-        border-color: var(--primary);
-    }
-
-    .sa button,
-    .sa .sa-button {
+    .sa input:focus, .sa select:focus, .sa textarea:focus { outline: 3px solid #0F766E25; border-color: var(--primary); }
+    .sa input[type="checkbox"] { width: auto; }
+    .sa .sa-search { flex: 1 1 240px; width: auto; max-width: 420px; }
+    .sa .sa-tool-select { flex: 0 0 auto; width: auto; min-width: 160px; }
+    .sa button, .sa .sa-button {
         display: inline-block;
-        padding: 10px 13px;
+        padding: 8px 13px;
         border: 1px solid var(--primary);
         border-radius: 8px;
         background: var(--primary);
@@ -212,253 +279,101 @@
         font-weight: 750;
         text-align: center;
         text-decoration: none;
+        white-space: nowrap;
         cursor: pointer;
         transition: background .15s ease;
     }
+    .sa button:hover, .sa .sa-button:hover { background: var(--primary-hover); }
+    .sa .secondary { background: #FFFFFF; color: var(--navy); border-color: #CBD5E1; }
+    .sa .secondary:hover { background: #F1F5F9; }
+    .sa .danger { background: #FEF2F2; color: var(--danger); border-color: #FECACA; }
+    .sa .danger:hover { background: #FEE2E2; }
+    .sa .sa-sm { padding: 5px 9px; font-size: 11px; }
+    .sa-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
-    .sa button:hover,
-    .sa .sa-button:hover {
-        background: var(--primary-hover);
-    }
-
-    .sa .secondary {
-        background: #FFFFFF;
-        color: var(--navy);
-        border-color: #CBD5E1;
-    }
-
-    .sa .secondary:hover {
-        background: #F1F5F9;
-    }
-
-    .sa .danger {
-        background: #FEF2F2;
-        color: var(--danger);
-        border-color: #FECACA;
-    }
-
-    .sa .danger:hover {
-        background: #FEE2E2;
-    }
-
-    .sa-table-wrap {
-        width: 100%;
-        overflow-x: auto;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-    }
-
-    .sa table {
-        width: 100%;
-        min-width: 620px;
-        border-collapse: collapse;
-        font-size: 12px;
-    }
-
+    /* ---------- TABLES ---------- */
+    .sa-table-wrap { width: 100%; }
+    .sa table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 12.5px; }
     .sa th {
-        padding: 12px;
-        background: #F1F5F9;
-        color: #475569;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: 10px 14px;
+        background: #E6F4F1;
+        box-shadow: inset 0 -1px 0 #CFE6E1;
+        color: #164E48;
         font-size: 10px;
         letter-spacing: .5px;
         text-align: left;
         text-transform: uppercase;
         white-space: nowrap;
     }
-
-    .sa td {
-        padding: 12px;
-        border-top: 1px solid #EDF0F5;
-        vertical-align: middle;
-    }
-
-    .sa tbody tr:hover { background: #F8FAFC; }
-
-    .sa td form {
-        display: flex;
-        gap: 7px;
-        align-items: center;
-    }
-
+    .sa td { padding: 8px 14px; border-top: 1px solid #EDF0F5; background: #FFFFFF; vertical-align: middle; }
+    .sa tbody tr:first-child td { border-top: 0; }
+    .sa tbody tr:hover td { background: #F0FDFA; }
+    .sa td small { color: var(--muted); }
+    .sa td form { display: flex; gap: 7px; align-items: center; }
     .sa td select { min-width: 130px; }
+    .sa-nowrap { white-space: nowrap; }
+    .sa-wrap { min-width: 200px; max-width: 360px; white-space: normal; line-height: 1.5; }
+    .sa-empty { padding: 24px !important; color: var(--muted); text-align: center; }
 
+    /* ---------- PILLS AND NOTES ---------- */
     .sa .status {
         display: inline-block;
-        padding: 5px 9px;
+        padding: 4px 9px;
         border-radius: 20px;
         background: #DCFCE7;
         color: #166534;
         font-size: 10px;
         font-weight: 800;
+        white-space: nowrap;
     }
-
-    .sa .status.inactive {
-        background: #F1F5F9;
-        color: #475569;
-    }
-
-    .sa-empty {
-        padding: 24px;
-        color: var(--muted);
-        text-align: center;
-    }
-
+    .sa .status.inactive { background: #F1F5F9; color: #475569; }
+    .sa .status.pending, .sa .status.attention { background: #FEF3C7; color: #92400E; }
+    .sa .status.info { background: #E0F2FE; color: #075985; }
     .sa-note {
-        padding: 14px;
+        margin-top: 4px;
+        padding: 12px 14px;
         border-left: 4px solid var(--primary);
         border-radius: 8px;
-        background: #F0FDFA;
-        color: #115E59;
+        background: #CCFBF1;
+        color: #134E4A;
+        font-size: 12.5px;
         line-height: 1.6;
     }
 
-    .sa-search { max-width: 360px; margin: 14px 0; }
-
+    /* ---------- RESPONSIVE ---------- */
     @media (max-width: 900px) {
         .sa-layout { grid-template-columns: 1fr; }
-        .sa-sidebar { position: static; }
+        .sa-sidebar-inner { position: static; padding: 14px 12px; }
         .sa-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .sa-user { display: none; }
+        .sa-main { padding: 0 14px 22px; }
+        .sa-header { border-radius: 0 0 14px 14px; }
     }
-
     @media (max-width: 560px) {
-        .sa { padding: 12px; }
-        .sa-grid { grid-template-columns: 1fr; }
         .sa-nav { grid-template-columns: 1fr; }
-        .sa-header { padding: 19px; }
+        .sa-header { padding: 18px; flex-direction: column; align-items: flex-start; }
+        .sa-panel-head { flex-wrap: wrap; }
     }
 
-
-/* ===== FULL DASHBOARD COLOUR THEME ===== */
-
-/* Main dashboard background */
-.sa {
-    background: #F1F5F9;
-    border-radius: 18px;
-}
-
-/* Main content header */
-.sa-header {
-    background: linear-gradient(135deg, #16324F 0%, #0F766E 100%);
-    border: none;
-    color: #FFFFFF;
-    box-shadow: 0 8px 24px #16324F20;
-}
-
-.sa-header h1,
-.sa-header p,
-.sa-header .eyebrow {
-    color: #FFFFFF;
-}
-
-.sa-header p {
-    opacity: 0.88;
-}
-
-/* Metric cards */
-.sa-card {
-    background: #FFFFFF;
-    border: 1px solid #D7E5E8;
-    border-top: 4px solid #0F766E;
-    box-shadow: 0 4px 14px #16324F0D;
-}
-
-.sa-card:nth-child(2) {
-    border-top-color: #0284C7;
-}
-
-.sa-card:nth-child(3) {
-    border-top-color: #D97706;
-}
-
-.sa-number {
-    color: #16324F;
-}
-
-/* Main content panels */
-.sa-panel {
-    background: #FFFFFF;
-    border: 1px solid #D7E5E8;
-    box-shadow: 0 4px 14px #16324F0D;
-}
-
-.sa-panel h2 {
-    color: #16324F;
-}
-
-/* Tables */
-.sa-table-wrap {
-    background: #FFFFFF;
-    border-color: #D7E5E8;
-}
-
-.sa th {
-    background: #E6F4F1;
-    color: #164E48;
-}
-
-.sa td {
-    background: #FFFFFF;
-}
-
-.sa tbody tr:hover td {
-    background: #F0FDFA;
-}
-
-/* Form controls */
-.sa input,
-.sa select,
-.sa textarea {
-    background: #FFFFFF;
-    border-color: #CBD5E1;
-}
-
-.sa input:focus,
-.sa select:focus,
-.sa textarea:focus {
-    border-color: #0F766E;
-    outline: 3px solid #0F766E20;
-}
-
-/* Information notes */
-.sa-note {
-    background: #CCFBF1;
-    border-left-color: #0F766E;
-    color: #134E4A;
-}
-
-/* Status indicators */
-.sa .status {
-    background: #DCFCE7;
-    color: #166534;
-}
-
-.sa .status.inactive {
-    background: #F1F5F9;
-    color: #475569;
-}
-
-/* Buttons */
-.sa button,
-.sa .sa-button {
-    background: #0F766E;
-    border-color: #0F766E;
-}
-
-.sa button:hover,
-.sa .sa-button:hover {
-    background: #115E59;
-}
-
-/* Responsive dashboard spacing */
-@media (max-width: 560px) {
-    .sa {
-        border-radius: 10px;
+    /* ---------- PRINTING ---------- */
+    @media print {
+        .sa-sidebar { display: none; }
+        .sa-layout { display: block; }
+        .sa-scroll { max-height: none !important; }
+        .sa-panel-body { overflow: visible !important; background: none !important; }
+        .sa th { position: static; }
     }
-}
 </style>
-<div class="sa">
-    <div class="sa-layout">
-        <aside class="sa-sidebar">
+{% block extra_css %}{% endblock %}
+
+<div class="sa-layout" id="saLayout">
+
+    <!-- LEFT NAVIGATION: the only place where the System Administrator menu is defined -->
+    <aside class="sa-sidebar">
+        <div class="sa-sidebar-inner">
             <div class="sa-brand">
                 <strong>SYSTEM CONTROL</strong>
                 <p>Administration Portal</p>
@@ -466,32 +381,106 @@
             <nav class="sa-nav" aria-label="System Administrator navigation">
                 <a href="{% url 'system_admin_dashboard' %}"
                    class="{% if request.resolver_match.url_name == 'system_admin_dashboard' %}active{% endif %}">
-                    System Overview
+                    <span class="sa-nav-icon">⌂</span><span>System Overview</span>
                 </a>
                 <a href="{% url 'system_admin_users' %}"
                    class="{% if request.resolver_match.url_name == 'system_admin_users' %}active{% endif %}">
-                     Manage Users
+                    <span class="sa-nav-icon">▤</span><span>Manage Users</span>
                 </a>
                 <a href="{% url 'system_admin_roles' %}"
                    class="{% if request.resolver_match.url_name == 'system_admin_roles' %}active{% endif %}">
-                     Roles Management
+                    <span class="sa-nav-icon">⇄</span><span>Roles Management</span>
                 </a>
                 <a href="{% url 'system_admin_settings' %}"
                    class="{% if request.resolver_match.url_name == 'system_admin_settings' %}active{% endif %}">
-                    System Settings
+                    <span class="sa-nav-icon">▥</span><span>System Settings</span>
                 </a>
                 <a href="{% url 'system_admin_audit_logs' %}"
                    class="{% if request.resolver_match.url_name == 'system_admin_audit_logs' %}active{% endif %}">
-                     Activities
+                    <span class="sa-nav-icon">▧</span><span>Activities</span>
                 </a>
                 <a href="{% url 'system_admin_health' %}"
                    class="{% if request.resolver_match.url_name == 'system_admin_health' %}active{% endif %}">
-                    System Health
+                    <span class="sa-nav-icon">✚</span><span>System Health</span>
                 </a>
-                <a href="{% url 'alerts' %}" class="sidebar-action-link">Alerts</a>
+                <a href="{% url 'alerts' %}"
+                   class="{% if request.resolver_match.url_name == 'alerts' %}active{% endif %}">
+                    <span class="sa-nav-icon">⚑</span><span>Alerts</span>
+                </a>
             </nav>
-        </aside>
-        <main class="sa-main">{% block admin_content %}{% endblock admin_content %}</main>
-    </div>
+            <div class="sa-user">
+                <strong>{{ request.user.username }}</strong>
+                {% if request.user.role %}{{ request.user.role.name }}{% else %}Superuser{% endif %}
+            </div>
+        </div>
+    </aside>
+
+    <main class="sa-main">
+
+        <!-- THE ONE BANNER -->
+        <header class="sa-header">
+            <div>
+                <span class="eyebrow">{% block banner_eyebrow %}System Admin Workspace{% endblock %}</span>
+                <h1>{% block banner_title %}System Administration{% endblock %}</h1>
+                <p>{% block banner_text %}{% endblock %}</p>
+            </div>
+            {% block banner_actions %}{% endblock %}
+        </header>
+
+        <!-- Django messages (delete this block if base.html already prints them) -->
+        {% if messages %}
+        <div class="sa-messages" role="status">
+            {% for message in messages %}
+            <div class="sa-message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block admin_content %}{% endblock %}
+    </main>
+</div>
+
+<script>
+/* 1. Make the navigation touch the left edge of the screen: widen the page to the full window.
+   2. Stretch each scrolling card down to just above the footer, so cards fit the screen
+      (never smaller than CARD_MIN, so a very short window scrolls the page instead).
+   3. Make the navigation reach the footer even on short pages. */
+(function () {
+    var root = document.getElementById("saRoot");
+    var layout = document.getElementById("saLayout");
+    if (!root || !layout) return;
+
+    var CARD_MIN = 280;       /* px: smallest scrolling card */
+    var CARD_MAX = 760;       /* px: largest scrolling card, even on a very tall screen */
+    var CARD_GAP = 24;        /* px: space kept between the card and the footer */
+
+    function fit() {
+        root.style.marginLeft = "0px";
+        root.style.width = "auto";
+        var left = root.getBoundingClientRect().left;
+        root.style.marginLeft = (-left) + "px";
+        root.style.width = document.documentElement.clientWidth + "px";
+
+        var footer = document.querySelector("footer");
+        var footerHeight = footer ? footer.getBoundingClientRect().height : 0;
+
+        layout.style.minHeight = "0px";
+        Array.prototype.forEach.call(root.querySelectorAll(".sa-scroll"), function (card) {
+            card.style.maxHeight = "";
+            var top = card.getBoundingClientRect().top + window.pageYOffset;
+            var room = window.innerHeight - top - footerHeight - CARD_GAP;
+            card.style.maxHeight = Math.max(CARD_MIN, Math.min(CARD_MAX, room)) + "px";
+        });
+
+        var rootTop = root.getBoundingClientRect().top + window.pageYOffset;
+        layout.style.minHeight = Math.max(0, window.innerHeight - rootTop - footerHeight) + "px";
+    }
+    fit();
+    window.addEventListener("resize", fit);
+    window.addEventListener("load", fit);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>
+{% block extra_js %}{% endblock %}
 </div>
 {% endblock content %}

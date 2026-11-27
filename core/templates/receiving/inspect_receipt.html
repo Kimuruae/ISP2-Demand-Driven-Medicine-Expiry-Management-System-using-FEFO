@@ -1,16 +1,18 @@
-
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'store_manager/store_manager_base.html' %}
+{% block store_manager_title %}Delivery Inspection | Store Manager{% endblock %}
+{% block store_manager_heading %}Delivery Inspection{% endblock %}
+{% block store_manager_description %}
+Verify delivered medicine batches before admitting them into FEFO inventory.
+{% endblock %}
+{% block store_manager_content %}
 
 <div class="inspection-container">
-
-    <!-- HEADER -->
-    <div class="inspection-header">
+    <!-- PAGE ACTIONS -->
+    <div class="page-actions">
         <div>
             <span class="eyebrow">STORE MANAGER / GOODS RECEIVING</span>
-            <h1>Delivery Inspection</h1>
-            <p>Verify delivered medicine batches before admitting them into FEFO inventory.</p>
+            <h2>Inspect Delivered Batches</h2>
+            <p>Review each delivered batch and record its inspection outcome.</p>
         </div>
 
         <a href="{% url 'goods_receipt_detail' receipt.id %}" class="back-button">
@@ -21,7 +23,7 @@
     <!-- RECEIPT INFORMATION -->
     <section class="panel">
         <div class="section-heading">
-            <h2>Receipt Information</h2>
+            <h3>Receipt Information</h3>
             <span class="receipt-reference">GRN #{{ receipt.id }}</span>
         </div>
 
@@ -55,7 +57,6 @@
                 <span>Received By</span>
                 <strong>{{ receipt.received_by }}</strong>
             </div>
-
         </div>
 
         {% if receipt.notes %}
@@ -83,9 +84,10 @@
             <strong>{{ accepted_count }}</strong>
         </div>
     </section>
+
     <!-- INSPECTION INSTRUCTIONS -->
     <div class="inspection-notice">
-        <strong>Inspection requirements</strong>
+        <strong>Inspection Requirements</strong>
         <p>
             Confirm the physical batch number, quantity received, expiry date
             and storage suitability. Accept only compliant deliveries.
@@ -93,12 +95,12 @@
         </p>
     </div>
 
-    <!-- BATCH INSPECTION TABLE -->
+    <!-- BATCH INSPECTION -->
     <section class="panel">
         <div class="section-heading">
             <div>
-                <h2>Delivered Medicine Batches</h2>
-                <p>Review each batch individually.</p>
+                <h3>Delivered Medicine Batches</h3>
+                <p>Review and inspect each batch individually.</p>
             </div>
         </div>
 
@@ -107,7 +109,7 @@
                 <div class="batch-heading">
                     <div>
                         <span class="batch-label">BATCH NUMBER</span>
-                        <h3>{{ item.batch_number }}</h3>
+                        <h4>{{ item.batch_number }}</h4>
                     </div>
 
                     {% if item.inspection_status == pending_status %}
@@ -119,7 +121,9 @@
                     {% elif item.inspection_status == "Quarantined" %}
                         <span class="status quarantined">QUARANTINED</span>
                     {% else %}
-                        <span class="status">{{ item.get_inspection_status_display }}</span>
+                        <span class="status">
+                            {{ item.get_inspection_status_display }}
+                        </span>
                     {% endif %}
                 </div>
 
@@ -203,11 +207,21 @@
                 {% else %}
                     <div class="completed-inspection">
                         <strong>Inspection Completed</strong>
-                        <p>Decision: {{ item.get_inspection_status_display }}</p>
-                        <p>Inspected by: {{ item.inspected_by|default:"Not recorded" }}</p>
+
+                        <p>
+                            Decision:
+                            {{ item.get_inspection_status_display }}
+                        </p>
+
+                        <p>
+                            Inspected by:
+                            {{ item.inspected_by|default:"Not recorded" }}
+                        </p>
+
                         {% if item.inspection_notes %}
                             <p>Notes: {{ item.inspection_notes }}</p>
                         {% endif %}
+
                         {% if item.medicine_batch %}
                             <p class="accepted-message">
                                 Inventory Batch ID: {{ item.medicine_batch.id }}
@@ -221,6 +235,7 @@
         {% empty %}
             <div class="empty-state">
                 <h3>No Delivered Batches</h3>
+
                 <p>
                     No medicine batches have been recorded against this receipt.
                     Add the delivered batches before inspection.
@@ -230,63 +245,67 @@
                     Return to Receipt Details
                 </a>
             </div>
-
         {% endfor %}
-
     </section>
-    <!-- FOOTER -->
+
+    <!-- PAGE FOOTER -->
     <div class="inspection-footer">
         <a href="{% url 'goods_receipts' %}" class="back-button">
-            Return to Goods Receipts
+            ← Return to Goods Receipts
+        </a>
+
+        <a href="{% url 'receiving_dashboard' %}" class="dashboard-button">
+            Goods Receiving Dashboard
         </a>
     </div>
 </div>
 <style>
 .inspection-container {
+    width: 100%;
     max-width: 1250px;
-    margin: 35px auto;
-    padding: 0 22px 50px;
+    margin: 0 auto;
+    padding: 10px 0 35px;
     color: #1e293b;
     font-family: Arial, sans-serif;
+    box-sizing: border-box;
 }
 
-.inspection-header {
-    background: linear-gradient(120deg, #123b66, #087e8b);
-    color: white;
-    padding: 30px;
-    border-radius: 14px;
+.page-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 25px;
+    gap: 18px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+
+.page-actions h2 {
+    color: #123b66;
+    font-size: 21px;
+    margin: 7px 0;
+}
+
+.page-actions p {
+    color: #64748b;
+    font-size: 13px;
+    margin: 0;
 }
 
 .eyebrow {
-    font-size: 11px;
-    letter-spacing: 2px;
-    opacity: .8;
-    font-weight: 700;
-}
-
-.inspection-header h1 {
-    margin: 10px 0;
-    font-size: 28px;
-}
-
-.inspection-header p {
-    margin: 0;
-    font-size: 13px;
-    opacity: .9;
+    color: #087e8b;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    font-weight: 800;
 }
 
 .panel {
     background: white;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 22px;
+    padding: 23px;
+    margin-bottom: 20px;
     box-shadow: 0 3px 12px rgba(15,23,42,.04);
+    min-width: 0;
 }
 
 .section-heading {
@@ -297,9 +316,9 @@
     margin-bottom: 20px;
 }
 
-.section-heading h2 {
+.section-heading h3 {
     color: #123b66;
-    font-size: 17px;
+    font-size: 16px;
     margin: 0 0 6px;
 }
 
@@ -320,7 +339,7 @@
 
 .information-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 22px;
 }
 
@@ -336,6 +355,7 @@
 .batch-details strong {
     font-size: 13px;
     color: #1e293b;
+    overflow-wrap: anywhere;
 }
 
 .receipt-notes {
@@ -348,13 +368,13 @@
 
 .summary-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 15px;
-    margin-bottom: 22px;
+    margin-bottom: 20px;
 }
 
 .summary-card {
-    padding: 19px;
+    padding: 18px;
     background: white;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
@@ -368,7 +388,7 @@
 }
 
 .summary-card strong {
-    font-size: 26px;
+    font-size: 25px;
     color: #123b66;
 }
 
@@ -385,7 +405,7 @@
     border-left: 4px solid #2563eb;
     padding: 16px;
     border-radius: 7px;
-    margin-bottom: 22px;
+    margin-bottom: 20px;
 }
 
 .inspection-notice strong {
@@ -403,8 +423,9 @@
 .batch-card {
     border: 1px solid #e2e8f0;
     border-radius: 11px;
-    padding: 21px;
-    margin-bottom: 18px;
+    padding: 20px;
+    margin-bottom: 17px;
+    min-width: 0;
 }
 
 .batch-heading {
@@ -412,6 +433,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 15px;
+    flex-wrap: wrap;
 }
 
 .batch-label {
@@ -421,8 +443,8 @@
     font-weight: 800;
 }
 
-.batch-heading h3 {
-    font-size: 18px;
+.batch-heading h4 {
+    font-size: 17px;
     color: #123b66;
     margin: 7px 0;
 }
@@ -458,7 +480,7 @@
 
 .batch-details {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 15px;
     background: #f8fafc;
     padding: 17px;
@@ -514,18 +536,22 @@
     line-height: 1.6;
 }
 
-.submit-inspection {
+.submit-inspection,
+.dashboard-button {
+    display: inline-block;
     background: #087e8b;
     color: white;
     border: none;
-    padding: 13px 20px;
+    padding: 12px 18px;
     border-radius: 7px;
     font-weight: 800;
     font-size: 12px;
     cursor: pointer;
+    text-decoration: none;
 }
 
-.submit-inspection:hover {
+.submit-inspection:hover,
+.dashboard-button:hover {
     background: #06636d;
 }
 
@@ -547,7 +573,7 @@
 }
 
 .empty-state {
-    padding: 40px;
+    padding: 35px;
     text-align: center;
     background: #f8fafc;
     border-radius: 9px;
@@ -576,30 +602,39 @@
     text-decoration: none;
     font-size: 12px;
     font-weight: 800;
+    white-space: nowrap;
 }
 
-.inspection-header .back-button {
-    background: white;
+.back-button:hover {
+    background: #e2e8f0;
 }
 
 .inspection-footer {
-    margin-top: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 22px;
 }
 
-@media(max-width:850px) {
+@media(max-width: 900px) {
     .information-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .batch-details {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-@media(max-width:550px) {
-    .inspection-header {
-        flex-direction: column;
-        align-items: flex-start;
+@media(max-width: 600px) {
+    .inspection-container {
+        padding: 5px 0 25px;
+    }
+
+    .panel {
+        padding: 16px;
     }
 
     .information-grid,
@@ -607,8 +642,23 @@
     .summary-grid {
         grid-template-columns: 1fr;
     }
+
+    .page-actions {
+        align-items: flex-start;
+    }
+
+    .inspection-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .inspection-footer a {
+        text-align: center;
+    }
+
+    .batch-card {
+        padding: 14px;
+    }
 }
-
 </style>
-
 {% endblock %}

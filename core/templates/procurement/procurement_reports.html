@@ -1,71 +1,73 @@
+{% extends 'procurement/procurement_base.html' %}
+{% block title %}Reports | Procurement Workspace{% endblock %}
+{% block procurement_heading %}Procurement Reports{% endblock %}
+{% block procurement_description %}Filter purchase orders by status and date, review totals and export them to CSV.{% endblock %}
 
-{% extends "base.html" %}
+{% block procurement_content %}
+<section class="panel">
+    <h2 class="panel-heading">Purchase Order Report</h2>
 
-{% block content %}
-<div style="max-width: 1200px; margin: 30px auto; padding: 20px;">
-
-    <h1>Purchase Order Log</h1>
-    <p>Review and track purchase orders submitted by the procurement department.</p>
-
-    <div style="margin: 20px 0;">
-        <strong>Total matching orders:</strong> {{ total_orders }}
-    </div>
-
-    <form method="get" style="margin-bottom: 20px;">
-        <label for="status">Filter by status:</label>
-
-        <select name="status" id="status">
-            <option value="">All statuses</option>
-            {% for status in statuses %}
-                <option value="{{ status }}"
-                    {% if selected_status == status %}selected{% endif %}>
-                    {{ status }}
-                </option>
-            {% endfor %}
-        </select>
-
-        <button type="submit">Filter</button>
-        <a href="{% url 'procurement_reports' %}">Clear</a>
+    <form method="get" class="toolbar">
+        <div class="form-field">
+            <label for="status">Status</label>
+            <select name="status" id="status">
+                <option value="">All statuses</option>
+                {% for s in statuses %}
+                    <option value="{{ s }}" {% if selected_status == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field">
+            <label for="start_date">From</label>
+            <input type="date" name="start_date" id="start_date" value="{{ start_date|date:'Y-m-d' }}">
+        </div>
+        <div class="form-field">
+            <label for="end_date">To</label>
+            <input type="date" name="end_date" id="end_date" value="{{ end_date|date:'Y-m-d' }}">
+        </div>
+        <button type="submit" class="btn">Apply</button>
+        <a class="btn btn-outline" href="{% url 'procurement_reports' %}">Clear</a>
+        <a class="btn btn-outline" href="?{{ query_string }}export=csv">Export CSV</a>
     </form>
 
-    <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse;">
+    <div class="tiles" style="margin-bottom:1.25rem;">
+        <div class="tile"><div class="label">Matching orders</div><div class="value">{{ summary.orders }}</div></div>
+        <div class="tile"><div class="label">Units ordered</div><div class="value">{{ summary.units|default:0 }}</div></div>
+        {% for row in by_status %}
+            <div class="tile">
+                <div class="label"><span class="pill {{ row.css }}">{{ row.status }}</span></div>
+                <div class="value">{{ row.orders }}</div>
+                <div class="sub">{{ row.units|default:0 }} units</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="table-wrap">
+        <table class="data-table">
             <thead>
                 <tr>
-                    <th style="padding: 10px; text-align: left;">Order ID</th>
-                    <th style="padding: 10px; text-align: left;">Medicine</th>
-                    <th style="padding: 10px; text-align: left;">Supplier</th>
-                    <th style="padding: 10px; text-align: left;">Quantity</th>
-                    <th style="padding: 10px; text-align: left;">Order Date</th>
-                    <th style="padding: 10px; text-align: left;">Raised By</th>
-                    <th style="padding: 10px; text-align: left;">Status</th>
+                    <th>Order</th><th>Medicine</th><th>Supplier</th><th>Qty</th>
+                    <th>Order date</th><th>Raised by</th><th>Status</th>
                 </tr>
             </thead>
-
             <tbody>
                 {% for po in purchase_orders %}
                 <tr>
-                    <td style="padding: 10px;">#{{ po.id }}</td>
-                    <td style="padding: 10px;">{{ po.medicine.medicine_name|default:"—" }}</td>
-                    <td style="padding: 10px;">{{ po.supplier.supplier_name|default:"—" }}</td>
-                    <td style="padding: 10px;">{{ po.quantity_ordered }}</td>
-                    <td style="padding: 10px;">{{ po.order_date|date:"d M Y"|default:"—" }}</td>
-                    <td style="padding: 10px;">{{ po.raised_by|default:"—" }}</td>
-                    <td style="padding: 10px;">{{ po.status }}</td>
+                    <td>#{{ po.id }}</td>
+                    <td>{{ po.medicine.medicine_name|default:"—" }}</td>
+                    <td>{{ po.supplier.supplier_name|default:"—" }}</td>
+                    <td>{{ po.quantity_ordered }}</td>
+                    <td>{{ po.order_date|date:"d M Y"|default:"—" }}</td>
+                    <td>{{ po.raised_by|default:"—" }}</td>
+                    <td><span class="pill {{ po.status_class }}">{{ po.status }}</span></td>
                 </tr>
                 {% empty %}
-                <tr>
-                    <td colspan="7" style="padding: 20px;">
-                        No purchase orders found.
-                    </td>
-                </tr>
+                <tr><td colspan="7"><div class="empty-state">No purchase orders match these filters.</div></td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <p style="margin-top: 20px;">
-        <a href="{% url 'procurement' %}">Return to Procurement Dashboard</a>
-    </p>
-</div>
+    {% include 'procurement/_pagination.html' %}
+</section>
 {% endblock %}

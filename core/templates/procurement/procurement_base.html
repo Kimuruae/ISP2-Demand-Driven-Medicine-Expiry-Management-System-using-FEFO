@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% block title %}Procurement Workspace{% endblock %}
+
+{% block content %}
+<style>
+.pw-shell {
+    --pw-navy: #16324F; --pw-teal: #0F766E; --pw-teal-dark: #115E59; --pw-teal-light: #CCFBF1;
+    --pw-border: #CBD5E1; --pw-muted: #64748B; --pw-text: #1E293B; --pw-danger: #B00020;
+    max-width: 1400px; margin: 30px auto; padding: 0 20px;
+    font-family: Arial, sans-serif; color: var(--pw-text);
+}
+.pw-shell *, .pw-shell *::before, .pw-shell *::after { box-sizing: border-box; }
+.pw-shell a { color: var(--pw-teal); }
+
+/* Banner */
+.pw-banner {
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
+    background: linear-gradient(120deg, #123b66, #087e8b); color: #fff;
+    padding: 28px; border-radius: 14px; margin-bottom: 25px;
+}
+.pw-banner-eyebrow { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; opacity: .85; }
+.pw-banner h1 { font-size: 28px; margin: 8px 0; font-weight: 800; }
+.pw-banner p { margin: 0; font-size: 14px; opacity: .9; max-width: 760px; }
+.pw-user { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.35);
+    border-radius: 999px; padding: .5rem 1rem; font-size: 12px; font-weight: 700; }
+
+/* Layout and sidebar */
+.pw-layout { display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: start; }
+.pw-main { min-width: 0; display: flex; flex-direction: column; gap: 1.5rem; }
+.pw-sidebar { display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+.pw-sidebar-head { text-align: center; background: #E2E8F0; border: 1px solid var(--pw-border);
+    border-radius: 12px; padding: 1.1rem; margin-bottom: .5rem; }
+.pw-sidebar-head span { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--pw-muted); margin-bottom: .4rem; }
+.pw-nav-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--pw-muted); margin: .9rem 0 .25rem .25rem; }
+.pw-nav-link { display: flex; justify-content: space-between; align-items: center; gap: .5rem;
+    padding: .85rem 1rem; border: 1px solid var(--pw-border); border-radius: 8px; background: #fff;
+    color: var(--pw-text) !important; text-decoration: none; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .03em; transition: background .2s, color .2s; }
+.pw-nav-link:hover, .pw-nav-link.active { background: var(--pw-teal); border-color: var(--pw-teal);
+    color: #fff !important; }
+.pw-badge { background: var(--pw-danger); color: #fff; border-radius: 999px; font-size: 10px;
+    padding: .15rem .5rem; min-width: 20px; text-align: center; }
+
+/* Panels */
+.pw-shell .panel { border: 1px solid var(--pw-border); border-radius: 12px; padding: 1.5rem;
+    background: #F8FAFC; box-shadow: 0 4px 12px rgba(22,50,79,.07); min-width: 0; }
+.pw-shell .panel-heading { font-size: 15px; font-weight: 800; color: #fff; background: var(--pw-navy);
+    padding: .9rem 1rem; border-radius: 8px; margin: 0 0 1.25rem; border-bottom: 3px solid var(--pw-teal); }
+.pw-shell .muted-text { font-size: 12px; color: var(--pw-muted); line-height: 1.6; }
+.pw-shell .empty-state { text-align: center; padding: 1.5rem; border: 1px dashed var(--pw-border);
+    border-radius: 8px; font-size: 13px; color: var(--pw-muted); background: #F8FAFC; }
+
+/* Messages */
+.pw-shell .feedback-message { border: 1px solid var(--pw-border); border-left: 4px solid var(--pw-teal);
+    background: var(--pw-teal-light); color: var(--pw-navy); border-radius: 8px; padding: 1rem 1.25rem;
+    font-size: 14px; overflow-wrap: anywhere; }
+.pw-shell .feedback-message.error { border-left-color: var(--pw-danger); background: #FEE2E2; color: #7F1D1D; }
+.pw-shell .notice { border: 1px solid #E9D19B; border-left: 4px solid #C58A27; background: #FFF6E5;
+    color: #80520B; border-radius: 8px; padding: .9rem 1.1rem; font-size: 13px; line-height: 1.6; }
+
+/* KPI tiles */
+.pw-shell .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }
+.pw-shell .tile { background: #fff; border: 1px solid var(--pw-border); border-left: 4px solid var(--pw-teal);
+    border-radius: 10px; padding: 1rem; }
+.pw-shell .tile.warn { border-left-color: #C58A27; }
+.pw-shell .tile.danger { border-left-color: var(--pw-danger); }
+.pw-shell .tile .label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pw-muted); }
+.pw-shell .tile .value { font-size: 26px; font-weight: 800; color: var(--pw-navy); margin-top: .25rem; }
+.pw-shell .tile .sub { font-size: 11px; color: var(--pw-muted); margin-top: .15rem; }
+
+/* Tabs, toolbar, forms */
+.pw-shell .tabs { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.pw-shell .tab { padding: .5rem .9rem; border: 1px solid var(--pw-border); border-radius: 999px;
+    background: #fff; color: var(--pw-text) !important; text-decoration: none; font-size: 12px; font-weight: 700; }
+.pw-shell .tab.active { background: var(--pw-teal); border-color: var(--pw-teal); color: #fff !important; }
+.pw-shell .tab .count { opacity: .8; margin-left: .35rem; }
+.pw-shell .toolbar { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end; margin-bottom: 1rem; }
+.pw-shell .form-field { display: flex; flex-direction: column; gap: .4rem; }
+.pw-shell .form-field label { font-size: 12px; font-weight: 700; color: var(--pw-navy); text-transform: uppercase; }
+.pw-shell .form-field input, .pw-shell .form-field select { width: 100%; border: 1px solid var(--pw-border);
+    border-radius: 8px; padding: .7rem; font-size: 14px; background: #fff; color: var(--pw-text); }
+.pw-shell .form-field input:focus, .pw-shell .form-field select:focus { outline: none;
+    border-color: var(--pw-teal); box-shadow: 0 0 0 3px rgba(15,118,110,.12); }
+.pw-shell .form-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+
+/* Buttons */
+.pw-shell .btn { display: inline-block; background: var(--pw-teal); color: #fff !important;
+    border: 1px solid var(--pw-teal); border-radius: 8px; padding: .75rem 1rem; font-size: 12px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: .04em; cursor: pointer;
+    text-decoration: none; text-align: center; }
+.pw-shell .btn:hover { background: var(--pw-teal-dark); border-color: var(--pw-teal-dark); }
+.pw-shell .btn-block { width: 100%; }
+.pw-shell .btn-sm { padding: .4rem .7rem; font-size: 11px; }
+.pw-shell .btn-outline { background: #fff; color: var(--pw-teal) !important; }
+.pw-shell .btn-outline:hover { background: var(--pw-teal-light); }
+
+/* Tables */
+.pw-shell .table-wrap { overflow-x: auto; }
+.pw-shell .data-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; }
+.pw-shell .data-table th { background: var(--pw-navy); color: #fff; text-align: left; padding: .65rem .75rem;
+    font-size: 11px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.pw-shell .data-table td { padding: .65rem .75rem; border-bottom: 1px solid #E2E8F0; vertical-align: top; }
+.pw-shell .data-table tr:hover td { background: #F8FAFC; }
+
+/* Status pills */
+.pw-shell .pill { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    padding: .25rem .6rem; border-radius: 999px; white-space: nowrap; }
+.pw-shell .pill-pending, .pw-shell .pill-medium { background: #FEF3C7; color: #92400E; }
+.pw-shell .pill-approved { background: #D1FAE5; color: #065F46; }
+.pw-shell .pill-placed { background: #DBEAFE; color: #1E40AF; }
+.pw-shell .pill-rejected, .pw-shell .pill-high { background: #FEE2E2; color: #991B1B; }
+.pw-shell .pill-muted, .pw-shell .pill-low { background: #E2E8F0; color: #475569; }
+
+/* Bars */
+.pw-shell .hbar-row { display: grid; grid-template-columns: minmax(110px, 200px) 1fr 90px; gap: .75rem;
+    align-items: center; margin-bottom: .6rem; font-size: 13px; }
+.pw-shell .hbar { height: 12px; background: #E2E8F0; border-radius: 999px; overflow: hidden; }
+.pw-shell .hbar span { display: block; height: 100%; background: var(--pw-teal); }
+.pw-shell .month-chart { display: flex; gap: .5rem; align-items: flex-end; }
+.pw-shell .month-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: .25rem; }
+.pw-shell .month-bar { width: 100%; height: 160px; display: flex; align-items: flex-end;
+    background: #EEF2F6; border-radius: 6px; }
+.pw-shell .month-bar span { display: block; width: 100%; background: var(--pw-teal);
+    border-radius: 6px 6px 0 0; min-height: 2px; }
+.pw-shell .month-units { font-size: 11px; font-weight: 700; color: var(--pw-navy); }
+.pw-shell .month-label { font-size: 10px; color: var(--pw-muted); }
+
+/* Alerts and pagination */
+.pw-shell .alert-list { display: flex; flex-direction: column; gap: .85rem; }
+.pw-shell .alert-card { background: #fff; border: 1px solid var(--pw-border); border-left: 4px solid var(--pw-teal);
+    border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: .45rem; }
+.pw-shell .alert-card.sev-high { border-left-color: var(--pw-danger); }
+.pw-shell .alert-card.sev-medium { border-left-color: #C58A27; }
+.pw-shell .alert-top { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.pw-shell .alert-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .25rem; }
+.pw-shell .pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem; }
+
+@media (min-width: 1024px) {
+    .pw-layout { grid-template-columns: 250px minmax(0, 1fr); }
+    .pw-sidebar { position: sticky; top: 1rem; }
+}
+@media (min-width: 700px) { .pw-shell .form-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 699px) {
+    .pw-shell { padding: 0 .75rem; }
+    .pw-banner h1 { font-size: 21px; }
+    .pw-shell .panel { padding: 1rem; }
+    .pw-shell .hbar-row { grid-template-columns: 1fr; gap: .25rem; }
+}
+</style>
+
+<div class="pw-shell">
+    <header class="pw-banner">
+        <div>
+            <div class="pw-banner-eyebrow">Procurement Officer Workspace</div>
+            <h1>{% block procurement_heading %}Procurement Process{% endblock %}</h1>
+            <p>{% block procurement_description %}Monitor demand forecasts, review recommendations, raise and place purchase orders and track deliveries.{% endblock %}</p>
+        </div>
+        <div class="pw-user">{{ request.user.get_username }}</div>
+    </header>
+
+    <div class="pw-layout">
+        <aside class="pw-sidebar">
+            <div class="pw-sidebar-head">
+                <span>Procurement Engine</span>
+                <strong>Supply Planning</strong>
+            </div>
+
+            {% with current=request.resolver_match.url_name %}
+            <nav aria-label="Procurement navigation">
+                <div class="pw-nav-title">Overview</div>
+                <a class="pw-nav-link {% if current == 'procurement' %}active{% endif %}"
+                   href="{% url 'procurement' %}">Dashboard &amp; Forecasts</a>
+
+                <div class="pw-nav-title">Monitor</div>
+                <a class="pw-nav-link {% if current == 'procurement_alerts' %}active{% endif %}"
+                   href="{% url 'procurement_alerts' %}">Alerts</a>
+                <a class="pw-nav-link {% if current == 'procurement_recommendations' %}active{% endif %}"
+                   href="{% url 'procurement_recommendations' %}">Recommendations
+                    {% if nav_counts.recommendations %}<span class="pw-badge">{{ nav_counts.recommendations }}</span>{% endif %}</a>
+
+                <div class="pw-nav-title">Orders</div>
+                <a class="pw-nav-link {% if current == 'procurement_orders' %}active{% endif %}"
+                   href="{% url 'procurement_orders' %}">Purchase Orders
+                    {% if nav_counts.to_place %}<span class="pw-badge" title="Approved, ready to place">{{ nav_counts.to_place }}</span>{% endif %}</a>
+                <a class="pw-nav-link {% if current == 'procurement_delivery' %}active{% endif %}"
+                   href="{% url 'procurement_delivery' %}">Delivery Status</a>
+
+                <div class="pw-nav-title">Insights</div>
+                <a class="pw-nav-link {% if current == 'procurement_analytics' %}active{% endif %}"
+                   href="{% url 'procurement_analytics' %}">Analytics</a>
+                <a class="pw-nav-link {% if current == 'procurement_reports' %}active{% endif %}"
+                   href="{% url 'procurement_reports' %}">Reports</a>
+            </nav>
+            {% endwith %}
+        </aside>
+
+        <main class="pw-main">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="feedback-message{% if message.tags == 'error' %} error{% endif %}" role="alert">
+                        <strong>{{ message }}</strong>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block procurement_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+{% block procurement_scripts %}{% endblock %}
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'procurement/procurement_base.html' %}
+{% block title %}Alerts | Procurement Workspace{% endblock %}
+{% block procurement_heading %}Procurement Alerts{% endblock %}
+{% block procurement_description %}Recommendations to review, orders to place or chase, overdue deliveries and your personal alerts.{% endblock %}
+
+{% block procurement_content %}
+<div class="tiles">
+    <div class="tile"><div class="label">Open alerts</div><div class="value">{{ summary.total }}</div></div>
+    <div class="tile danger"><div class="label">High priority</div><div class="value">{{ summary.high }}</div></div>
+    <div class="tile warn"><div class="label">Medium</div><div class="value">{{ summary.medium }}</div></div>
+    <div class="tile"><div class="label">Information</div><div class="value">{{ summary.info }}</div></div>
+</div>
+
+<section class="panel">
+    <h2 class="panel-heading">Alert Register</h2>
+
+    <div class="tabs">
+        <a class="tab {% if not selected_severity %}active{% endif %}" href="{% url 'procurement_alerts' %}">All</a>
+        <a class="tab {% if selected_severity == 'High' %}active{% endif %}" href="?severity=high">High</a>
+        <a class="tab {% if selected_severity == 'Medium' %}active{% endif %}" href="?severity=medium">Medium</a>
+        <a class="tab {% if selected_severity == 'Info' %}active{% endif %}" href="?severity=info">Info</a>
+    </div>
+
+    <div class="alert-list">
+        {% for a in alerts %}
+            <article class="alert-card sev-{{ a.severity|lower }}">
+                <div class="alert-top">
+                    <span class="pill {{ a.pill }}">{{ a.severity }}</span>
+                    <span class="pill pill-muted">{{ a.kind }}</span>
+                    {% if a.when %}<span class="muted-text">{{ a.when|date:"d M Y" }}</span>{% endif %}
+                </div>
+                <strong>{{ a.title }}</strong>
+                {% if a.detail %}<div class="muted-text">{{ a.detail }}</div>{% endif %}
+
+                <div class="alert-actions">
+                    {% if a.link %}
+                        <a class="btn btn-sm" href="{{ a.link }}">{{ a.link_label|default:"Open" }}</a>
+                    {% endif %}
+                    {% if a.personal_id %}
+                        {% if not a.is_read %}
+                            <form method="post" action="{% url 'acknowledge_user_alert' a.personal_id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline btn-sm">Acknowledge</button>
+                            </form>
+                        {% endif %}
+                        <form method="post" action="{% url 'resolve_user_alert' a.personal_id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline btn-sm">Mark resolved</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </article>
+        {% empty %}
+            <div class="empty-state">No alerts. Nothing needs your attention right now.</div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,218 +1,715 @@
-{% extends 'base.html' %}
+{% extends 'store_manager/store_manager_base.html' %}
+{% block store_manager_title %}Goods Receiving | Store Manager{% endblock %}
+{% block store_manager_heading %}Goods Receiving & Delivery Control{% endblock %}
+{% block store_manager_description %}
+Monitor incoming supplier orders, register medicine deliveries, inspect received batches and control admission of medicines into warehouse inventory.
+{% endblock %}
+{% block store_manager_content %}
 
-{% block content %}
-<div style="max-width:1400px;margin:30px auto;padding:0 20px;font-family:Arial,sans-serif;color:#1e293b;">
+<style>
+.gr-dashboard,
+.gr-dashboard * {
+    box-sizing: border-box;
+}
 
-    <!-- HEADER -->
-    <div style="background:linear-gradient(120deg,#123b66,#087e8b);color:white;padding:28px;border-radius:14px;margin-bottom:25px;">
-        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.85;">
-            Store Manager Workspace
+.gr-dashboard {
+    --navy: #102b46;
+    --navy-dark: #071c31;
+    --teal: #087e8b;
+    --teal-dark: #075d68;
+    --text: #172b40;
+    --muted: #43566b;
+    --border: #aebdce;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    padding: 18px;
+    border-radius: 12px;
+    color: var(--text);
+    background: #dce5ef;
+    font-family: Arial, sans-serif;
+}
+
+/* ACTION BANNER */
+
+.gr-action-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    padding: 17px 20px;
+    border: 1px solid #8fbfc7;
+    border-left: 5px solid var(--teal);
+    border-radius: 9px;
+    background: #c8e4e8;
+    box-shadow: 0 3px 9px rgba(15,23,42,.06);
+}
+
+.gr-action-copy h3 {
+    margin: 0;
+    color: var(--navy);
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.gr-action-copy p {
+    margin: 5px 0 0;
+    color: #334e62;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.gr-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.gr-button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 37px;
+    padding: 9px 14px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: #fff;
+    background: var(--navy);
+    text-decoration: none;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .3px;
+    transition: .2s;
+}
+
+.gr-button:hover {
+    color: #fff;
+    background: var(--teal-dark);
+}
+
+.gr-button-primary {
+    background: var(--teal);
+}
+
+.gr-button-primary:hover {
+    background: var(--navy);
+}
+
+.gr-button-outline {
+    border-color: var(--navy);
+    color: var(--navy);
+    background: #fff;
+}
+
+.gr-button-outline:hover {
+    color: #fff;
+    background: var(--navy);
+}
+
+/* SECTION HEADINGS */
+
+.gr-section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 13px;
+}
+
+.gr-section-title {
+    margin: 0;
+    color: var(--navy);
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.gr-section-description {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+.gr-section-tag {
+    flex-shrink: 0;
+    padding: 6px 9px;
+    border: 1px solid #b4c5d8;
+    border-radius: 5px;
+    color: var(--navy);
+    background: #dce7f2;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .4px;
+}
+
+/* KPI SUMMARY */
+
+.gr-summary-card {
+    padding: 16px;
+    border: 1px solid #b2c1d1;
+    border-top: 4px solid #174f80;
+    border-radius: 10px;
+    background: #eef3f8;
+    box-shadow: 0 3px 10px rgba(15,23,42,.06);
+}
+
+.gr-summary-card .gr-section-heading {
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #c5d2df;
+}
+
+.gr-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.gr-stat {
+    min-width: 0;
+    min-height: 105px;
+    padding: 12px 14px;
+    border: 1px solid #b2c1d1;
+    border-top: 3px solid #174f80;
+    border-radius: 7px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(15,23,42,.045);
+}
+
+.gr-stat-label {
+    color: #344b62;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.4;
+    letter-spacing: .35px;
+    text-transform: uppercase;
+}
+
+.gr-stat-value {
+    margin: 7px 0 3px;
+    color: var(--navy);
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+.gr-stat-note {
+    color: #526579;
+    font-size: 9px;
+    line-height: 1.4;
+}
+
+.gr-stat.pending {
+    border-top-color: #c2760b;
+}
+.gr-stat.pending .gr-stat-value {
+    color: #965000;
+}
+
+.gr-stat.overdue {
+    border-top-color: #dc2626;
+}
+.gr-stat.overdue .gr-stat-value {
+    color: #b42318;
+}
+
+.gr-stat.accepted {
+    border-top-color: #15803d;
+}
+.gr-stat.accepted .gr-stat-value {
+    color: #166534;
+}
+
+.gr-stat.available {
+    border-top-color: #087e8b;
+}
+.gr-stat.available .gr-stat-value {
+    color: #075d68;
+}
+
+.gr-stat.rejected {
+    border-top-color: #dc2626;
+}
+.gr-stat.rejected .gr-stat-value {
+    color: #b42318;
+}
+
+.gr-stat.quarantined {
+    border-top-color: #7c3aed;
+}
+.gr-stat.quarantined .gr-stat-value {
+    color: #6941c6;
+}
+
+/* CONTENT CARDS */
+
+.gr-card {
+    min-width: 0;
+    padding: 19px;
+    border: 1px solid #b2c1d1;
+    border-radius: 10px;
+    background: #f8fafc;
+    box-shadow: 0 4px 12px rgba(15,23,42,.07);
+}
+
+.gr-card .gr-section-heading {
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+    border-bottom: 2px solid #c5d2df;
+}
+
+.gr-card .gr-section-title {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: #102b46 !important;
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    line-height: 1.5 !important;
+}
+
+.gr-card .gr-section-description {
+    display: block !important;
+    color: #43566b !important;
+    font-size: 9px !important;
+    margin-top: 3px !important;
+}
+
+.gr-card .gr-section-tag {
+    color: #102b46;
+    background: #dce7f2;
+    white-space: nowrap;
+     font-size: 8px;
+    padding: 5px 7px;
+}
+
+/* RECEIVING WORKFLOW */
+
+.gr-process-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.gr-process-step {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #b2c1d1;
+    border-radius: 8px;
+    background: #e8eef5;
+}
+
+.gr-process-number {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-bottom: 9px;
+    border-radius: 6px;
+    color: #fff;
+    background: var(--navy);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.gr-process-step strong {
+    display: block;
+    color: var(--navy);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.gr-process-step p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+/* CONTROL NOTICE */
+
+.gr-control-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px 15px;
+    border: 1px solid #8fbfc7;
+    border-left: 4px solid var(--teal);
+    border-radius: 7px;
+    color: #23465c;
+    background: #d4e9ec;
+    font-size: 10px;
+    line-height: 1.7;
+}
+
+.gr-control-icon {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border-radius: 5px;
+    color: #fff;
+    background: var(--teal);
+    font-weight: 800;
+}
+
+/* TABLES */
+.gr-table-wrap {
+    width: 100%;
+    max-height: 260px;
+    overflow: auto;
+    margin-top: 8px;
+    border: 1px solid #aebdce;
+    border-radius: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #8298ad #e5edf5;
+}
+
+.gr-table {
+    width: 100%;
+    min-width: 730px;
+    border-collapse: collapse;
+    font-size: 10px;
+}
+.gr-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    color: #fff;
+    background: #102b46;
+}
+.gr-table th {
+    padding: 9px;
+    color: #fff;
+    text-align: left;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.gr-table td {
+    padding: 9px;
+    border-bottom: 1px solid #d2dce6;
+    color: #34495e;
+    background: #fff;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.gr-table tbody tr:nth-child(even) td {
+    background: #eaf0f6;
+}
+
+.gr-table tbody tr:hover td {
+    background: #d9e9ee;
+}
+
+.gr-table td strong {
+    color: #102b46;
+    font-weight: 800;
+}
+
+.gr-table a {
+    color: #076b78;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.gr-table a:hover {
+    color: #102b46;
+    text-decoration: underline;
+}
+
+.gr-remaining {
+    color: #965000 !important;
+    font-weight: 800;
+}
+.gr-empty {
+    padding: 18px !important;
+    color: #43566b !important;
+    background: #edf2f7 !important;
+    text-align: center;
+    white-space: normal !important;
+    line-height: 1.6;
+}
+
+/* RESPONSIVE */
+@media(max-width: 1100px) {
+    .gr-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gr-process-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media(max-width: 850px) {
+    .gr-action-banner {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .gr-action-buttons {
+        width: 100%;
+    }
+}
+
+@media(max-width: 650px) {
+    .gr-dashboard {
+        padding: 11px;
+    }
+
+    .gr-stat-grid,
+    .gr-process-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gr-card,
+    .gr-summary-card {
+        padding: 13px;
+    }
+
+    .gr-section-heading {
+        align-items: flex-start;
+    }
+}
+
+@media(max-width: 450px) {
+    .gr-stat-grid,
+    .gr-process-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .gr-stat {
+        padding: 10px;
+    }
+
+    .gr-stat-value {
+        font-size: 21px;
+    }
+
+    .gr-action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .gr-action-buttons .gr-button {
+        width: 100%;
+    }
+       .gr-table-wrap {
+        max-height: 230px;
+    }
+}
+</style>
+<div class="gr-dashboard">
+<section class="gr-summary-card">
+    <div class="gr-section-heading">
+        <div>
+            <h2 class="gr-section-title">Receiving Summary</h2>
         </div>
-        <h1 style="font-size:28px;margin:8px 0;font-weight:800;">
-            Goods Receiving Dashboard
-        </h1>
-        <p style="margin:0;font-size:14px;opacity:.9;">
-            Track supplier deliveries, inspect received medicine batches and control stock admission into inventory.
-        </p>
+        <span class="gr-section-tag">LIVE STATISTICS</span>
     </div>
 
-    <style>
-        .gr-layout{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start}
-        .gr-card{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:22px;box-shadow:0 3px 12px rgba(15,23,42,.05)}
-        .gr-link{display:block;padding:13px 15px;border-radius:8px;text-decoration:none;color:#334155;font-size:13px;font-weight:700;background:#f1f5f9;margin-bottom:9px}
-        .gr-link:hover,.gr-link.active{background:#123b66;color:white}
-        .gr-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-bottom:20px}
-        .gr-stat{padding:19px;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
-        .gr-stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#64748b;font-weight:800}
-        .gr-stat-value{font-size:27px;font-weight:800;color:#123b66;margin-top:9px}
-        .gr-table{width:100%;border-collapse:collapse;font-size:13px}
-        .gr-table th{background:#f1f5f9;color:#475569;text-align:left;padding:12px}
-        .gr-table td{padding:13px 12px;border-bottom:1px solid #e2e8f0}
-        .gr-button{display:inline-block;background:#087e8b;color:white;padding:11px 16px;border-radius:7px;text-decoration:none;font-size:12px;font-weight:800}
-        .gr-button:hover{background:#06636d}
-        .gr-muted{color:#64748b;font-size:12px}
-        .gr-status{display:inline-block;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:800;background:#fef3c7;color:#92400e}
-        @media(max-width:950px){.gr-layout{grid-template-columns:1fr}.gr-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-        @media(max-width:600px){.gr-stat-grid{grid-template-columns:1fr}.gr-table{min-width:650px}.gr-table-wrap{overflow-x:auto}}
-    </style>
+    <div class="gr-stat-grid">
+        <div class="gr-stat">
+            <div class="gr-stat-label">Total Goods Receipts</div>
+            <div class="gr-stat-value">{{ total_receipts|default:0 }}</div>
+            <div class="gr-stat-note">Recorded deliveries</div>
+        </div>
 
-    <div class="gr-layout">
+        <div class="gr-stat pending">
+            <div class="gr-stat-label">Pending Inspections</div>
+            <div class="gr-stat-value">{{ pending_inspections|default:0 }}</div>
+            <div class="gr-stat-note">Awaiting inspection</div>
+        </div>
 
-        <!-- SIDEBAR -->
-        <aside class="gr-card">
-            <h3 style="font-size:13px;text-transform:uppercase;color:#64748b;margin:0 0 18px;">
-                Store Manager Navigation
-            </h3>
+        <div class="gr-stat accepted">
+            <div class="gr-stat-label">Accepted Batches</div>
+            <div class="gr-stat-value">{{ accepted_batches|default:0 }}</div>
+            <div class="gr-stat-note">Accepted into inventory</div>
+        </div>
 
-            <a href="{% url 'inventory' %}" class="gr-link">📦 Inventory & Stock</a>
-            <a href="{% url 'receiving_dashboard' %}" class="gr-link active">📥 Receiving Dashboard</a>
-            <a href="{% url 'goods_receipts' %}" class="gr-link">📋 Goods Receipts</a>
-            <a href="{% url 'inventory_reports' %}" class="gr-link">📊 Stock Reports</a>
-            <a href="{% url 'inventory_alerts' %}" class="gr-link">🚨 Alerts Centre</a>
-            <a href="{% url 'inventory_recommendations' %}" class="gr-link">📝 Procurement Advice</a>
+        <div class="gr-stat rejected">
+            <div class="gr-stat-label">Rejected Batches</div>
+            <div class="gr-stat-value">{{ rejected_batches|default:0 }}</div>
+            <div class="gr-stat-note">Rejected during inspection</div>
+        </div>
 
-            <div style="margin-top:25px;padding:15px;background:#e0f2fe;border-radius:9px;">
-                <div style="font-size:11px;font-weight:800;color:#075985;text-transform:uppercase;">
-                    Receiving Control
-                </div>
-                <p style="font-size:12px;line-height:1.6;color:#334155;margin:7px 0 0;">
-                    A delivered batch must be inspected and accepted before it becomes available for dispensing.
-                </p>
+        <div class="gr-stat quarantined">
+            <div class="gr-stat-label">Quarantined Batches</div>
+            <div class="gr-stat-value">{{ quarantined_batches|default:0 }}</div>
+            <div class="gr-stat-note">Held for further action</div>
+        </div>
+
+        <div class="gr-stat orders">
+            <div class="gr-stat-label">Outstanding Orders</div>
+            <div class="gr-stat-value">{{ placed_orders_count|default:0 }}</div>
+            <div class="gr-stat-note">Awaiting full delivery</div>
+        </div>
+    </div>
+</section>
+
+    <!-- RECEIVING WORKFLOW -->
+    <section class="gr-card">
+        <div class="gr-section-heading">
+            <div>
+                <h2 class="gr-section-title">Goods Receiving Workflow</h2>
             </div>
-        </aside>
+            <span class="gr-section-tag">FOUR OPERATIONAL STAGES</span>
+        </div>
 
-        <!-- MAIN CONTENT -->
-        <main>
+        <div class="gr-process-grid">
+            <div class="gr-process-step">
+                <div class="gr-process-number">01</div>
+                <strong>Verify Purchase Order</strong>
+                 <a href="{% url 'goods_receipts' %}" class="sm-button"
+                    style="width:auto;text-decoration:none;">
+                     Confirm Deliveries
+                 </a>
+            </div>
 
-            <!-- ACTION -->
-            <section class="gr-card" style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
-                <div>
-                    <h2 style="font-size:17px;color:#123b66;margin:0 0 7px;">Receiving Operations</h2>
-                    <p class="gr-muted" style="margin:0;">
-                        Record deliveries against purchase orders already placed with suppliers.
-                    </p>
-                </div>
-                <a href="{% url 'goods_receipts' %}" class="gr-button">
-                    RECORD / VIEW DELIVERIES
-                </a>
-            </section>
-
-            <!-- SUMMARY CARDS -->
-            <div class="gr-stat-grid">
-                <div class="gr-stat">
-                    <div class="gr-stat-label">Total Receipts</div>
-                    <div class="gr-stat-value">{{ total_receipts }}</div>
-                    <div class="gr-muted">Recorded supplier deliveries</div>
-                </div>
-
-                <div class="gr-stat">
-                    <div class="gr-stat-label">Pending Inspections</div>
-                    <div class="gr-stat-value" style="color:#d97706;">{{ pending_inspections }}</div>
-                    <div class="gr-muted">Awaiting Store Manager inspection</div>
-                </div>
-
-                <div class="gr-stat">
-                    <div class="gr-stat-label">Accepted Batches</div>
-                    <div class="gr-stat-value" style="color:#15803d;">{{ accepted_batches }}</div>
-                    <div class="gr-muted">Admitted into inventory</div>
-                </div>
-
-                <div class="gr-stat">
-                    <div class="gr-stat-label">Rejected Batches</div>
-                    <div class="gr-stat-value" style="color:#dc2626;">{{ rejected_batches }}</div>
-                    <div class="gr-muted">Not admitted into inventory</div>
-                </div>
-
-                <div class="gr-stat">
-                    <div class="gr-stat-label">Quarantined Batches</div>
-                    <div class="gr-stat-value" style="color:#7c3aed;">{{ quarantined_batches }}</div>
-                    <div class="gr-muted">Held pending further action</div>
-                </div>
-
-                <div class="gr-stat">
-                    <div class="gr-stat-label">Outstanding Orders</div>
-                    <div class="gr-stat-value">{{ placed_orders_count }}</div>
-                    <div class="gr-muted">Orders with quantities still outstanding</div>
+            <div class="gr-process-step">
+                <div class="gr-process-number">02</div>
+                <strong>Record Supplier Delivery</strong>
+                <div class="gr-action-buttons">
+            <a class="gr-button gr-button-outline">
+                INSPECT DELIVERED INVENTORY
+            </a>
                 </div>
             </div>
 
-            <!-- OUTSTANDING PURCHASE ORDERS -->
-            <section class="gr-card" style="margin-bottom:20px;">
-                <h2 style="font-size:17px;color:#123b66;margin:0 0 7px;">
-                    Outstanding Purchase Orders
-                </h2>
-                <p class="gr-muted" style="margin:0 0 18px;">
-                    Placed orders with quantities that have not yet been fully received.
-                </p>
-
-                <div class="gr-table-wrap">
-                    <table class="gr-table">
-                        <thead>
-                            <tr>
-                                <th>Purchase Order</th>
-                                <th>Medicine</th>
-                                <th>Supplier</th>
-                                <th>Ordered</th>
-                                <th>Received</th>
-                                <th>Remaining</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for entry in outstanding_orders %}
-                            <tr>
-                                <td><strong>PO-{{ entry.order.pk }}</strong></td>
-                                <td>{{ entry.order.medicine.medicine_name }}</td>
-                                <td>{{ entry.order.supplier.supplier_name }}</td>
-                                <td>{{ entry.order.quantity_ordered }}</td>
-                                <td>{{ entry.received }}</td>
-                                <td style="font-weight:800;color:#d97706;">
-                                    {{ entry.remaining }}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" style="text-align:center;padding:25px;color:#64748b;">
-                                    No outstanding purchase orders.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- RECENT RECEIPTS -->
-            <section class="gr-card">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:17px;flex-wrap:wrap;">
-                    <div>
-                        <h2 style="font-size:17px;color:#123b66;margin:0 0 6px;">Recent Deliveries</h2>
-                        <p class="gr-muted" style="margin:0;">Latest goods receipts recorded in the system.</p>
-                    </div>
-                    <a href="{% url 'goods_receipts' %}" style="font-size:12px;font-weight:700;color:#087e8b;text-decoration:none;">
-                        View all receipts →
+            <div class="gr-process-step">
+                <div class="gr-process-number">03</div>
+                <strong>Inspect Received Batches</strong>
+                <div class="gr-action-buttons">
+                    <a href="{% url 'goods_receipt_create' %}"
+                       class="gr-button gr-button-primary">RECORD NEW DELIVERY
                     </a>
                 </div>
+            </div>
+            <div class="gr-process-step">
+                <div class="gr-process-number">04</div>
+                <strong>Admit Accepted Stock</strong>
+                   <div class="gr-action-buttons">
+                       <a href="{% url 'goods_receipts' %}"
+                          class="gr-button gr-button-outline">
+                           VIEW DELIVERY HISTORY
+                       </a>
+                   </div>
+            </div>
+        </div>
+    </section>
 
-                <div class="gr-table-wrap">
-                    <table class="gr-table">
-                        <thead>
-                            <tr>
-                                <th>Receipt</th>
-                                <th>Purchase Order</th>
-                                <th>Medicine</th>
-                                <th>Supplier</th>
-                                <th>Delivery Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for receipt in recent_receipts %}
-                            <tr>
-                                <td><strong>GR-{{ receipt.pk }}</strong></td>
-                                <td>PO-{{ receipt.purchase_order_id }}</td>
-                                <td>{{ receipt.purchase_order.medicine.medicine_name }}</td>
-                                <td>{{ receipt.purchase_order.supplier.supplier_name }}</td>
-                                <td>{{ receipt.delivery_date|date:"Y-m-d" }}</td>
-                                <td>
-                                    <a href="{% url 'goods_receipt_detail' receipt.pk %}"
-                                       style="color:#087e8b;font-weight:700;text-decoration:none;">
-                                        Open
-                                    </a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" style="text-align:center;padding:25px;color:#64748b;">
-                                    No deliveries have been recorded yet.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-        </main>
+    <!-- OUTSTANDING PURCHASE ORDERS -->
+    <section class="gr-card">
+        <div class="gr-section-heading">
+    <div>
+        <h2 class="gr-section-title">Outstanding Purchase Orders</h2>
+        <p class="gr-section-description">Track quantities awaiting delivery.</p>
     </div>
+
+    <span class="gr-section-tag">
+        {{ placed_orders_count|default:0 }} OUTSTANDING
+    </span>
+</div>
+
+        <div class="gr-table-wrap">
+            <table class="gr-table">
+                <thead>
+                    <tr>
+                        <th>Purchase Order</th>
+                        <th>Medicine</th>
+                        <th>Supplier</th>
+                        <th>Ordered Quantity</th>
+                        <th>Received Quantity</th>
+                        <th>Remaining Quantity</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for entry in outstanding_orders %}
+                    <tr>
+                        <td><strong>PO-{{ entry.order.pk }}</strong></td>
+                        <td>{{ entry.order.medicine.medicine_name }}</td>
+                        <td>{{ entry.order.supplier.supplier_name }}</td>
+                        <td>{{ entry.order.quantity_ordered }}</td>
+                        <td>{{ entry.received }}</td>
+                        <td class="gr-remaining">{{ entry.remaining }}</td>
+                        <td><a href="{% url 'goods_receipt_create' %}">RECORD DELIVERY →</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="gr-empty">
+                            No outstanding purchase orders are currently displayed.
+                            Orders with quantities remaining will appear here.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- RECENT DELIVERIES -->
+    <section class="gr-card">
+        <div class="gr-section-heading">
+    <div>
+        <h2 class="gr-section-title">Recent Supplier Deliveries</h2>
+        <p class="gr-section-description">Open a receipt to review its details.</p>
+    </div>
+
+    <span class="gr-section-tag">RECENT RECEIPTS</span>
+</div>
+        <div class="gr-table-wrap">
+            <table class="gr-table">
+                <thead>
+                    <tr>
+                        <th>Goods Receipt</th>
+                        <th>Purchase Order</th>
+                        <th>Medicine</th>
+                        <th>Supplier</th>
+                        <th>Delivery Date</th>
+                        <th>Receipt Details</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for receipt in recent_receipts %}
+                    <tr>
+                        <td><strong>GR-{{ receipt.pk }}</strong></td>
+                        <td>PO-{{ receipt.purchase_order_id }}</td>
+                        <td>{{ receipt.purchase_order.medicine.medicine_name }}</td>
+                        <td>{{ receipt.purchase_order.supplier.supplier_name }}</td>
+                        <td>{{ receipt.delivery_date|date:"Y-m-d" }}</td>
+                        <td>
+                            <a href="{% url 'goods_receipt_detail' receipt.pk %}">
+                                OPEN RECEIPT →
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="gr-empty">
+                            No supplier deliveries have been recorded yet.
+                            Use Record Delivery above to register an incoming delivery.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 </div>
 {% endblock %}

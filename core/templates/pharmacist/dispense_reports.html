@@ -1,12 +1,24 @@
 
-{% extends 'base.html' %}
+{% extends 'pharmacist/pharmacist_base.html' %}
 {% load static %}
 
-{% block content %}
+{% block pharmacist_title %}
+Pharmacist Reports | Medicine Expiry Management System
+{% endblock %}
+
+{% block pharmacist_heading %}
+Pharmacist Reports
+{% endblock %}
+
+{% block pharmacist_description %}
+Dispensing activity, medicine consumption and FEFO compliance monitoring.
+{% endblock %}
+
+{% block pharmacist_content %}
 
 <style>
 /* =========================================================
-   PHARMACIST DISPENSING & ANALYTICS REPORT
+   PHARMACIST DISPENSING REPORTS
 ========================================================= */
 
 .ph-report {
@@ -18,12 +30,14 @@
     --navy: #12334a;
     --blue: #2563eb;
     --green: #16845b;
+    --teal: #0f766e;
     --amber: #b7791f;
     --red: #c0392b;
 
+    width: 100%;
     max-width: 1500px;
-    margin: 25px auto;
-    padding: 0 22px 40px;
+    margin: 0 auto;
+    padding: 10px 0 35px;
     color: var(--ink);
     font-family: Arial, sans-serif;
     box-sizing: border-box;
@@ -35,131 +49,11 @@
     box-sizing: border-box;
 }
 
-.ph-report-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    gap: 18px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid var(--navy);
-    margin-bottom: 24px;
-}
-
-.ph-report-eyebrow {
-    display: block;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    color: var(--blue);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-}
-
-.ph-report-header h1 {
-    font-size: 27px;
-    margin: 0;
-    font-weight: 800;
-    letter-spacing: -0.7px;
-}
-
-.ph-report-header p {
-    margin: 7px 0 0;
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.ph-operator {
-    padding: 12px 16px;
-    border: 1px solid var(--line);
-    background: var(--surface);
-    min-width: 210px;
-}
-
-.ph-operator small {
-    display: block;
-    color: var(--muted);
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    margin-bottom: 5px;
-}
-
-.ph-operator strong {
-    font-size: 13px;
-    text-transform: uppercase;
-}
-
-/* Main layout */
-
-.ph-report-layout {
-    display: grid;
-    grid-template-columns: 230px minmax(0, 1fr);
-    gap: 22px;
-    align-items: start;
-}
-
-.ph-sidebar {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    padding: 15px;
-    position: sticky;
-    top: 20px;
-}
-
-.ph-sidebar-label {
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 1.2px;
-    color: var(--muted);
-    padding: 5px 8px 13px;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 12px;
-}
-
-.ph-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.ph-nav a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 10px;
-    color: #475569;
-    text-decoration: none;
-    font-size: 12px;
-    font-weight: 700;
-    border-radius: 5px;
-    transition: .15s ease;
-}
-
-.ph-nav a:hover {
-    background: #edf3f9;
-    color: var(--navy);
-}
-
-.ph-nav a.active {
-    background: var(--navy);
-    color: #ffffff;
-}
-
-.ph-nav-icon {
-    width: 20px;
-    text-align: center;
-    font-size: 16px;
-}
-
-/* Report content */
-
 .ph-report-main {
-    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-width: 0;
 }
 
 .ph-section-heading {
@@ -175,13 +69,14 @@
     font-size: 15px;
     margin: 0;
     font-weight: 800;
-    color: var(--ink);
+    color: var(--navy);
 }
 
 .ph-section-heading p {
-    margin: 4px 0 0;
+    margin: 5px 0 0;
     color: var(--muted);
     font-size: 11px;
+    line-height: 1.5;
 }
 
 .ph-section-tag {
@@ -192,7 +87,9 @@
     letter-spacing: .6px;
 }
 
-/* KPI cards */
+/* =========================================================
+   KPI CARDS
+========================================================= */
 
 .ph-kpi-grid {
     display: grid;
@@ -203,9 +100,11 @@
 .ph-kpi {
     background: var(--surface);
     border: 1px solid var(--line);
+    border-radius: 7px;
     padding: 17px;
     min-width: 0;
     position: relative;
+    overflow: hidden;
 }
 
 .ph-kpi::before {
@@ -214,7 +113,7 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
+    height: 4px;
     background: var(--blue);
 }
 
@@ -222,12 +121,12 @@
     background: var(--green);
 }
 
-.ph-kpi.amber::before {
-    background: var(--amber);
+.ph-kpi.teal::before {
+    background: var(--teal);
 }
 
-.ph-kpi.red::before {
-    background: var(--red);
+.ph-kpi.amber::before {
+    background: var(--amber);
 }
 
 .ph-kpi-label {
@@ -236,7 +135,7 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: .6px;
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
 .ph-kpi-value {
@@ -250,14 +149,17 @@
 .ph-kpi-note {
     color: var(--muted);
     font-size: 10px;
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
-/* General panels */
+/* =========================================================
+   PANELS
+========================================================= */
 
 .ph-panel {
     background: var(--surface);
     border: 1px solid var(--line);
+    border-radius: 7px;
     padding: 19px;
     min-width: 0;
 }
@@ -277,15 +179,19 @@
     font-size: 13px;
     margin: 0;
     font-weight: 800;
+    color: var(--navy);
 }
 
 .ph-panel-heading p {
     color: var(--muted);
     font-size: 11px;
+    line-height: 1.5;
     margin: 5px 0 0;
 }
 
-/* Analytics grid */
+/* =========================================================
+   ANALYTICS
+========================================================= */
 
 .ph-analytics-grid {
     display: grid;
@@ -306,15 +212,16 @@
     font-size: 12px;
     text-align: center;
     border: 1px dashed var(--line);
+    border-radius: 5px;
     padding: 20px;
 }
 
-/* Daily activity chart */
+/* Daily activity */
 
 .ph-activity-chart {
     display: flex;
     align-items: flex-end;
-    gap: 10px;
+    gap: 12px;
     height: 165px;
     padding: 15px 5px 0;
     border-bottom: 1px solid var(--line);
@@ -335,8 +242,8 @@
 .ph-day-bar {
     width: 70%;
     min-height: 3px;
-    background: #3478c7;
-    border-radius: 3px 3px 0 0;
+    background: linear-gradient(180deg, #16845b, #2563eb);
+    border-radius: 4px 4px 0 0;
     transition: height .2s ease;
 }
 
@@ -352,7 +259,7 @@
     white-space: nowrap;
 }
 
-/* Medicine consumption ranking */
+/* Medicine ranking */
 
 .ph-ranking-list {
     display: flex;
@@ -394,11 +301,13 @@
 
 .ph-ranking-fill {
     height: 100%;
-    background: #3478c7;
+    background: linear-gradient(90deg, #16845b, #2563eb);
     border-radius: 10px;
 }
 
-/* FEFO analysis */
+/* =========================================================
+   FEFO ANALYSIS
+========================================================= */
 
 .ph-fefo-grid {
     display: grid;
@@ -409,8 +318,10 @@
 
 .ph-fefo-score {
     text-align: center;
-    padding: 15px;
+    padding: 18px;
     border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fbfefd;
 }
 
 .ph-fefo-score strong {
@@ -463,15 +374,22 @@
 }
 
 .ph-fefo-note {
-    background: #f5f8fc;
-    border-left: 3px solid var(--blue);
-    padding: 12px;
+    background: #f0f8f6;
+    border-left: 3px solid var(--teal);
+    border-radius: 4px;
+    padding: 15px;
     font-size: 11px;
     color: #475569;
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
-/* Transaction table */
+.ph-fefo-note strong {
+    color: var(--navy);
+}
+
+/* =========================================================
+   TRANSACTION REGISTER
+========================================================= */
 
 .ph-table-tools {
     display: flex;
@@ -482,9 +400,9 @@
 
 .ph-filter {
     min-height: 38px;
-    padding: 8px 10px;
+    padding: 8px 11px;
     border: 1px solid var(--line);
-    border-radius: 4px;
+    border-radius: 5px;
     background: #ffffff;
     color: var(--ink);
     font-size: 11px;
@@ -492,31 +410,33 @@
 }
 
 .ph-filter:focus {
-    border-color: var(--blue);
+    border-color: var(--teal);
+    box-shadow: 0 0 0 2px rgba(15, 118, 110, .08);
 }
 
 .ph-search {
     flex: 1;
-    min-width: 180px;
+    min-width: 190px;
 }
 
 .ph-table-wrap {
     width: 100%;
     overflow-x: auto;
     border: 1px solid var(--line);
+    border-radius: 5px;
 }
 
 .ph-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 760px;
+    min-width: 800px;
     font-size: 11px;
 }
 
 .ph-table th {
-    padding: 12px 11px;
-    background: #f3f6fa;
-    color: #475569;
+    padding: 13px 11px;
+    background: #edf5f3;
+    color: var(--navy);
     text-align: left;
     font-size: 9px;
     text-transform: uppercase;
@@ -533,7 +453,7 @@
 }
 
 .ph-table tbody tr:hover {
-    background: #f8fafc;
+    background: #f5faf8;
 }
 
 .ph-table tbody tr:last-child td {
@@ -545,10 +465,17 @@
     color: var(--navy);
 }
 
+.ph-table code {
+    background: #f1f5f9;
+    padding: 4px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+}
+
 .ph-status {
     display: inline-block;
     padding: 5px 8px;
-    border-radius: 3px;
+    border-radius: 4px;
     font-size: 9px;
     font-weight: 800;
     text-transform: uppercase;
@@ -581,7 +508,53 @@
     font-size: 10px;
 }
 
-/* Operational interpretation */
+/* =========================================================
+   REPORT ACTIONS
+========================================================= */
+
+.ph-report-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.ph-report-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    min-height: 36px;
+    padding: 8px 13px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: #ffffff;
+    color: var(--navy);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.ph-report-btn:hover {
+    background: #edf5f3;
+    border-color: #b8d8ce;
+}
+
+.ph-report-btn.primary {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #ffffff;
+}
+
+.ph-report-btn.primary:hover {
+    background: #1b5267;
+}
+
+/* =========================================================
+   OPERATIONAL INSIGHTS
+========================================================= */
 
 .ph-insight-grid {
     display: grid;
@@ -590,8 +563,9 @@
 }
 
 .ph-insight {
-    padding: 14px;
+    padding: 15px;
     border: 1px solid var(--line);
+    border-radius: 5px;
     background: #ffffff;
 }
 
@@ -603,7 +577,7 @@
 
 .ph-insight p {
     font-size: 11px;
-    line-height: 1.6;
+    line-height: 1.7;
     margin: 0;
     color: var(--muted);
 }
@@ -613,16 +587,14 @@
     padding-top: 13px;
     color: var(--muted);
     font-size: 10px;
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
-/* Responsive */
+/* =========================================================
+   RESPONSIVE DESIGN
+========================================================= */
 
 @media (max-width: 1100px) {
-    .ph-report-layout {
-        grid-template-columns: 190px minmax(0, 1fr);
-    }
-
     .ph-kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -630,20 +602,7 @@
 
 @media (max-width: 760px) {
     .ph-report {
-        padding: 0 12px 30px;
-    }
-
-    .ph-report-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .ph-sidebar {
-        position: static;
-    }
-
-    .ph-nav {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 5px 0 25px;
     }
 
     .ph-analytics-grid,
@@ -652,14 +611,22 @@
         grid-template-columns: 1fr;
     }
 
-    .ph-report-header h1 {
-        font-size: 21px;
+    .ph-panel {
+        padding: 15px;
+    }
+
+    .ph-section-heading h2 {
+        font-size: 14px;
+    }
+
+    .ph-report-actions {
+        justify-content: flex-start;
     }
 }
 
 @media (max-width: 450px) {
     .ph-kpi-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
     }
 
@@ -671,494 +638,535 @@
         font-size: 22px;
     }
 
-    .ph-nav {
-        grid-template-columns: 1fr;
+    .ph-kpi-label {
+        font-size: 9px;
+    }
+
+    .ph-kpi-note {
+        font-size: 9px;
     }
 
     .ph-panel {
-        padding: 13px;
+        padding: 12px;
+    }
+
+    .ph-filter {
+        width: 100%;
+    }
+
+    .ph-search {
+        min-width: 100%;
+    }
+
+    .ph-report-btn {
+        flex: 1;
+    }
+}
+
+/* =========================================================
+   PRINT
+========================================================= */
+
+@media print {
+    @page {
+        size: landscape;
+        margin: 12mm;
+    }
+
+    body {
+        background: #ffffff !important;
+    }
+
+    .ph-report {
+        max-width: none;
+        padding: 0;
+    }
+
+    .ph-report-actions,
+    .ph-table-tools {
+        display: none !important;
+    }
+
+    .ph-panel,
+    .ph-kpi {
+        break-inside: avoid;
+        box-shadow: none;
+    }
+
+    .ph-table-wrap {
+        overflow: visible;
+    }
+
+    .ph-table {
+        min-width: 0;
+        font-size: 9px;
+    }
+
+    .ph-table th,
+    .ph-table td {
+        padding: 7px;
     }
 }
 </style>
 
-<div class="ph-report">
+<div class="ph-report"
+     data-total-transactions="{{ total_transactions|default:0 }}"
+     data-total-overrides="{{ fefo_overrides|default:0 }}">
 
-    <!-- REPORT HEADER -->
-    <header class="ph-report-header">
-        <div>
-            <span class="ph-report-eyebrow">
-                Clinical Operations / Performance Intelligence
-            </span>
+    <main class="ph-report-main">
 
-            <h1>Pharmacist Dispensing Analytics</h1>
+        <!-- REPORT ACTIONS -->
+        <div class="ph-report-actions">
+            <button type="button"
+                    class="ph-report-btn"
+                    id="resetReportFilters">
+                ↺ Reset Filters
+            </button>
 
-            <p>
-                Dispensing activity, medicine consumption and FEFO compliance
-                monitoring.
-            </p>
+            <button type="button"
+                    class="ph-report-btn primary"
+                    onclick="window.print()">
+                ⎙ Print / Save Report
+            </button>
         </div>
 
-        <div class="ph-operator">
-            <small>REPORTING OPERATOR</small>
-            <strong>{{ request.user.username }}</strong>
-            <div style="font-size:10px;color:#64748b;margin-top:5px;">
-                PHARMACIST WORKSPACE
-            </div>
-        </div>
-    </header>
+        <!-- 1. PERFORMANCE SUMMARY -->
+        <section>
+            <div class="ph-section-heading">
+                <div>
+                    <h2>Dispensing Performance Overview</h2>
+                    <p>
+                        Summary of recorded medicine dispensing transactions.
+                    </p>
+                </div>
 
-    <div class="ph-report-layout">
-
-        <!-- SIDEBAR -->
-        <aside class="ph-sidebar">
-            <div class="ph-sidebar-label">
-                PHARMACIST WORKSPACE
+                <span class="ph-section-tag">
+                    Recorded system data
+                </span>
             </div>
 
-            <nav class="ph-nav" aria-label="Pharmacist navigation">
+            <div class="ph-kpi-grid">
 
-                <a href="{% url 'pharmacist_dashboard' %}">
-                    <span class="ph-nav-icon">⌂</span>
-                    Dashboard
-                </a>
-
-                <a href="{% url 'dispense' %}">
-                    <span class="ph-nav-icon">＋</span>
-                    Dispense Medicines
-                </a>
-
-                <a href="{% url 'dispense_reports' %}"
-                   class="active"
-                   aria-current="page">
-                    <span class="ph-nav-icon">▤</span>
-                    Pharmacist Reports
-                </a>
-
-                <a href="{% url 'alerts' %}">
-                    <span class="ph-nav-icon">⚑</span>
-                    Alerts Centre
-                </a>
-
-                <a href="{% url 'profile' %}">
-                    <span class="ph-nav-icon">◎</span>
-                    My Profile
-                </a>
-            </nav>
-        </aside>
-
-        <!-- MAIN REPORT -->
-        <main class="ph-report-main">
-            <!-- 1. PERFORMANCE SUMMARY -->
-            <section>
-
-                <div class="ph-section-heading">
-                    <div>
-                        <h2>Dispensing Performance Overview</h2>
-                        <p>
-                            Summary of recorded dispensing transactions.
-                        </p>
+                <div class="ph-kpi">
+                    <div class="ph-kpi-label">
+                        Total Transactions
                     </div>
 
-                    <span class="ph-section-tag">
-                        Recorded system data
-                    </span>
-                </div>
-
-                <div class="ph-kpi-grid">
-
-                    <div class="ph-kpi">
-                        <div class="ph-kpi-label">
-                            Total Transactions
-                        </div>
-
-                        <div class="ph-kpi-value">
-                            {{ total_transactions|default:0 }}
-                        </div>
-
-                        <div class="ph-kpi-note">
-                            Recorded dispensing operations
-                        </div>
+                    <div class="ph-kpi-value">
+                        {{ total_transactions|default:0 }}
                     </div>
 
-                    <div class="ph-kpi green">
-                        <div class="ph-kpi-label">
-                            Units Dispensed
-                        </div>
-
-                        <div class="ph-kpi-value">
-                            {{ total_quantity_dispensed|default:0 }}
-                        </div>
-
-                        <div class="ph-kpi-note">
-                            Total recorded medicine quantity
-                        </div>
-                    </div>
-
-                    <div class="ph-kpi amber">
-                        <div class="ph-kpi-label">
-                            FEFO Overrides
-                        </div>
-
-                        <div class="ph-kpi-value">
-                            {{ fefo_overrides|default:0 }}
-                        </div>
-
-                        <div class="ph-kpi-note">
-                            Transactions requiring FEFO exception
-                        </div>
-                    </div>
-
-                    <div class="ph-kpi green">
-                        <div class="ph-kpi-label">
-                            FEFO Compliance
-                        </div>
-
-                        <div class="ph-kpi-value"
-                             id="fefoComplianceValue">
-                            --
-                        </div>
-
-                        <div class="ph-kpi-note">
-                            Calculated from recorded transactions
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 2. ANALYTICS -->
-
-            <section>
-                <div class="ph-section-heading">
-                    <div>
-                        <h2>Medicine Consumption Analytics</h2>
-                        <p>
-                            Distribution of recorded dispensing activity
-                            across medicines and dates.
-                        </p>
+                    <div class="ph-kpi-note">
+                        Recorded dispensing transactions
                     </div>
                 </div>
 
-                <div class="ph-analytics-grid">
-                    <!-- Daily activity -->
-                    <div class="ph-panel">
+                <div class="ph-kpi green">
+                    <div class="ph-kpi-label">
+                        Units Dispensed
+                    </div>
 
-                        <div class="ph-panel-heading">
-                            <div>
-                                <h3>Daily Dispensing Activity</h3>
-                                <p>
-                                    Transaction count by dispensing date
-                                </p>
-                            </div>
-                        </div>
+                    <div class="ph-kpi-value">
+                        {{ total_quantity_dispensed|default:0 }}
+                    </div>
 
-                        <div id="dailyActivityChart"
-                             class="ph-chart-area">
+                    <div class="ph-kpi-note">
+                        Total recorded medicine quantity
+                    </div>
+                </div>
 
-                            <div class="ph-chart-empty">
-                                Daily activity will appear when
-                                transactions are available.
-                            </div>
+                <div class="ph-kpi amber">
+                    <div class="ph-kpi-label">
+                        FEFO Overrides
+                    </div>
+
+                    <div class="ph-kpi-value">
+                        {{ fefo_overrides|default:0 }}
+                    </div>
+
+                    <div class="ph-kpi-note">
+                        Transactions requiring FEFO exception
+                    </div>
+                </div>
+
+                <div class="ph-kpi teal">
+                    <div class="ph-kpi-label">
+                        FEFO Compliance
+                    </div>
+
+                    <div class="ph-kpi-value"
+                         id="fefoComplianceValue">
+                        --
+                    </div>
+
+                    <div class="ph-kpi-note">
+                        Based on recorded override indicators
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. MEDICINE CONSUMPTION ANALYTICS -->
+        <section>
+            <div class="ph-section-heading">
+                <div>
+                    <h2>Medicine Consumption Analytics</h2>
+                    <p>
+                        Dispensing activity across medicines and dates.
+                    </p>
+                </div>
+            </div>
+
+            <div class="ph-analytics-grid">
+
+                <!-- Daily activity -->
+                <div class="ph-panel">
+                    <div class="ph-panel-heading">
+                        <div>
+                            <h3>Daily Dispensing Activity</h3>
+                            <p>Transaction count by dispensing date</p>
                         </div>
                     </div>
 
-                    <!-- Medicine ranking -->
-                    <div class="ph-panel">
-                        <div class="ph-panel-heading">
-                            <div>
-                                <h3>Medicine Consumption Ranking</h3>
-                                <p>
-                                    Medicines ranked by total units dispensed
-                                </p>
-                            </div>
-                        </div>
+                    <div id="dailyActivityChart"
+                         class="ph-chart-area">
 
-                        <div id="medicineRanking"
-                             class="ph-ranking-list ph-chart-area">
-
-                            <div class="ph-chart-empty">
-                                Medicine consumption analytics will appear
-                                when transactions are available.
-                            </div>
+                        <div class="ph-chart-empty">
+                            Daily activity will appear when transactions
+                            are available.
                         </div>
                     </div>
                 </div>
-            </section>
 
-            <!-- 3. FEFO COMPLIANCE -->
-            <section class="ph-panel">
-                <div class="ph-panel-heading">
-                    <div>
-                        <h3>FEFO Compliance Analysis</h3>
-                        <p>
-                            Monitoring adherence to First Expiry First Out
-                            dispensing.
-                        </p>
-                    </div>
-
-                    <span class="ph-section-tag">
-                        Dispensing safety
-                    </span>
-                </div>
-
-                <div class="ph-fefo-grid">
-                    <div>
-                        <div class="ph-fefo-score">
-                            <strong id="fefoLargeScore">--</strong>
-                            <span>FEFO Compliance Rate</span>
-                        </div>
-
-                        <div class="ph-fefo-progress">
-                            <div id="fefoCompliantBar"
-                                 class="ph-fefo-compliant">
-                            </div>
-
-                            <div id="fefoOverrideBar"
-                                 class="ph-fefo-override">
-                            </div>
-                        </div>
-
-                        <div class="ph-fefo-legend">
-                            <span>
-                                <i class="ph-legend-dot"
-                                   style="background:#16845b;">
-                                </i>
-                                FEFO compliant
-                            </span>
-
-                            <span>
-                                <i class="ph-legend-dot"
-                                   style="background:#b7791f;">
-                                </i>
-                                FEFO override
-                            </span>
+                <!-- Medicine ranking -->
+                <div class="ph-panel">
+                    <div class="ph-panel-heading">
+                        <div>
+                            <h3>Medicine Consumption Ranking</h3>
+                            <p>Medicines ranked by total units dispensed</p>
                         </div>
                     </div>
 
-                    <div class="ph-fefo-note">
-                        <strong>Interpretation</strong>
+                    <div id="medicineRanking"
+                         class="ph-ranking-list ph-chart-area">
 
-                        <p style="margin:7px 0;">
-                            FEFO compliance measures the proportion of
-                            recorded dispensing transactions that were
-                            completed without a recorded override.
-                        </p>
-
-                        <p style="margin:7px 0 0;">
-                            Overrides should be reviewed against their
-                            documented reasons and the applicable dispensing
-                            safety requirements. An override is not
-                            automatically evidence of inappropriate
-                            dispensing.
-                        </p>
+                        <div class="ph-chart-empty">
+                            Medicine consumption analytics will appear
+                            when transactions are available.
+                        </div>
                     </div>
                 </div>
-            </section>
 
-            <!-- 4. TRANSACTION REGISTER -->
-            <section class="ph-panel">
-                <div class="ph-panel-heading">
-                    <div>
-                        <h3>Detailed Dispensing Transaction Register</h3>
-                        <p>
-                            Search and inspect recorded medicine dispensing
-                            operations.
-                        </p>
+            </div>
+        </section>
+
+        <!-- 3. FEFO COMPLIANCE -->
+        <section class="ph-panel">
+            <div class="ph-panel-heading">
+                <div>
+                    <h3>FEFO Compliance Analysis</h3>
+                    <p>
+                        Monitoring adherence to First Expiry First Out
+                        dispensing.
+                    </p>
+                </div>
+
+                <span class="ph-section-tag">
+                    Dispensing safety
+                </span>
+            </div>
+
+            <div class="ph-fefo-grid">
+
+                <div>
+                    <div class="ph-fefo-score">
+                        <strong id="fefoLargeScore">--</strong>
+                        <span>FEFO Compliance Rate</span>
                     </div>
 
-                    <span class="ph-section-tag"
-                          id="visibleTransactionCount">
-                        Transaction register
-                    </span>
+                    <div class="ph-fefo-progress">
+                        <div id="fefoCompliantBar"
+                             class="ph-fefo-compliant">
+                        </div>
+
+                        <div id="fefoOverrideBar"
+                             class="ph-fefo-override">
+                        </div>
+                    </div>
+
+                    <div class="ph-fefo-legend">
+                        <span>
+                            <i class="ph-legend-dot"
+                               style="background:#16845b;"></i>
+                            FEFO compliant
+                        </span>
+
+                        <span>
+                            <i class="ph-legend-dot"
+                               style="background:#b7791f;"></i>
+                            FEFO override
+                        </span>
+                    </div>
                 </div>
 
-                <div class="ph-table-tools">
-                    <input type="search"
-                           id="transactionSearch"
-                           class="ph-filter ph-search"
-                           placeholder="Search medicine, batch or pharmacist...">
+                <div class="ph-fefo-note">
+                    <strong>Interpretation</strong>
 
-                    <select id="fefoFilter" class="ph-filter">
-                        <option value="all">All FEFO statuses</option>
-                        <option value="compliant">FEFO compliant</option>
-                        <option value="override">FEFO override</option>
-                    </select>
+                    <p>
+                        FEFO compliance measures the proportion of recorded
+                        dispensing transactions completed without a recorded
+                        override.
+                    </p>
 
-                    <input type="date"
-                           id="dateFilter"
-                           class="ph-filter"
-                           title="Filter by dispensing date">
+                    <p>
+                        Overrides should be reviewed against their documented
+                        reasons and applicable dispensing safety requirements.
+                        An override is not automatically evidence of
+                        inappropriate dispensing.
+                    </p>
                 </div>
 
-                <div class="ph-table-wrap">
-                    <table class="ph-table">
-                        <thead>
-                            <tr>
-                                <th>Transaction Date</th>
-                                <th>Medicine</th>
-                                <th>Batch Number</th>
-                                <th>Quantity</th>
-                                <th>Patient Identifier</th>
-                                <th>Dispensed By</th>
-                                <th>FEFO Status</th>
-                            </tr>
-                        </thead>
+            </div>
+        </section>
 
-                        <tbody id="transactionTableBody">
-                            {% for tx in transactions %}
-                            <tr class="transaction-row"
-                                data-medicine="{{ tx.medicine.medicine_name }}"
-                                data-batch="{{ tx.batch.batch_number }}"
-                                data-pharmacist="{{ tx.dispensed_by.username }}"
-                                data-date="{{ tx.dispensed_at|date:'Y-m-d' }}"
-                                data-quantity="{{ tx.quantity_dispensed }}"
-                                data-override="{% if tx.is_override %}true{% else %}false{% endif %}">
+        <!-- 4. TRANSACTION REGISTER -->
+        <section class="ph-panel">
 
-                                <td>
-                                    {{ tx.dispensed_at|date:"Y-m-d H:i" }}
-                                </td>
+            <div class="ph-panel-heading">
+                <div>
+                    <h3>Detailed Dispensing Transaction Register</h3>
+                    <p>
+                        Search and inspect recorded medicine dispensing
+                        transactions.
+                    </p>
+                </div>
 
-                                <td>
-                                    <span class="ph-medicine-name">
-                                        {{ tx.medicine.medicine_name }}
+                <span class="ph-section-tag"
+                      id="visibleTransactionCount">
+                    Transaction register
+                </span>
+            </div>
+
+            <!-- FILTERS -->
+            <div class="ph-table-tools">
+
+                <input type="search"
+                       id="transactionSearch"
+                       class="ph-filter ph-search"
+                       placeholder="Search medicine, batch or pharmacist..."
+                       aria-label="Search dispensing transactions">
+
+                <select id="fefoFilter"
+                        class="ph-filter"
+                        aria-label="Filter by FEFO status">
+                    <option value="all">All FEFO statuses</option>
+                    <option value="compliant">FEFO compliant</option>
+                    <option value="override">FEFO override</option>
+                </select>
+
+                <input type="date"
+                       id="dateFilter"
+                       class="ph-filter"
+                       title="Filter by dispensing date"
+                       aria-label="Filter by dispensing date">
+
+            </div>
+
+            <!-- TABLE -->
+            <div class="ph-table-wrap">
+                <table class="ph-table">
+
+                    <thead>
+                        <tr>
+                            <th>Transaction Date</th>
+                            <th>Medicine</th>
+                            <th>Batch Number</th>
+                            <th>Quantity</th>
+                            <th>Patient Identifier</th>
+                            <th>Dispensed By</th>
+                            <th>FEFO Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="transactionTableBody">
+
+                        {% for tx in transactions %}
+
+                        <tr class="transaction-row"
+                            data-medicine="{{ tx.medicine.medicine_name }}"
+                            data-batch="{{ tx.batch.batch_number }}"
+                            data-pharmacist="{{ tx.dispensed_by.username }}"
+                            data-date="{{ tx.dispensed_at|date:'Y-m-d' }}"
+                            data-quantity="{{ tx.quantity_dispensed }}"
+                            data-override="{% if tx.is_override %}true{% else %}false{% endif %}">
+
+                            <td>
+                                {{ tx.dispensed_at|date:"Y-m-d H:i" }}
+                            </td>
+
+                            <td>
+                                <span class="ph-medicine-name">
+                                    {{ tx.medicine.medicine_name }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <code>{{ tx.batch.batch_number }}</code>
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ tx.quantity_dispensed }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ tx.patient_identifier|default:"Not recorded" }}
+                            </td>
+
+                            <td>
+                                {{ tx.dispensed_by.username }}
+                            </td>
+
+                            <td>
+                                {% if tx.is_override %}
+                                    <span class="ph-status override">
+                                        Override
                                     </span>
-                                </td>
+                                {% else %}
+                                    <span class="ph-status compliant">
+                                        Compliant
+                                    </span>
+                                {% endif %}
+                            </td>
 
-                                <td>
-                                    <code>{{ tx.batch.batch_number }}</code>
-                                </td>
+                        </tr>
 
-                                <td>
-                                    <strong>
-                                        {{ tx.quantity_dispensed }}
-                                    </strong>
-                                </td>
+                        {% empty %}
 
-                                <td>
-                                    {{ tx.patient_identifier|default:"Not recorded" }}
-                                </td>
+                        <tr>
+                            <td colspan="7" class="ph-table-empty">
+                                No dispensing transactions have been
+                                recorded yet.
+                            </td>
+                        </tr>
 
-                                <td>
-                                    {{ tx.dispensed_by.username }}
-                                </td>
+                        {% endfor %}
 
-                                <td>
-                                    {% if tx.is_override %}
-                                        <span class="ph-status override">
-                                            Override
-                                        </span>
-                                    {% else %}
-                                        <span class="ph-status compliant">
-                                            Compliant
-                                        </span>
-                                    {% endif %}
-                                </td>
-                            </tr>
+                    </tbody>
+                </table>
+            </div>
 
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="ph-table-empty">
-                                    No dispensing transactions have been
-                                    recorded yet.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            <div class="ph-table-footer">
+                <span id="tableResultSummary">
+                    Displaying recorded transactions
+                </span>
+
+                <span>
+                    FEFO status is based on the recorded override flag.
+                </span>
+            </div>
+
+        </section>
+
+        <!-- 5. OPERATIONAL INSIGHTS -->
+        <section class="ph-panel">
+
+            <div class="ph-panel-heading">
+                <div>
+                    <h3>Operational Interpretation & Recommendations</h3>
+                    <p>
+                        Practical implications of dispensing and consumption
+                        records.
+                    </p>
+                </div>
+            </div>
+
+            <div class="ph-insight-grid">
+
+                <div class="ph-insight">
+                    <h4>01. FEFO Discipline</h4>
+                    <p>
+                        Review override transactions and their documented
+                        reasons. Consistent FEFO application helps reduce
+                        the likelihood of older eligible stock remaining
+                        unused until expiry.
+                    </p>
                 </div>
 
-                <div class="ph-table-footer">
-                    <span id="tableResultSummary">
-                        Displaying recorded transactions
-                    </span>
-
-                    <span>
-                        FEFO status is based on the recorded override flag.
-                    </span>
-                </div>
-            </section>
-
-            <!-- 5. OPERATIONAL INSIGHTS -->
-            <section class="ph-panel">
-                <div class="ph-panel-heading">
-                    <div>
-                        <h3>Operational Interpretation & Recommendations</h3>
-                        <p>
-                            Practical implications of dispensing and
-                            consumption records.
-                        </p>
-                    </div>
+                <div class="ph-insight">
+                    <h4>02. Medicine Consumption</h4>
+                    <p>
+                        Frequently dispensed medicines provide useful
+                        consumption evidence. These records can support
+                        demand forecasting and replenishment decisions.
+                    </p>
                 </div>
 
-                <div class="ph-insight-grid">
-                    <div class="ph-insight">
-                        <h4>01. FEFO Discipline</h4>
-                        <p>
-                            Review override transactions and their documented
-                            reasons. Consistent FEFO application helps reduce
-                            the likelihood of older eligible stock remaining
-                            unused until expiry.
-                        </p>
-                    </div>
-
-                    <div class="ph-insight">
-                        <h4>02. Medicine Consumption</h4>
-                        <p>
-                            Frequently dispensed medicines provide useful
-                            consumption evidence. These records can support
-                            demand forecasting and replenishment decisions.
-                        </p>
-                    </div>
-
-                    <div class="ph-insight">
-                        <h4>03. Dispensing Records</h4>
-                        <p>
-                            Ensure every dispensing operation is accurately
-                            recorded, including the medicine, quantity,
-                            selected batch and dispensing operator.
-                        </p>
-                    </div>
-
-                    <div class="ph-insight">
-                        <h4>04. Expiry Prevention</h4>
-                        <p>
-                            Dispensing activity should be considered alongside
-                            batch expiry dates, remaining stock and
-                            near-expiry alerts to identify medicines requiring
-                            timely stock management.
-                        </p>
-                    </div>
+                <div class="ph-insight">
+                    <h4>03. Dispensing Records</h4>
+                    <p>
+                        Ensure every dispensing operation is accurately
+                        recorded, including the medicine, quantity,
+                        selected batch and dispensing operator.
+                    </p>
                 </div>
-            </section>
 
-            <footer class="ph-report-footer">
-                <strong>REPORT DATA NOTE:</strong>
-                This report analyses the dispensing transactions supplied
-                by the system. FEFO compliance is calculated using the
-                recorded override indicator. Daily activity and medicine
-                rankings are calculated from the transactions displayed
-                in this report. These analytics do not independently
-                establish stock availability, forecast accuracy or
-                prescription safety.
-            </footer>
-        </main>
-    </div>
+                <div class="ph-insight">
+                    <h4>04. Expiry Prevention</h4>
+                    <p>
+                        Dispensing activity should be considered alongside
+                        batch expiry dates, remaining stock and near-expiry
+                        alerts to identify medicines requiring timely
+                        stock management.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- REPORT FOOTER -->
+        <footer class="ph-report-footer">
+            <strong>REPORT DATA NOTE:</strong>
+            This report analyses the dispensing transactions supplied
+            by the system. FEFO compliance is calculated using the
+            recorded override indicator. Daily activity and medicine
+            rankings are calculated from the transactions displayed
+            in this report. These analytics do not independently
+            establish stock availability, forecast accuracy or
+            prescription safety.
+        </footer>
+
+    </main>
 </div>
 
-<!-- CLIENT-SIDE REPORT ANALYTICS -->
+<!-- =========================================================
+     CLIENT-SIDE REPORT ANALYTICS
+========================================================= -->
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
+    const report = document.querySelector(".ph-report");
+
+    if (!report) return;
+
     const rows = Array.from(
-        document.querySelectorAll(".transaction-row")
+        report.querySelectorAll(".transaction-row")
     );
 
     const totalTransactions = Number(
-        "{{ total_transactions|default:0 }}"
+        report.dataset.totalTransactions || 0
     );
 
     const totalOverrides = Number(
-        "{{ fefo_overrides|default:0 }}"
+        report.dataset.totalOverrides || 0
     );
+
+    /* =====================================================
+       1. FEFO COMPLIANCE
+    ===================================================== */
 
     const compliantTransactions = Math.max(
         0,
@@ -1194,11 +1202,12 @@ document.addEventListener("DOMContentLoaded", function () {
         overrideWidth + "%";
 
 
-    /* -----------------------------------------
-       Extract transaction information
-    ----------------------------------------- */
+    /* =====================================================
+       2. EXTRACT TRANSACTION DATA
+    ===================================================== */
 
     const transactions = rows.map(function (row) {
+
         return {
             medicine: row.dataset.medicine || "Unknown medicine",
             batch: row.dataset.batch || "Not recorded",
@@ -1208,20 +1217,23 @@ document.addEventListener("DOMContentLoaded", function () {
             override: row.dataset.override === "true",
             element: row
         };
+
     });
 
 
-    /* -----------------------------------------
-       Daily dispensing activity
-    ----------------------------------------- */
+    /* =====================================================
+       3. DAILY DISPENSING ACTIVITY
+    ===================================================== */
 
     const dailyCounts = {};
 
     transactions.forEach(function (tx) {
+
         if (!tx.date) return;
 
         dailyCounts[tx.date] =
             (dailyCounts[tx.date] || 0) + 1;
+
     });
 
     const dailyEntries = Object.entries(dailyCounts)
@@ -1259,6 +1271,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const bar = document.createElement("div");
             bar.className = "ph-day-bar";
+
             bar.style.height =
                 Math.max(4, (entry[1] / maximum) * 115) + "px";
 
@@ -1271,16 +1284,18 @@ document.addEventListener("DOMContentLoaded", function () {
             column.appendChild(label);
 
             chart.appendChild(column);
+
         });
 
         dailyContainer.innerHTML = "";
         dailyContainer.appendChild(chart);
+
     }
 
 
-    /* -----------------------------------------
-       Medicine consumption ranking
-    ----------------------------------------- */
+    /* =====================================================
+       4. MEDICINE CONSUMPTION RANKING
+    ===================================================== */
 
     const medicineTotals = {};
 
@@ -1346,13 +1361,15 @@ document.addEventListener("DOMContentLoaded", function () {
             item.appendChild(track);
 
             rankingContainer.appendChild(item);
+
         });
+
     }
 
 
-    /* -----------------------------------------
-       Transaction search and filtering
-    ----------------------------------------- */
+    /* =====================================================
+       5. TRANSACTION SEARCH AND FILTERING
+    ===================================================== */
 
     const searchInput =
         document.getElementById("transactionSearch");
@@ -1407,6 +1424,7 @@ document.addEventListener("DOMContentLoaded", function () {
             tx.element.style.display = show ? "" : "none";
 
             if (show) visible++;
+
         });
 
         visibleCount.textContent =
@@ -1415,14 +1433,34 @@ document.addEventListener("DOMContentLoaded", function () {
         resultSummary.textContent =
             "Showing " + visible + " of " +
             transactions.length + " displayed transactions.";
+
     }
 
     searchInput.addEventListener("input", filterTransactions);
     fefoFilter.addEventListener("change", filterTransactions);
     dateFilter.addEventListener("change", filterTransactions);
 
+
+    /* =====================================================
+       6. RESET FILTERS
+    ===================================================== */
+
+    document.getElementById("resetReportFilters")
+        .addEventListener("click", function () {
+
+            searchInput.value = "";
+            fefoFilter.value = "all";
+            dateFilter.value = "";
+
+            filterTransactions();
+
+        });
+
+
+    /* INITIALIZE */
     filterTransactions();
 
 });
 </script>
+
 {% endblock %}

@@ -1,0 +1,127 @@
+{% extends 'procurement/procurement_base.html' %}
+{% block title %}Analytics | Procurement Workspace{% endblock %}
+{% block procurement_heading %}Procurement Analytics{% endblock %}
+{% block procurement_description %}Order activity, approval and conversion rates, supplier concentration, stock gaps and expiry exposure.{% endblock %}
+
+{% block procurement_content %}
+<div class="tiles">
+    <div class="tile"><div class="label">Purchase orders</div><div class="value">{{ total_orders }}</div></div>
+    <div class="tile"><div class="label">Units ordered</div><div class="value">{{ units_ordered }}</div>
+        <div class="sub">Excluding rejected orders</div></div>
+    <div class="tile">
+        <div class="label">Approval rate</div>
+        <div class="value">{% if approval_rate is not None %}{{ approval_rate }}%{% else %}—{% endif %}</div>
+        <div class="sub">Approved or placed vs rejected</div>
+    </div>
+    <div class="tile">
+        <div class="label">Recommendation conversion</div>
+        <div class="value">{% if conversion_rate is not None %}{{ conversion_rate }}%{% else %}—{% endif %}</div>
+        <div class="sub">{{ rec_converted }} of {{ rec_total }} became a PO</div>
+    </div>
+    <div class="tile danger"><div class="label">Low stock, no open order</div><div class="value">{{ gap_count }}</div></div>
+</div>
+
+<section class="panel">
+    <h2 class="panel-heading">Units Ordered, Last 12 Months</h2>
+    <div class="month-chart">
+        {% for m in month_cols %}
+            <div class="month-col" title="{{ m.label }}: {{ m.orders }} orders, {{ m.units }} units">
+                <div class="month-units">{{ m.units }}</div>
+                <div class="month-bar"><span style="height: {{ m.pct }}%"></span></div>
+                <div class="month-label">{{ m.label }}</div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="panel">
+    <h2 class="panel-heading">Orders by Status</h2>
+    {% for s in status_bars %}
+        <div class="hbar-row">
+            <div><span class="pill {{ s.css }}">{{ s.label }}</span></div>
+            <div class="hbar"><span style="width: {{ s.pct }}%"></span></div>
+            <div>{{ s.orders }} orders</div>
+        </div>
+    {% empty %}
+        <div class="empty-state">No purchase orders yet.</div>
+    {% endfor %}
+</section>
+
+<section class="panel">
+    <h2 class="panel-heading">Recommendation Sources</h2>
+    <div class="tiles">
+        <div class="tile"><div class="label">From the system forecast</div><div class="value">{{ rec_system }}</div></div>
+        <div class="tile"><div class="label">From Store Managers / staff</div><div class="value">{{ rec_staff }}</div></div>
+        <div class="tile warn"><div class="label">Still awaiting a PO</div><div class="value">{{ rec_pending }}</div></div>
+    </div>
+</section>
+
+<section class="panel">
+    <h2 class="panel-heading">Top Medicines Ordered (units)</h2>
+    {% for r in top_medicines %}
+        <div class="hbar-row">
+            <div>{{ r.name }}</div>
+            <div class="hbar"><span style="width: {{ r.pct }}%"></span></div>
+            <div>{{ r.units }} units</div>
+        </div>
+    {% empty %}
+        <div class="empty-state">No orders yet.</div>
+    {% endfor %}
+</section>
+
+<section class="panel">
+    <h2 class="panel-heading">Orders by Supplier</h2>
+    {% for r in top_suppliers %}
+        <div class="hbar-row">
+            <div>{{ r.name }}</div>
+            <div class="hbar"><span style="width: {{ r.pct }}%"></span></div>
+            <div>{{ r.orders }} orders</div>
+        </div>
+    {% empty %}
+        <div class="empty-state">No orders yet.</div>
+    {% endfor %}
+</section>
+
+<section class="panel">
+    <h2 class="panel-heading">Low Stock With No Open Order</h2>
+    <p class="muted-text">Active medicines at or below their reorder level with no purchase order pending, approved or placed.</p>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Medicine</th><th>Usable stock</th><th>Reorder level</th><th>Shortfall</th></tr></thead>
+            <tbody>
+                {% for g in gaps %}
+                <tr>
+                    <td>{{ g.medicine.medicine_name }}</td>
+                    <td>{{ g.stock }}</td>
+                    <td>{{ g.reorder_level }}</td>
+                    <td><strong>{{ g.shortfall }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4"><div class="empty-state">Every low-stock medicine already has an open order.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="panel">
+    <h2 class="panel-heading">Stock Expiring Within 90 Days</h2>
+    <p class="muted-text">Usable stock that will leave the shelf soon. A replacement order has to cover it.</p>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Medicine</th><th>Batches</th><th>Units expiring</th></tr></thead>
+            <tbody>
+                {% for e in expiring %}
+                <tr>
+                    <td>{{ e.medicine__medicine_name }}</td>
+                    <td>{{ e.batches }}</td>
+                    <td><strong>{{ e.units }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3"><div class="empty-state">No usable stock expires within 90 days.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Pharmacist Workspace | Medicine Expiry Management System{% endblock %}
+{% block content %}
+<style>
+    .ph-workspace {
+        --ph-navy: #102b43;
+        --ph-teal: #087f70;
+        --ph-green: #119b83;
+        --ph-muted: #718096;
+        width: 100%;
+        min-height: 100vh;
+        padding: 24px;
+        background: #f3f7f8;
+        color: #183047;
+        box-sizing: border-box;
+    }
+
+    .ph-workspace * {
+        box-sizing: border-box;
+    }
+
+    .ph-header {
+        position: relative;
+        overflow: hidden;
+        padding: 25px 30px;
+        margin-bottom: 20px;
+        border-radius: 17px;
+        color: #fff;
+        background: linear-gradient(115deg, #102b43 0%, #164b60 58%, #087f70 100%);
+    }
+
+    .ph-header::after {
+        content: "";
+        position: absolute;
+        width: 230px;
+        height: 230px;
+        right: -65px;
+        top: -115px;
+        border: 35px solid rgba(255,255,255,.07);
+        border-radius: 50%;
+    }
+
+    .ph-eyebrow {
+        margin-bottom: 9px;
+        color: #a9e7d9;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+    }
+
+    .ph-header h1 {
+        position: relative;
+        z-index: 1;
+        margin: 0 0 7px;
+        color: #fff;
+        font-size: 25px;
+        font-weight: 800;
+    }
+
+    .ph-header p {
+        position: relative;
+        z-index: 1;
+        max-width: 650px;
+        margin: 0;
+        color: #d5e8ec;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .ph-header-tag {
+        position: absolute;
+        z-index: 2;
+        right: 28px;
+        bottom: 25px;
+        padding: 8px 12px;
+        border: 1px solid rgba(255,255,255,.22);
+        border-radius: 30px;
+        background: rgba(255,255,255,.1);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .ph-layout {
+        display: grid;
+        grid-template-columns: 235px minmax(0, 1fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+    .ph-sidebar {
+        position: sticky;
+        top: 18px;
+        padding: 19px 14px;
+        border: 1px solid #e4ecef;
+        border-radius: 15px;
+        background: #fff;
+        box-shadow: 0 5px 18px rgba(16,43,67,.045);
+    }
+
+    .ph-brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 0 7px 19px;
+        border-bottom: 1px solid #edf1f3;
+    }
+
+    .ph-brand-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 39px;
+        height: 39px;
+        flex-shrink: 0;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #087f70, #20b49a);
+        color: white;
+        font-size: 19px;
+        font-weight: 800;
+    }
+
+    .ph-brand strong {
+        display: block;
+        color: #17364c;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .ph-brand span {
+        display: block;
+        margin-top: 3px;
+        color: #81909e;
+        font-size: 10px;
+    }
+
+    .ph-nav-label {
+        margin: 20px 8px 9px;
+        color: #94a3af;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+    }
+
+    .ph-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .ph-nav a {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 11px 12px;
+        border-radius: 9px;
+        color: #536a7a;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: .2s ease;
+    }
+
+    .ph-nav a:hover {
+        background: #edf7f5;
+        color: #087f70;
+    }
+
+    .ph-nav a.active {
+        background: linear-gradient(100deg, #e2f4ef, #edf7f7);
+        color: #087f70;
+        box-shadow: inset 3px 0 #087f70;
+    }
+
+    .ph-nav-icon {
+        display: inline-flex;
+        justify-content: center;
+        width: 19px;
+        font-size: 15px;
+    }
+
+    .ph-sidebar-footer {
+        margin-top: 22px;
+        padding: 13px 9px 2px;
+        border-top: 1px solid #edf1f3;
+    }
+
+    .ph-sidebar-footer strong {
+        display: block;
+        color: #34566a;
+        font-size: 11px;
+    }
+
+    .ph-sidebar-footer p {
+        margin: 5px 0 0;
+        color: #8a99a5;
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    .ph-main {
+        min-width: 0;
+    }
+
+    @media (max-width: 1000px) {
+        .ph-layout {
+            grid-template-columns: 205px minmax(0, 1fr);
+            gap: 14px;
+        }
+
+        .ph-workspace {
+            padding: 17px;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .ph-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .ph-sidebar {
+            position: static;
+        }
+
+        .ph-nav {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .ph-sidebar-footer {
+            display: none;
+        }
+
+        .ph-header-tag {
+            display: none;
+        }
+    }
+
+    @media (max-width: 450px) {
+        .ph-workspace {
+            padding: 10px;
+        }
+
+        .ph-header {
+            padding: 20px;
+        }
+
+        .ph-header h1 {
+            font-size: 21px;
+        }
+
+        .ph-nav {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+<div class="ph-workspace">
+    <header class="ph-header">
+        <div class="ph-eyebrow">PHARMACIST WORKSPACE</div>
+
+        <h1>
+            {% block pharmacist_heading %}Pharmacist Dashboard{% endblock %}
+        </h1>
+
+        <p>
+            {% block pharmacist_description %}
+            Manage medicine dispensing, FEFO compliance and expiry monitoring.
+            {% endblock %}
+        </p>
+
+        <div class="ph-header-tag">
+            FEFO CONTROL · PHARMACY OPERATIONS
+        </div>
+    </header>
+
+    <div class="ph-layout">
+        <aside class="ph-sidebar">
+            <div class="ph-nav-label">OPERATIONS CONTROL</div>
+            <nav class="ph-nav">
+                <a href="{% url 'pharmacist_dashboard' %}"
+                   class="{% if request.resolver_match.url_name == 'pharmacist_dashboard' %}active{% endif %}">
+                    Dashboard
+                </a>
+
+                <a href="{% url 'dispense' %}"
+                   class="{% if request.resolver_match.url_name == 'dispense' %}active{% endif %}">
+                    Dispense Medicine
+                </a>
+
+                <a href="{% url 'dispense_reports' %}"
+                   class="{% if request.resolver_match.url_name == 'dispense_reports' %}active{% endif %}">
+                    Pharmacist Reports
+                </a>
+
+                <a href="{% url 'alerts' %}"
+                   class="{% if request.resolver_match.url_name == 'alerts' %}active{% endif %}">
+                    Alerts Centre
+                </a>
+
+                <a href="{% url 'profile' %}"
+                   class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                    My Profile
+                </a>
+            </nav>
+
+            <div class="ph-sidebar-footer">
+                <strong>Pharmacy Operations</strong>
+                <p>
+                    FEFO-based medicine dispensing and responsible
+                    pharmaceutical stock control.
+                </p>
+            </div>
+        </aside>
+
+        <main class="ph-main">
+            {% block pharmacist_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

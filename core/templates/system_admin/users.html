@@ -1,226 +1,242 @@
-
 {% extends "system_admin/base.html" %}
+{% block banner_eyebrow %}Account Administration{% endblock %}
+{% block banner_title %}User Management{% endblock %}
+{% block banner_text %}Create staff accounts, assign roles and manage account status.{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* On a wide screen the eight fields sit on one line, which leaves more of the screen for the accounts card. */
+    @media (min-width: 1200px) {
+        #createUserForm { grid-template-columns: 1.1fr 1fr .85fr 1fr 1.5fr 1.05fr 1.15fr auto; }
+    }
+    .sa-req { color: var(--danger); }
+    .sa-tally { display: flex; flex-wrap: wrap; gap: 6px; }
+</style>
+{% endblock %}
 
 {% block admin_content %}
-<header class="sa-header">
-    <span class="eyebrow">Account Administration</span>
-    <h1>User Management</h1>
-    <p>Create staff accounts, assign roles and manage account status.</p>
-</header>
 
 <section class="sa-panel">
-    <h2>Create User Account</h2>
-    <p class="sa-muted">
-        New accounts remain inactive until the assigned user completes email activation.
-    </p>
-
-    <form method="post" action="{% url 'system_admin_users' %}" class="sa-form">
+    <div class="sa-panel-head">
+        <div>
+            <h2>Create User Account</h2>
+            <p>The new user is sent an activation email. The account stays inactive until they use it to set a password.</p>
+        </div>
+    </div>
+    <form method="post" action="{% url 'system_admin_users' %}" class="sa-form sa-pad" id="createUserForm">
         {% csrf_token %}
         <input type="hidden" name="action" value="create_user">
 
-        <input
-            name="username"
-            placeholder="Username"
-            maxlength="150"
-            required
-        >
-
-        <input
-            name="first_name"
-            placeholder="First name"
-            maxlength="150"
-            required
-        >
-
-        <input
-            name="other_name"
-            placeholder="Other name (optional)"
-            maxlength="150"
-        >
-
-        <input
-            name="last_name"
-            placeholder="Last name"
-            maxlength="150"
-            required
-        >
-
-        <input
-            name="email"
-            type="email"
-            placeholder="Official email address"
-            required
-        >
-
-        <input
-            name="phone_number"
-            type="tel"
-            placeholder="Phone number"
-            maxlength="15"
-        >
-
-        <select name="role_id" required>
-            <option value="">Select staff role</option>
-            {% for role in roles %}
+        <div class="sa-field">
+            <label for="cu_username">Username <span class="sa-req">*</span></label>
+            <input id="cu_username" name="username" maxlength="150" autocomplete="off" required>
+        </div>
+        <div class="sa-field">
+            <label for="cu_first">First name <span class="sa-req">*</span></label>
+            <input id="cu_first" name="first_name" maxlength="150" required>
+        </div>
+        <div class="sa-field">
+            <label for="cu_other">Other name</label>
+            <input id="cu_other" name="other_name" maxlength="150">
+        </div>
+        <div class="sa-field">
+            <label for="cu_last">Last name <span class="sa-req">*</span></label>
+            <input id="cu_last" name="last_name" maxlength="150" required>
+        </div>
+        <div class="sa-field">
+            <label for="cu_email">Official email <span class="sa-req">*</span></label>
+            <input id="cu_email" name="email" type="email" required>
+        </div>
+        <div class="sa-field">
+            <label for="cu_phone">Phone number <span class="sa-req">*</span></label>
+            <input id="cu_phone" name="phone_number" type="tel" maxlength="15" placeholder="0700123456" required>
+        </div>
+        <div class="sa-field">
+            <label for="cu_role">Staff role <span class="sa-req">*</span></label>
+            <select id="cu_role" name="role_id" required>
+                <option value="">Select role</option>
+                {% for role in roles %}
                 <option value="{{ role.id }}">{{ role.name }}</option>
-            {% endfor %}
-        </select>
-
-        <button type="submit">Create Account</button>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="sa-field">
+            <button type="submit" id="createUserButton">Create account</button>
+        </div>
     </form>
 </section>
 
-<section class="sa-panel">
-    <h2>Registered Accounts</h2>
-
-    <input
-        class="sa-search"
-        id="accountSearch"
-        type="search"
-        placeholder="Search name, username, email, role or status..."
-        aria-label="Search accounts"
-    >
-
-    <div class="sa-table-wrap">
-        <table id="accountsTable">
-            <thead>
-                <tr>
-                    <th>Staff Member</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Account Action</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for account in users %}
-                <tr>
-                    <td>
-                        <strong>
-                            {{ account.first_name }} {{ account.other_name }}
-                            {{ account.last_name }}
-                        </strong>
-                        <br>
-                        <small>{{ account.username }}</small>
-
-                        {% if account.is_superuser %}
-                            <br><small>Superuser</small>
-                        {% endif %}
-                    </td>
-
-                    <td>{{ account.email|default:"—" }}</td>
-
-                    <td>
-                        {% if account.pk != request.user.pk %}
-                        <form method="post" class="role-update">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="update_role">
-                            <input type="hidden" name="user_id" value="{{ account.id }}">
-
-                            <select name="role_id" required>
-                                {% for role in roles %}
-                                <option value="{{ role.id }}"
-                                    {% if account.role_id == role.id %}selected{% endif %}>
-                                    {{ role.name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-
-                            <button
-                                type="submit"
-                                data-confirm="Are you sure you want to change this user's role?"
-                            >
-                                Save
-                            </button>
-                        </form>
-                        {% else %}
-                            {{ account.role.name|default:"No role" }}
-                            <br><small>Current account</small>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        {% if account.is_active %}
-                            <span class="status">Active</span>
-                        {% else %}
-                            <span class="status inactive">Inactive</span>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        {% if account.pk != request.user.pk %}
-                        <form method="post" class="account-toggle">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="toggle_active">
-                            <input type="hidden" name="user_id" value="{{ account.id }}">
-
-                            {% if account.is_active %}
-                                <button
-                                    type="submit"
-                                    class="danger"
-                                    data-confirm="Are you sure you want to deactivate this account?"
-                                >
-                                    Deactivate
-                                </button>
-                            {% else %}
-                                <button
-                                    type="submit"
-                                    data-confirm="Are you sure you want to reactivate this account?"
-                                >
-                                    Reactivate
-                                </button>
-                            {% endif %}
-                        </form>
-                        {% else %}
-                            <small>Cannot change your own status here.</small>
-                        {% endif %}
-                    </td>
-                </tr>
-
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="sa-empty">No user accounts found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<section class="sa-panel sa-scroll">
+    <div class="sa-panel-head">
+        <h2>Registered Accounts</h2>
+        <div class="sa-tally">
+            <span class="sa-count">{{ total_users }} accounts</span>
+            <span class="sa-count">{{ active_users }} active</span>
+            <span class="sa-count">{{ pending_users }} awaiting activation</span>
+            <span class="sa-count">{{ inactive_users }} inactive</span>
+        </div>
     </div>
+
+    <div class="sa-panel-tools">
+        <input class="sa-search" id="accountSearch" type="search"
+               placeholder="Search name, username, email, role or status..."
+               aria-label="Search accounts">
+        <select id="accountState" class="sa-tool-select" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="pending">Awaiting activation</option>
+            <option value="inactive">Inactive</option>
+        </select>
+        <span id="accountsShown" class="sa-muted" style="margin-left:auto;font-size:12px;">Showing all accounts</span>
+    </div>
+
+    <div class="sa-panel-body">
+        <div class="sa-table-wrap">
+            <table id="accountsTable">
+                <thead>
+                    <tr>
+                        <th>Staff Member</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Account Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in users %}
+                    <tr data-state="{{ account.state }}"
+                        data-search="{{ account.first_name }} {{ account.other_name }} {{ account.last_name }} {{ account.username }} {{ account.email }} {% if account.role %}{{ account.role.name }}{% endif %} {{ account.state }}">
+                        <td>
+                            <strong>{% if account.first_name or account.last_name %}{{ account.first_name }} {{ account.other_name }} {{ account.last_name }}{% else %}{{ account.username }}{% endif %}</strong>
+                            <br><small>{{ account.username }}</small>
+                            {% if account.is_superuser %}<br><small>Superuser</small>{% endif %}
+                        </td>
+
+                        <td>
+                            {{ account.email|default:"—" }}
+                            {% if account.phone_number %}<br><small>{{ account.phone_number }}</small>{% endif %}
+                        </td>
+
+                        <td>
+                            {% if account.pk != request.user.pk %}
+                            <form method="post" action="{% url 'system_admin_users' %}"
+                                  data-confirm="Change the role of {{ account.username }}?">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_role">
+                                <input type="hidden" name="user_id" value="{{ account.id }}">
+                                <select name="role_id" required aria-label="Role for {{ account.username }}">
+                                    {% if not account.role_id %}<option value="" disabled selected>No role</option>{% endif %}
+                                    {% for role in roles %}
+                                    <option value="{{ role.id }}" {% if account.role_id == role.id %}selected{% endif %}>{{ role.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="secondary sa-sm">Save</button>
+                            </form>
+                            {% else %}
+                                {% if account.role %}{{ account.role.name }}{% else %}No role{% endif %}
+                                <br><small>Current account</small>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if account.state == "active" %}
+                                <span class="status">Active</span>
+                            {% elif account.state == "pending" %}
+                                <span class="status pending">Awaiting activation</span>
+                            {% else %}
+                                <span class="status inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if account.pk == request.user.pk %}
+                                <small>Cannot change your own status here.</small>
+                            {% elif account.state == "pending" %}
+                            <form method="post" action="{% url 'system_admin_users' %}"
+                                  data-confirm="Send a new activation email to {{ account.email }}?">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="resend_activation">
+                                <input type="hidden" name="user_id" value="{{ account.id }}">
+                                <button type="submit" class="secondary sa-sm">Resend activation email</button>
+                            </form>
+                            {% elif account.state == "active" %}
+                            <form method="post" action="{% url 'system_admin_users' %}"
+                                  data-confirm="Are you sure you want to deactivate {{ account.username }}?">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="toggle_active">
+                                <input type="hidden" name="user_id" value="{{ account.id }}">
+                                <button type="submit" class="danger sa-sm">Deactivate</button>
+                            </form>
+                            {% else %}
+                            <form method="post" action="{% url 'system_admin_users' %}"
+                                  data-confirm="Are you sure you want to reactivate {{ account.username }}?">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="toggle_active">
+                                <input type="hidden" name="user_id" value="{{ account.id }}">
+                                <button type="submit" class="sa-sm">Reactivate</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="sa-empty">No user accounts found.</td></tr>
+                    {% endfor %}
+                    <tr id="accountsNoMatch" hidden><td colspan="5" class="sa-empty">No accounts match these filters.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </section>
 
-<section class="sa-panel">
-    <h2>Account Activation</h2>
-    <p class="sa-muted">
-        Newly created accounts are inactive pending email verification
-        and password establishment. Activation functionality will be
-        implemented in the next stage.
-    </p>
-</section>
+{% endblock admin_content %}
 
+{% block extra_js %}
 <script>
 (function () {
-    const search = document.getElementById("accountSearch");
-    const table = document.getElementById("accountsTable");
+    var search = document.getElementById("accountSearch");
+    var state = document.getElementById("accountState");
+    var rows = Array.prototype.slice.call(document.querySelectorAll("#accountsTable tbody tr[data-state]"));
+    var none = document.getElementById("accountsNoMatch");
+    var shown = document.getElementById("accountsShown");
 
-    if (search && table) {
-        search.addEventListener("input", function () {
-            const term = search.value.toLowerCase().trim();
-
-            table.querySelectorAll("tbody tr").forEach(function (row) {
-                row.hidden = !row.textContent.toLowerCase().includes(term);
-            });
+    function apply() {
+        var term = search.value.trim().toLowerCase();
+        var count = 0;
+        rows.forEach(function (row) {
+            var ok = (!state.value || row.dataset.state === state.value)
+                && (!term || row.dataset.search.toLowerCase().indexOf(term) !== -1);
+            row.hidden = !ok;
+            if (ok) count++;
         });
+        none.hidden = !(rows.length && count === 0);
+        shown.textContent = (count === rows.length) ? "Showing all accounts" : "Showing " + count + " of " + rows.length + " accounts";
     }
+    search.addEventListener("input", apply);
+    state.addEventListener("change", apply);
 
-    document.querySelectorAll(".role-update, .account-toggle").forEach(function (form) {
+    /* Ask before role changes, switching an account on or off, and resending emails. */
+    document.querySelectorAll("form[data-confirm]").forEach(function (form) {
         form.addEventListener("submit", function (event) {
-            const button = form.querySelector("[data-confirm]");
-
-            if (button && !window.confirm(button.dataset.confirm)) {
+            if (!window.confirm(form.dataset.confirm)) {
                 event.preventDefault();
+                return;
             }
+            form.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
         });
     });
+
+    /* Sending the activation email can take a moment: stop double clicks. */
+    var create = document.getElementById("createUserForm");
+    if (create) {
+        create.addEventListener("submit", function () {
+            var button = document.getElementById("createUserButton");
+            window.setTimeout(function () {
+                button.disabled = true;
+                button.textContent = "Creating...";
+            }, 0);
+        });
+    }
 })();
 </script>
-{% endblock admin_content %}
+{% endblock extra_js %}

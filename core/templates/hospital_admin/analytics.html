@@ -1,1188 +1,356 @@
-{% extends 'base.html' %}
+{% extends 'hospital_admin/hospital_admin_base.html' %}
 {% block title %}Hospital Analytics | Medicine Expiry Management{% endblock %}
-{% block nav_dash %}active{% endblock %}
-{% block header_title %}Hospital Operations{% endblock %}
-{% block content %}
-<div class="admin-shell">
+{% block banner_title %}Hospital Analytics Centre{% endblock %}
+{% block banner_text %}Analyse medicine consumption, stock availability, expiry exposure, FEFO performance, demand forecasts and procurement activity across the hospital.{% endblock %}
+
+{% block banner_actions %}
+<div class="sm-header-actions no-print">
+    <div class="sm-header-status">
+        <div class="sm-status-copy">
+            <strong>Reporting date</strong>
+            <span>{{ today|date:"d M Y" }}</span>
+        </div>
+    </div>
+    <button type="button" class="ha-btn ha-btn--light" onclick="window.print()">Print report</button>
+</div>
+{% endblock %}
+
+{% block extra_css %}
 <style>
-    .admin-shell {
-        --admin-navy: #102f4b;
-        --admin-navy-2: #17496b;
-        --admin-teal: #087f80;
-        --admin-mint: #32c6ad;
-        --admin-ink: #1b2d43;
-        --admin-muted: #718096;
-        --admin-border: #e5ebf1;
-        --admin-bg: #f4f7fa;
-        --admin-white: #ffffff;
-        color: var(--admin-ink);
-        font-family: Arial, sans-serif;
-        width: 100%;
-    }
-
-    .admin-shell *,
-    .admin-shell *::before,
-    .admin-shell *::after {
-        box-sizing: border-box;
-    }
-
-    .admin-layout {
-        display: grid;
-        grid-template-columns: 238px minmax(0, 1fr);
-        gap: 20px;
-        align-items: start;
-        width: 100%;
-    }
-
-    /* LEFT SIDEBAR */
-    .admin-sidebar {
-        position: sticky;
-        top: 16px;
-        min-height: calc(100vh - 32px);
-        display: flex;
-        flex-direction: column;
-        padding: 22px 13px 15px;
-        color: #fff;
-        background: linear-gradient(180deg, #102f4b 0%, #123c59 100%);
-        border-radius: 13px;
-        box-shadow: 0 8px 24px rgba(16,47,75,.12);
-    }
-
-    .admin-brand {
-        padding: 5px 11px 21px;
-        margin-bottom: 18px;
-        border-bottom: 1px solid rgba(255,255,255,.13);
-    }
-
-    .admin-brand-mark {
-        display: grid;
-        place-items: center;
-        width: 37px;
-        height: 37px;
-        margin-bottom: 13px;
-        border-radius: 9px;
-        color: #8df0dd;
-        background: rgba(50,198,173,.16);
-        font-size: 19px;
-        font-weight: 800;
-    }
-
-    .admin-brand strong {
-        display: block;
-        color: #fff;
-        font-size: 13px;
-        font-weight: 800;
-        letter-spacing: .5px;
-    }
-
-    .admin-brand span {
-        display: block;
-        margin-top: 5px;
-        color: #adc2d1;
-        font-size: 10px;
-        line-height: 1.5;
-    }
-
-    .admin-nav-label {
-        padding: 0 11px;
-        margin: 0 0 9px;
-        color: #83a2b8;
-        font-size: 9px;
-        font-weight: 800;
-        letter-spacing: 1.3px;
-        text-transform: uppercase;
-    }
-
-    .admin-nav {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-
-    .admin-nav a {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-height: 43px;
-        padding: 10px 11px;
-        border-radius: 8px;
-        color: #c6d6e1;
-        text-decoration: none;
-        font-size: 11px;
-        font-weight: 700;
-        transition: background .18s ease, color .18s ease;
-    }
-
-    .admin-nav a:hover {
-        color: #fff;
-        background: rgba(255,255,255,.09);
-    }
-
-    .admin-nav a.active {
-        color: #fff;
-        background: var(--admin-teal);
-        box-shadow: 0 5px 12px rgba(0,0,0,.12);
-    }
-
-    .admin-nav-icon {
-        display: grid;
-        place-items: center;
-        width: 22px;
-        flex: 0 0 22px;
-        font-size: 16px;
-    }
-
-    .admin-sidebar-footer {
-        margin-top: auto;
-        padding: 17px 11px 3px;
-        border-top: 1px solid rgba(255,255,255,.13);
-        color: #9fb7c7;
-        font-size: 9px;
-        line-height: 1.7;
-    }
-
-    /* MAIN COLUMN AND HEADER */
-    .admin-main {
-        min-width: 0;
-        padding: 0 0 24px;
-    }
-
-    .sm-header {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 22px;
-        min-height: 148px;
-        margin: 0 0 22px;
-        padding: 26px 31px;
-        overflow: hidden;
-        isolation: isolate;
-        border-radius: 13px;
-        background: linear-gradient(112deg, #102f4b 0%, #17496b 58%, #087f80 100%);
-        color: #fff;
-        box-shadow: 0 8px 22px rgba(16,47,75,.13);
-    }
-
-    .sm-header::before {
-        content: "";
-        position: absolute;
-        z-index: -1;
-        width: 250px;
-        height: 250px;
-        right: 15%;
-        top: -145px;
-        border: 1px solid rgba(255,255,255,.10);
-        border-radius: 50%;
-        box-shadow: 0 0 0 28px rgba(255,255,255,.025),
-                    0 0 0 58px rgba(255,255,255,.02);
-    }
-
-    .sm-header::after {
-        content: "";
-        position: absolute;
-        z-index: -1;
-        width: 5px;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        background: var(--admin-mint);
-    }
-
-    .sm-header-content {
-        min-width: 0;
-    }
-
-    .sm-eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 9px;
-        margin-bottom: 11px;
-        color: #a9e8df;
-        font-size: 9px;
-        font-weight: 800;
-        letter-spacing: 1.8px;
-        text-transform: uppercase;
-    }
-
-    .sm-eyebrow::before {
-        content: "";
-        width: 18px;
-        height: 2px;
-        border-radius: 2px;
-        background: var(--admin-mint);
-    }
-
-    .sm-header h1 {
-        margin: 0 0 8px;
-        color: #fff;
-        font-size: clamp(22px, 2.4vw, 29px);
-        line-height: 1.2;
-        font-weight: 800;
-        letter-spacing: -.5px;
-    }
-
-    .sm-header p {
-        max-width: 620px;
-        margin: 0;
-        color: #d2e2ec;
-        font-size: 11px;
-        line-height: 1.7;
-    }
-
-    /* PAGE INTRO */
-    .dashboard-intro {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 15px;
-        flex-wrap: wrap;
-        margin: 0 2px 19px;
-    }
-
-    .dashboard-kicker {
-        margin-bottom: 6px;
-        color: var(--admin-teal);
-        font-size: 9px;
-        font-weight: 800;
-        letter-spacing: 1.2px;
-        text-transform: uppercase;
-    }
-
-    .dashboard-intro h2 {
-        margin: 0 0 5px;
-        color: var(--admin-ink);
-        font-size: 21px;
-        font-weight: 800;
-    }
-
-    .dashboard-intro p {
-        margin: 0;
-        color: var(--admin-muted);
-        font-size: 11px;
-        line-height: 1.6;
-    }
-
-    .dashboard-date {
-        padding: 9px 12px;
-        border: 1px solid var(--admin-border);
-        border-radius: 8px;
-        background: #fff;
-        color: var(--admin-muted);
-        font-size: 10px;
-    }
-
-    .dashboard-date strong {
-        margin-left: 4px;
-        color: var(--admin-ink);
-    }
-
-    /* ACTION BUTTONS */
-    .analytics-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .analytics-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 7px;
-        padding: 9px 13px;
-        border: 1px solid var(--admin-border);
-        border-radius: 7px;
-        background: #fff;
-        color: var(--admin-navy);
-        text-decoration: none;
-        font-size: 10px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: .18s ease;
-    }
-
-    .analytics-btn:hover {
-        border-color: var(--admin-teal);
-        color: var(--admin-teal);
-    }
-
-    .analytics-btn-primary {
-        border-color: var(--admin-teal);
-        background: var(--admin-teal);
-        color: #fff;
-    }
-
-    .analytics-btn-primary:hover {
-        background: #066d6e;
-        color: #fff;
-    }
-
-    /* SECTION STRUCTURE */
-    .dashboard-section {
-        margin-top: 22px;
-    }
-
-    .section-heading {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin: 0 1px 12px;
-    }
-
-    .section-heading h3 {
-        margin: 0 0 4px;
-        color: var(--admin-ink);
-        font-size: 13px;
-        font-weight: 800;
-    }
-
-    .section-heading p {
-        margin: 0;
-        color: var(--admin-muted);
-        font-size: 10px;
-    }
-
-    .section-link {
-        color: var(--admin-teal);
-        text-decoration: none;
-        font-size: 10px;
-        font-weight: 800;
-        white-space: nowrap;
-    }
-
-    /* KPI CARDS */
-    .analytics-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 11px;
-    }
-
-    .analytics-kpi {
-        position: relative;
-        min-width: 0;
-        padding: 15px 14px;
-        overflow: hidden;
-        border: 1px solid var(--admin-border);
-        border-radius: 9px;
-        background: #fff;
-        box-shadow: 0 3px 10px rgba(20,45,70,.025);
-    }
-
-    .analytics-kpi::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: var(--admin-teal);
-    }
-
-    .analytics-kpi.danger::before { background: #c83e3e; }
-    .analytics-kpi.warning::before { background: #d99a2b; }
-    .analytics-kpi.blue::before { background: #4779c7; }
-    .analytics-kpi.purple::before { background: #7955b5; }
-
-    .kpi-label {
-        display: block;
-        margin-bottom: 9px;
-        color: var(--admin-muted);
-        font-size: 9px;
-        font-weight: 700;
-        line-height: 1.4;
-    }
-
-    .kpi-value {
-        display: block;
-        color: var(--admin-ink);
-        font-size: 23px;
-        font-weight: 800;
-        line-height: 1.1;
-    }
-
-    .kpi-note {
-        display: block;
-        margin-top: 6px;
-        color: #8795a5;
-        font-size: 8px;
-    }
-
-    /* CHART PANELS */
-    .analytics-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
-    }
-
-    .analytics-panel {
-        min-width: 0;
-        overflow: hidden;
-        border: 1px solid var(--admin-border);
-        border-radius: 10px;
-        background: #fff;
-        box-shadow: 0 3px 10px rgba(20,45,70,.025);
-    }
-
-    .analytics-panel.full-width {
-        grid-column: 1 / -1;
-    }
-
-    .analytics-panel-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 14px 16px;
-        border-bottom: 1px solid var(--admin-border);
-    }
-
-    .analytics-panel-header strong {
-        display: block;
-        color: var(--admin-ink);
-        font-size: 11px;
-        font-weight: 800;
-    }
-
-    .analytics-panel-header span {
-        display: block;
-        margin-top: 4px;
-        color: var(--admin-muted);
-        font-size: 9px;
-    }
-
-    .chart-container {
-        position: relative;
-        width: 100%;
-        height: 270px;
-        padding: 15px;
-    }
-
-    .chart-container.large {
-        height: 310px;
-    }
-
-    /* TABLES */
-    .activity-panel {
-        overflow: hidden;
-        border: 1px solid var(--admin-border);
-        border-radius: 10px;
-        background: #fff;
-    }
-
-    .activity-panel-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 15px 17px;
-        border-bottom: 1px solid var(--admin-border);
-    }
-
-    .activity-panel-head strong {
-        display: block;
-        color: var(--admin-ink);
-        font-size: 11px;
-    }
-
-    .activity-panel-head span {
-        display: block;
-        margin-top: 4px;
-        color: var(--admin-muted);
-        font-size: 9px;
-    }
-
-    .activity-count {
-        padding: 5px 9px;
-        border-radius: 20px;
-        background: #edf4f8;
-        color: var(--admin-navy-2);
-        font-size: 9px;
-        font-weight: 800;
-        white-space: nowrap;
-    }
-
-    .table-scroll {
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    .activity-table {
-        width: 100%;
-        min-width: 620px;
-        border-collapse: collapse;
-    }
-
-    .activity-table th {
-        padding: 11px 14px;
-        background: #f8fafc;
-        color: #718096;
-        text-align: left;
-        font-size: 8px;
-        font-weight: 800;
-        letter-spacing: .6px;
-        text-transform: uppercase;
-        white-space: nowrap;
-    }
-
-    .activity-table td {
-        padding: 12px 14px;
-        border-top: 1px solid #edf1f5;
-        color: #526174;
-        font-size: 10px;
-        vertical-align: middle;
-    }
-
-    .activity-table td strong {
-        color: var(--admin-ink);
-        font-weight: 700;
-    }
-
-    .activity-table tbody tr:hover {
-        background: #fbfdff;
-    }
-
-    .status-pill {
-        display: inline-block;
-        padding: 5px 8px;
-        border-radius: 20px;
-        font-size: 8px;
-        font-weight: 800;
-        white-space: nowrap;
-    }
-
-    .status-danger { background: #fff0ef; color: #bd3434; }
-    .status-warning { background: #fff6e5; color: #a66b00; }
-    .status-success { background: #eaf7ef; color: #218653; }
-    .status-info { background: #edf3ff; color: #4779c7; }
-
-    .empty-state {
-        padding: 25px !important;
-        color: var(--admin-muted) !important;
-        text-align: center;
-    }
-
-    .dashboard-footer {
-        margin-top: 22px;
-        padding: 14px 0 4px;
-        border-top: 1px solid var(--admin-border);
-        color: #8795a5;
-        text-align: center;
-        font-size: 9px;
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 1200px) {
-        .analytics-kpi-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-    }
-
-    @media (max-width: 1100px) {
-        .admin-layout {
-            grid-template-columns: 215px minmax(0, 1fr);
-            gap: 15px;
-        }
-    }
-
-    @media (max-width: 760px) {
-        .admin-layout {
-            grid-template-columns: 1fr;
-        }
-
-        .admin-sidebar {
-            position: relative;
-            top: auto;
-            min-height: auto;
-        }
-
-        .admin-brand {
-            padding-bottom: 13px;
-            margin-bottom: 13px;
-        }
-
-        .admin-brand-mark {
-            display: none;
-        }
-
-        .admin-nav {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .admin-sidebar-footer {
-            margin-top: 14px;
-        }
-
-        .analytics-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .analytics-panel.full-width {
-            grid-column: auto;
-        }
-
-        .analytics-kpi-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
-
-    @media (max-width: 540px) {
-        .sm-header {
-            align-items: flex-start;
-            flex-direction: column;
-            padding: 22px 21px;
-            gap: 15px;
-        }
-
-        .dashboard-intro {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-
-        .analytics-actions {
-            width: 100%;
-            flex-wrap: wrap;
-        }
-
-        .analytics-kpi-grid {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .chart-container {
-            height: 240px;
-        }
-    }
-
-    @media print {
-        .admin-sidebar,
-        .analytics-actions,
-        .section-link {
-            display: none !important;
-        }
-
-        .admin-layout {
-            display: block;
-        }
-
-        .sm-header {
-            box-shadow: none;
-        }
-
-        .analytics-panel,
-        .analytics-kpi {
-            break-inside: avoid;
-        }
-    }
+    .ha-chart { position: relative; height: 250px; padding: 12px 14px; overflow: hidden; background: #fff; }
 </style>
+{% endblock %}
 
-<div class="admin-layout">
-    <!-- LEFT NAVIGATION -->
-    <aside class="admin-sidebar">
-        <div class="admin-brand">
-            <div class="admin-brand-mark">+</div>
-            <strong>HOSPITAL ADMIN</strong>
-            <span>Medicine Expiry Management System</span>
+{% block page_content %}
+
+<!-- KEY INDICATORS -->
+<section class="ha-section">
+    <div class="ha-section-head">
+        <div>
+            <h3>Hospital Performance Overview</h3>
         </div>
-        <div class="admin-nav-label">Workspace</div>
-        <nav class="admin-nav" aria-label="Hospital administration navigation">
-            <a href="{% url 'admin_dashboard' %}"
-               class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-                <span class="admin-nav-icon">⌂</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="{% url 'inventory_overview' %}"
-               class="{% if request.resolver_match.url_name == 'inventory_overview' %}active{% endif %}">
-                <span class="admin-nav-icon">▤</span>
-                <span>Inventory Overview</span>
-            </a>
-            <a href="{% url 'procurement_review' %}"
-               class="{% if request.resolver_match.url_name == 'procurement_review' %}active{% endif %}">
-                <span class="admin-nav-icon">⇄</span>
-                <span>Procurement Review</span>
-            </a>
+    </div>
 
-            <a href="{% url 'admin_purchase_orders' %}"
-               class="{% if request.resolver_match.url_name == 'admin_purchase_orders' %}active{% endif %}">
-                <span class="admin-nav-icon">▣</span>
-                <span>Purchase Orders</span>
-            </a>
-            <a href="{% url 'hospital_admin_analytics' %}"
-               class="{% if request.resolver_match.url_name == 'hospital_admin_analytics' %}active{% endif %}">
-                <span class="admin-nav-icon">▥</span>
-                <span>Hospital Analytics</span>
-            </a>
-
-            <a href="{% url 'admin_reports' %}"
-               class="{% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">
-                <span class="admin-nav-icon">▧</span>
-                <span>Reports</span>
-            </a>
-
-            <a href="{% url 'alerts' %}"
-               class="{% if request.resolver_match.url_name == 'alerts' %}active{% endif %}">
-                <span class="admin-nav-icon">♧</span>
-                <span>Alerts Centre</span>
-            </a>
-        </nav>
-
-        <div class="admin-sidebar-footer">
-            Hospital Administration<br>
-            Operational Management Workspace
+    <div class="ha-kpis">
+        <div class="ha-kpi ha-kpi--teal">
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ total_medicines|default:0 }}</span>
+                <span class="ha-kpi-label">Active medicines</span>
+            </span>
         </div>
-    </aside>
+        <div class="ha-kpi">
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ total_batches|default:0 }}</span>
+                <span class="ha-kpi-label">Medicine batches</span>
+            </span>
+        </div>
+        <div class="ha-kpi ha-kpi--teal">
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ total_stock_volume|default:0 }}</span>
+                <span class="ha-kpi-label">Total stock volume</span>
+            </span>
+        </div>
+        <div class="ha-kpi">
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ total_dispenses|default:0 }}</span>
+                <span class="ha-kpi-label">Dispensing transactions</span>
+            </span>
+        </div>
+        <div class="ha-kpi ha-kpi--ok">
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ fefo_compliance_rate|default:0|floatformat:1 }}%</span>
+                <span class="ha-kpi-label">FEFO compliance</span>
+                <span class="ha-kpi-note">Transactions without overrides</span>
+            </span>
+        </div>
+        <div class="ha-kpi ha-kpi--danger">
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ expired_count|default:0 }}</span>
+                <span class="ha-kpi-label">Expired batches</span>
+            </span>
+        </div>
+        <div class="ha-kpi ha-kpi--warn">
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ near_expiry_count|default:0 }}</span>
+                <span class="ha-kpi-label">Near-expiry batches</span>
+                <span class="ha-kpi-note">Expiring within 30 days</span>
+            </span>
+        </div>
+        <div class="ha-kpi ha-kpi--warn">
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ total_low_stock_medicines|default:0 }}</span>
+                <span class="ha-kpi-label">Low-stock medicines</span>
+                <span class="ha-kpi-note">Below reorder level</span>
+            </span>
+        </div>
+        <div class="ha-kpi ha-kpi--purple">
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ pending_po_count|default:0 }}</span>
+                <span class="ha-kpi-label">Pending purchase orders</span>
+            </span>
+        </div>
+        <div class="ha-kpi ha-kpi--teal">
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ placed_po_count|default:0 }}</span>
+                <span class="ha-kpi-label">Orders placed</span>
+                <span class="ha-kpi-note">Placed with suppliers</span>
+            </span>
+        </div>
+    </div>
+</section>
 
-    <!-- MAIN ANALYTICS CONTENT -->
-    <main class="admin-main">
-        <header class="sm-header">
-            <div class="sm-header-content">
-                <div class="sm-eyebrow">Hospital Admin Workspace</div>
-                <h1>Hospital Analytics Centre</h1>
-                <p>
-                    Analyse medicine consumption, stock availability, expiry
-                    exposure, FEFO performance, demand forecasts and procurement
-                    activity across the hospital.
-                </p>
-                <div class="analytics-actions">
-                <div class="dashboard-date">
-                    Reporting date:
-                    <strong>{{ today|date:"d M Y" }}</strong>
-                </div>
+<!-- ANALYTICS BY TOPIC: one tab per topic, so the page does not run on forever -->
+<section class="ha-section" data-ha-tabs-scope>
 
-                <button type="button" class="analytics-btn analytics-btn-primary"
-                        onclick="window.print()">
-                    Print Report
-                </button>
-            </div>
-            </div>
-        </header>
+    <div class="ha-tabs ha-tabs--bar no-print" role="tablist" data-ha-tabs>
+        <button type="button" class="ha-tab" role="tab" data-ha-tab="consumption">Consumption</button>
+        <button type="button" class="ha-tab" role="tab" data-ha-tab="inventory">Inventory and expiry</button>
+        <button type="button" class="ha-tab" role="tab" data-ha-tab="forecast">Demand forecasting</button>
+        <button type="button" class="ha-tab" role="tab" data-ha-tab="procurement">Procurement</button>
+    </div>
 
-        <!-- KEY PERFORMANCE INDICATORS -->
-        <section class="dashboard-section">
-            <div class="section-heading">
+    <!-- CONSUMPTION -->
+    <div class="ha-tabpanel ha-stack" data-ha-panel="consumption">
+        <div class="ha-card">
+            <div class="ha-card-head">
                 <div>
-                    <h3>Hospital Performance Overview</h3>
-                    <p>Current inventory, dispensing and procurement indicators</p>
+                    <h4>Monthly Medicine Consumption Trend</h4>
+                    <p>Monthly quantities dispensed over the reporting period</p>
                 </div>
             </div>
+            <div class="ha-card-body ha-chart"><canvas id="consumptionTrendChart"></canvas></div>
+        </div>
 
-            <div class="analytics-kpi-grid">
-
-                <div class="analytics-kpi">
-                    <span class="kpi-label">Active Medicines</span>
-                    <strong class="kpi-value">{{ total_medicines|default:0 }}</strong>
-                    <span class="kpi-note">Medicines registered in the system</span>
-                </div>
-
-                <div class="analytics-kpi blue">
-                    <span class="kpi-label">Medicine Batches</span>
-                    <strong class="kpi-value">{{ total_batches|default:0 }}</strong>
-                    <span class="kpi-note">Recorded inventory batches</span>
-                </div>
-
-                <div class="analytics-kpi">
-                    <span class="kpi-label">Total Stock Volume</span>
-                    <strong class="kpi-value">{{ total_stock_volume|default:0 }}</strong>
-                    <span class="kpi-note">Available units across batches</span>
-                </div>
-
-                <div class="analytics-kpi blue">
-                    <span class="kpi-label">Dispensing Transactions</span>
-                    <strong class="kpi-value">{{ total_dispenses|default:0 }}</strong>
-                    <span class="kpi-note">Recorded dispensing activity</span>
-                </div>
-
-                <div class="analytics-kpi">
-                    <span class="kpi-label">FEFO Compliance</span>
-                    <strong class="kpi-value">{{ fefo_compliance_rate|default:0|floatformat:1 }}%</strong>
-                    <span class="kpi-note">Transactions without overrides</span>
-                </div>
-
-                <div class="analytics-kpi danger">
-                    <span class="kpi-label">Expired Batches</span>
-                    <strong class="kpi-value">{{ expired_count|default:0 }}</strong>
-                    <span class="kpi-note">Batches past expiry date</span>
-                </div>
-
-                <div class="analytics-kpi warning">
-                    <span class="kpi-label">Near-expiry Batches</span>
-                    <strong class="kpi-value">{{ near_expiry_count|default:0 }}</strong>
-                    <span class="kpi-note">Expiring within 30 days</span>
-                </div>
-
-                <div class="analytics-kpi warning">
-                    <span class="kpi-label">Low-stock Medicines</span>
-                    <strong class="kpi-value">{{ total_low_stock_medicines|default:0 }}</strong>
-                    <span class="kpi-note">Medicines at or below reorder level</span>
-                </div>
-
-                <div class="analytics-kpi purple">
-                    <span class="kpi-label">Pending Purchase Orders</span>
-                    <strong class="kpi-value">{{ pending_po_count|default:0 }}</strong>
-                    <span class="kpi-note">Awaiting administrative review</span>
-                </div>
-
-                <div class="analytics-kpi">
-                    <span class="kpi-label">Orders Placed</span>
-                    <strong class="kpi-value">{{ placed_po_count|default:0 }}</strong>
-                    <span class="kpi-note">Placed with suppliers</span>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- CONSUMPTION ANALYTICS -->
-        <section class="dashboard-section">
-            <div class="section-heading">
-                <div>
-                    <h3>Medicine Consumption Analytics</h3>
-                    <p>Historical medicine dispensing patterns and consumption concentration</p>
-                </div>
-            </div>
-
-            <div class="analytics-grid">
-
-                <div class="analytics-panel full-width">
-                    <div class="analytics-panel-header">
-                        <div>
-                            <strong>Monthly Medicine Consumption Trend</strong>
-                            <span>Monthly quantities dispensed over the reporting period</span>
-                        </div>
-                    </div>
-                    <div class="chart-container large">
-                        <canvas id="consumptionTrendChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="analytics-panel">
-                    <div class="analytics-panel-header">
-                        <div>
-                            <strong>Top 10 Consumed Medicines</strong>
-                            <span>Medicines with the highest recorded dispensing quantities</span>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="topMedicinesChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="analytics-panel">
-                    <div class="analytics-panel-header">
-                        <div>
-                            <strong>FEFO Compliance Analysis</strong>
-                            <span>Comparison of compliant dispensing and recorded overrides</span>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="fefoAnalyticsChart"></canvas>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- INVENTORY AND EXPIRY ANALYTICS -->
-        <section class="dashboard-section">
-            <div class="section-heading">
-                <div>
-                    <h3>Inventory and Expiry Monitoring</h3>
-                    <p>Stock exposure and medicine availability indicators</p>
-                </div>
-            </div>
-
-            <div class="analytics-grid">
-
-                <div class="analytics-panel">
-                    <div class="analytics-panel-header">
-                        <div>
-                            <strong>Batch Expiry Position</strong>
-                            <span>Distribution of batches by expiry status</span>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="expiryAnalyticsChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="analytics-panel">
-                    <div class="analytics-panel-header">
-                        <div>
-                            <strong>Low-stock Monitoring</strong>
-                            <span>Medicine quantities compared with reorder levels</span>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="lowStockChart"></canvas>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- DEMAND FORECASTING -->
-        <section class="dashboard-section">
-            <div class="section-heading">
-                <div>
-                    <h3>Demand Forecasting Analytics</h3>
-                    <p>Forecasted demand compared with historical consumption patterns</p>
-                </div>
-            </div>
-
-            <div class="analytics-panel">
-                <div class="analytics-panel-header">
+        <div class="ha-grid ha-grid-2">
+            <div class="ha-card">
+                <div class="ha-card-head">
                     <div>
-                        <strong>Historical Demand and Forecasted Demand</strong>
-                        <span>Three-period moving-average forecasting output</span>
+                        <h4>Top 10 Consumed Medicines</h4>
+                        <p>Highest recorded dispensing quantities</p>
                     </div>
                 </div>
-                <div class="chart-container large">
-                    <canvas id="demandForecastChart"></canvas>
-                </div>
+                <div class="ha-card-body ha-chart"><canvas id="topMedicinesChart"></canvas></div>
             </div>
-
-            <div class="activity-panel" style="margin-top:14px;">
-                <div class="activity-panel-head">
+            <div class="ha-card">
+                <div class="ha-card-head">
                     <div>
-                        <strong>Recent Demand Forecasts</strong>
-                        <span>Forecast quantities and confidence scores</span>
+                        <h4>FEFO Compliance Analysis</h4>
+                        <p>Compliant dispensing compared with recorded overrides</p>
                     </div>
-                    <span class="activity-count">Latest records</span>
                 </div>
+                <div class="ha-card-body ha-chart"><canvas id="fefoAnalyticsChart"></canvas></div>
+            </div>
+        </div>
+    </div>
 
-                <div class="table-scroll">
-                    <table class="activity-table">
+    <!-- INVENTORY AND EXPIRY -->
+    <div class="ha-tabpanel ha-stack" data-ha-panel="inventory" hidden>
+        <div class="ha-grid ha-grid-2">
+            <div class="ha-card">
+                <div class="ha-card-head">
+                    <div>
+                        <h4>Batch Expiry Position</h4>
+                        <p>Distribution of batches by expiry status</p>
+                    </div>
+                </div>
+                <div class="ha-card-body ha-chart"><canvas id="expiryAnalyticsChart"></canvas></div>
+            </div>
+            <div class="ha-card">
+                <div class="ha-card-head">
+                    <div>
+                        <h4>Low-stock Monitoring</h4>
+                        <p>Medicine quantities compared with reorder levels</p>
+                    </div>
+                </div>
+                <div class="ha-card-body ha-chart"><canvas id="lowStockChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="ha-grid ha-grid-2">
+            <div class="ha-card">
+                <div class="ha-card-head">
+                    <div>
+                        <h4>Low-stock Medicines</h4>
+                        <p>Usable stock at or below the reorder level</p>
+                    </div>
+                    <span class="ha-count">{{ total_low_stock_medicines|default:0 }} medicines</span>
+                </div>
+                <div class="ha-card-body">
+                    <table class="ha-table ha-table--fit">
                         <thead>
                             <tr>
                                 <th>Medicine</th>
-                                <th>Forecast Period</th>
-                                <th>Forecast Quantity</th>
-                                <th>Moving Average</th>
-                                <th>Confidence</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for forecast in recent_forecasts %}
-                            <tr>
-                                <td>
-                                    <strong>{{ forecast.medicine.medicine_name }}</strong>
-                                </td>
-                                <td>
-                                    {{ forecast.forecast_period_start|date:"d M Y" }}
-                                    –
-                                    {{ forecast.forecast_period_end|date:"d M Y" }}
-                                </td>
-                                <td>{{ forecast.forecasted_quantity|default:0 }}</td>
-                                <td>{{ forecast.moving_avg_3month|default:0|floatformat:2 }}</td>
-                                <td>
-                                    <span class="status-pill status-info">
-                                        {{ forecast.confidence_score|default:0|floatformat:1 }}%
-                                    </span>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="empty-state">
-                                    No demand forecasts are currently available.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- PROCUREMENT ANALYTICS -->
-        <section class="dashboard-section">
-            <div class="section-heading">
-                <div>
-                    <h3>Procurement Analytics</h3>
-                    <p>Purchase order status and monthly procurement activity</p>
-                </div>
-            </div>
-
-            <div class="analytics-grid">
-
-                <div class="analytics-panel">
-                    <div class="analytics-panel-header">
-                        <div>
-                            <strong>Purchase Order Status</strong>
-                            <span>Distribution of purchase orders by workflow status</span>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="procurementAnalyticsChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="analytics-panel">
-                    <div class="analytics-panel-header">
-                        <div>
-                            <strong>Monthly Procurement Activity</strong>
-                            <span>Purchase order volumes and quantities ordered</span>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="monthlyProcurementChart"></canvas>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- LOW STOCK TABLE -->
-        <section class="dashboard-section">
-            <div class="section-heading">
-                <div>
-                    <h3>Low-stock Medicine Monitoring</h3>
-                    <p>Medicines whose usable stock has reached or fallen below reorder levels</p>
-                </div>
-            </div>
-
-            <div class="activity-panel">
-                <div class="activity-panel-head">
-                    <div>
-                        <strong>Low-stock Medicines</strong>
-                        <span>Inventory requiring procurement attention</span>
-                    </div>
-                    <span class="activity-count">
-                        {{ total_low_stock_medicines|default:0 }} medicines
-                    </span>
-                </div>
-
-                <div class="table-scroll">
-                    <table class="activity-table">
-                        <thead>
-                            <tr>
-                                <th>Medicine</th>
-                                <th>Available Stock</th>
-                                <th>Reorder Level</th>
-                                <th>Stock Position</th>
+                                <th class="ha-num">Stock</th>
+                                <th class="ha-num">Reorder level</th>
+                                <th>Position</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for item in low_stock_medicines %}
                             <tr>
-                                <td>
-                                    <strong>{{ item.medicine_name }}</strong>
-                                </td>
-                                <td>{{ item.usable_stock|default:0 }}</td>
-                                <td>{{ item.reorder_level|default:0 }}</td>
-                                <td>
-                                    <span class="status-pill status-warning">
-                                        Reorder attention
-                                    </span>
-                                </td>
+                                <td><strong>{{ item.medicine_name }}</strong></td>
+                                <td class="ha-num">{{ item.current_stock|default:0 }}</td>
+                                <td class="ha-num">{{ item.reorder_level|default:0 }}</td>
+                                <td><span class="ha-pill ha-pill--warn">Reorder</span></td>
                             </tr>
                             {% empty %}
-                            <tr>
-                                <td colspan="4" class="empty-state">
-                                    No medicines are currently below their reorder levels.
-                                </td>
-                            </tr>
+                            <tr><td colspan="4" class="ha-empty">No medicines are below their reorder levels.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
-        </section>
 
-        <!-- RECENT EXPIRY BATCHES -->
-        <section class="dashboard-section">
-            <div class="section-heading">
-                <div>
-                    <h3>Recent Inventory Expiry Records</h3>
-                    <p>Recorded batches requiring expiry monitoring</p>
-                </div>
-            </div>
-
-            <div class="activity-panel">
-                <div class="activity-panel-head">
+            <div class="ha-card">
+                <div class="ha-card-head">
                     <div>
-                        <strong>Expiry Monitoring</strong>
-                        <span>Recent batches ordered by expiry date</span>
+                        <h4>Expiry Monitoring</h4>
+                        <p>Recent batches ordered by expiry date</p>
                     </div>
-                    <span class="activity-count">Latest 20 batches</span>
+                    <span class="ha-count">Latest 20 batches</span>
                 </div>
-
-                <div class="table-scroll">
-                    <table class="activity-table">
+                <div class="ha-card-body">
+                    <table class="ha-table ha-table--fit">
                         <thead>
                             <tr>
                                 <th>Medicine</th>
-                                <th>Batch Number</th>
-                                <th>Quantity Available</th>
-                                <th>Expiry Date</th>
-                                <th>Expiry Status</th>
+                                <th>Batch</th>
+                                <th class="ha-num">Qty</th>
+                                <th>Expiry</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for batch in batches %}
                             <tr>
-                                <td>
-                                    <strong>{{ batch.medicine.medicine_name }}</strong>
-                                </td>
+                                <td><strong>{{ batch.medicine.medicine_name }}</strong></td>
                                 <td>{{ batch.batch_number|default:"—" }}</td>
-                                <td>{{ batch.quantity_available|default:0 }}</td>
-                                <td>{{ batch.expiry_date|date:"d M Y" }}</td>
+                                <td class="ha-num">{{ batch.quantity_available|default:0 }}</td>
+                                <td class="ha-nowrap">{{ batch.expiry_date|date:"d M Y" }}</td>
                                 <td>
                                     {% if batch.expiry_date < today %}
-                                        <span class="status-pill status-danger">Expired</span>
+                                        <span class="ha-pill ha-pill--danger">Expired</span>
                                     {% elif batch.expiry_date <= near_expiry_date %}
-                                        <span class="status-pill status-warning">Near expiry</span>
+                                        <span class="ha-pill ha-pill--warn">Near expiry</span>
                                     {% else %}
-                                        <span class="status-pill status-success">Within date</span>
+                                        <span class="ha-pill ha-pill--ok">Within date</span>
                                     {% endif %}
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr>
-                                <td colspan="5" class="empty-state">
-                                    No inventory batches are available.
-                                </td>
-                            </tr>
+                            <tr><td colspan="5" class="ha-empty">No inventory batches are available.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <footer class="dashboard-footer">
-            Medicine Expiry Management System · Hospital Administration
-        </footer>
+    <!-- DEMAND FORECASTING -->
+    <div class="ha-tabpanel ha-stack" data-ha-panel="forecast" hidden>
+        <div class="ha-card">
+            <div class="ha-card-head">
+                <div>
+                    <h4>Historical Demand and Forecasted Demand</h4>
+                    <p>Three-period moving-average forecasting output</p>
+                </div>
+            </div>
+            <div class="ha-card-body ha-chart"><canvas id="demandForecastChart"></canvas></div>
+        </div>
 
-    </main>
-</div>
-</div>
+        <div class="ha-card">
+            <div class="ha-card-head">
+                <div>
+                    <h4>Recent Demand Forecasts</h4>
+                    <p>Forecast quantities and confidence scores</p>
+                </div>
+                <span class="ha-count">Latest records</span>
+            </div>
+            <div class="ha-card-body">
+                <table class="ha-table">
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Forecast period</th>
+                            <th class="ha-num">Forecast quantity</th>
+                            <th class="ha-num">Moving average</th>
+                            <th>Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for forecast in recent_forecasts %}
+                        <tr>
+                            <td><strong>{{ forecast.medicine.medicine_name }}</strong></td>
+                            <td class="ha-nowrap">{{ forecast.forecast_period_start|date:"d M Y" }} – {{ forecast.forecast_period_end|date:"d M Y" }}</td>
+                            <td class="ha-num">{{ forecast.forecasted_quantity|default:0 }}</td>
+                            <td class="ha-num">{{ forecast.moving_avg_3month|default:0|floatformat:2 }}</td>
+                            <td><span class="ha-pill ha-pill--info">{{ forecast.confidence_score|default:0|floatformat:1 }}%</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="ha-empty">No demand forecasts are currently available.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROCUREMENT -->
+    <div class="ha-tabpanel ha-stack" data-ha-panel="procurement" hidden>
+        <div class="ha-grid ha-grid-2">
+            <div class="ha-card">
+                <div class="ha-card-head">
+                    <div>
+                        <h4>Purchase Order Status</h4>
+                        <p>Purchase orders by workflow status</p>
+                    </div>
+                </div>
+                <div class="ha-card-body ha-chart"><canvas id="procurementAnalyticsChart"></canvas></div>
+            </div>
+            <div class="ha-card">
+                <div class="ha-card-head">
+                    <div>
+                        <h4>Monthly Procurement Activity</h4>
+                        <p>Purchase order volumes and quantities ordered</p>
+                    </div>
+                </div>
+                <div class="ha-card-body ha-chart"><canvas id="monthlyProcurementChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+</section>
 
 {{ analytics_chart_data|json_script:"analytics-chart-data" }}
 
+{% endblock %}
+
+{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const dataElement = document.getElementById("analytics-chart-data");
+    var dataElement = document.getElementById("analytics-chart-data");
 
     if (!dataElement || typeof Chart === "undefined") {
         return;
     }
 
-    const analyticsData = JSON.parse(dataElement.textContent);
+    var analyticsData = JSON.parse(dataElement.textContent);
 
-    const navy = "#17496b";
-    const teal = "#087f80";
-    const mint = "#32c6ad";
-    const red = "#c83e3e";
-    const amber = "#d99a2b";
-    const blue = "#4779c7";
-    const purple = "#7955b5";
+    var navy = "#17496b";
+    var teal = "#087f80";
+    var mint = "#32c6ad";
+    var red = "#c83e3e";
+    var amber = "#d99a2b";
+    var blue = "#4779c7";
+    var purple = "#7955b5";
 
     Chart.defaults.font.family = "Arial, sans-serif";
     Chart.defaults.font.size = 10;
     Chart.defaults.color = "#718096";
 
-    const commonOptions = {
+    var commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1198,10 +366,15 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     function createChart(elementId, config) {
-        const canvas = document.getElementById(elementId);
+        var canvas = document.getElementById(elementId);
         if (!canvas) return;
         new Chart(canvas, config);
     }
+
+    /* Charts on a hidden tab have no size, so resize them all when a tab is opened. */
+    document.addEventListener("ha:tabchange", function () {
+        Object.values(Chart.instances || {}).forEach(function (chart) { chart.resize(); });
+    });
 
     /* MONTHLY CONSUMPTION */
     createChart("consumptionTrendChart", {
@@ -1227,12 +400,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 pointRadius: 3
             }]
         },
-        options: {
-            ...commonOptions,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
+        options: Object.assign({}, commonOptions, {
+            scales: { y: { beginAtZero: true } }
+        })
     });
 
     /* TOP MEDICINES */
@@ -1247,13 +417,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 borderRadius: 4
             }]
         },
-        options: {
-            ...commonOptions,
+        options: Object.assign({}, commonOptions, {
             indexAxis: "y",
-            scales: {
-                x: { beginAtZero: true }
-            }
-        }
+            scales: { x: { beginAtZero: true } }
+        })
     });
 
     /* FEFO PERFORMANCE */
@@ -1294,19 +461,19 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     /* LOW STOCK */
-    const lowStockLabels = [
+    var lowStockLabels = [
         {% for item in low_stock_medicines %}
             "{{ item.medicine_name|escapejs }}",
         {% endfor %}
     ];
 
-    const lowStockValues = [
+    var lowStockValues = [
         {% for item in low_stock_medicines %}
-            {{ item.usable_stock|default:0 }},
+            {{ item.current_stock|default:0 }},
         {% endfor %}
     ];
 
-    const reorderValues = [
+    var reorderValues = [
         {% for item in low_stock_medicines %}
             {{ item.reorder_level|default:0 }},
         {% endfor %}
@@ -1328,12 +495,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 borderRadius: 3
             }]
         },
-        options: {
-            ...commonOptions,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
+        options: Object.assign({}, commonOptions, {
+            scales: { y: { beginAtZero: true } }
+        })
     });
 
     /* DEMAND FORECAST */
@@ -1358,12 +522,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 borderWidth: 2
             }]
         },
-        options: {
-            ...commonOptions,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
+        options: Object.assign({}, commonOptions, {
+            scales: { y: { beginAtZero: true } }
+        })
     });
 
     /* PURCHASE ORDER STATUS */
@@ -1408,12 +569,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 borderRadius: 3
             }]
         },
-        options: {
-            ...commonOptions,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
+        options: Object.assign({}, commonOptions, {
+            scales: { y: { beginAtZero: true } }
+        })
     });
 });
 </script>

@@ -1,995 +1,1065 @@
 
-{% extends 'base.html' %}
+{% extends 'store_manager/store_manager_base.html' %}
 {% load static %}
 
-{% block title %}Inventory Management Centre | Store Manager{% endblock %}
+{% block title %}Warehouse Overview | Store Manager{% endblock %}
+{% block store_manager_title %}Warehouse Overview{% endblock %}
+{% block store_manager_heading %}Warehouse & Inventory Overview{% endblock %}
+{% block store_manager_description %}
+Monitor medicine stock, warehouse locations, expiry risks and inventory requirements.
+{% endblock %}
 
-{% block content %}
+{% block store_manager_content %}
 
-<div class="sm-dashboard" xmlns="http://www.w3.org/1999/html">
-    <style>
+<style>
+
+/* =========================================================
+   WAREHOUSE OVERVIEW — COMPLETE STYLESHEET
+   Store Manager Base Template
+========================================================= */
+
 :root {
-    --sm-navy: #123b66;
-    --sm-navy-dark: #0b2948;
-    --sm-teal: #087e8b;
-    --sm-teal-light: #e6f7f7;
-    --sm-text: #1e293b;
-    --sm-muted: #64748b;
-    --sm-border: #e2e8f0;
-    --sm-bg: #f4f7fb;
-    --sm-white: #ffffff;
+    --wh-navy: #102a43;
+    --wh-navy-light: #193b56;
+    --wh-blue: #2563eb;
+    --wh-blue-light: #eff6ff;
+    --wh-green: #0f766e;
+    --wh-green-dark: #115e59;
+    --wh-green-light: #edf8f5;
+    --wh-teal: #14b8a6;
+
+    --wh-background: #f4f8f7;
+    --wh-white: #ffffff;
+    --wh-border: #dce7e4;
+    --wh-muted: #64748b;
+    --wh-text: #263b50;
+
+    --wh-danger: #dc2626;
+    --wh-danger-bg: #fef2f2;
+    --wh-warning: #d97706;
+    --wh-warning-bg: #fffbeb;
+    --wh-success: #0f766e;
+    --wh-success-bg: #ecfdf5;
+
+    --wh-radius: 12px;
+    --wh-shadow: 0 3px 12px rgba(16, 42, 67, 0.055);
 }
 
-/* BASE */
-.sm-dashboard,
-.sm-dashboard * {
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.wh-card,
+.wh-risk-grid,
+.wh-summary-grid,
+.wh-table-wrap {
     box-sizing: border-box;
 }
 
-.sm-dashboard {
+.wh-card {
     width: 100%;
-    min-height: 100vh;
-    padding: 25px;
-    background: var(--sm-bg);
-    color: var(--sm-text);
-    font-family: Arial, sans-serif;
+    min-width: 0;
+    margin-bottom: 20px;
+    padding: 22px;
+    background: var(--wh-white);
+    border: 1px solid var(--wh-border);
+    border-radius: var(--wh-radius);
+    box-shadow: var(--wh-shadow);
 }
 
-/* HEADER */
-.sm-header {
-    position: relative;
-    overflow: hidden;
+.wh-card:last-child {
+    margin-bottom: 0;
+}
+
+.wh-card * {
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   SECTION HEADINGS
+========================================================= */
+
+.wh-section-heading {
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    padding: 27px 30px;
-    margin-bottom: 22px;
-    border-radius: 15px;
-    color: white;
-    background: linear-gradient(115deg, var(--sm-navy-dark), var(--sm-navy) 60%, var(--sm-teal));
-    box-shadow: 0 7px 20px rgba(18,59,102,.13);
+    gap: 16px;
+    margin-bottom: 20px;
 }
 
-.sm-header::after {
-    content: "";
-    position: absolute;
-    width: 240px;
-    height: 240px;
-    right: -75px;
-    top: -130px;
-    border: 35px solid rgba(255,255,255,.07);
-    border-radius: 50%;
+.wh-section-heading > div {
+    min-width: 0;
 }
 
-.sm-eyebrow {
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    opacity: .8;
-}
-
-.sm-header h1 {
-    margin: 9px 0 7px;
-    font-size: 26px;
-    font-weight: 800;
-    line-height: 1.25;
-}
-
-.sm-header p {
-    max-width: 650px;
+.wh-section-title {
     margin: 0;
-    color: rgba(255,255,255,.85);
+    color: var(--wh-navy);
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.wh-description {
+    max-width: 700px;
+    margin: 6px 0 0;
+    color: var(--wh-muted);
     font-size: 12px;
-    line-height: 1.7;
-}
-
-.sm-header-tag {
-    position: relative;
-    z-index: 1;
-    flex-shrink: 0;
-    padding: 10px 14px;
-    border: 1px solid rgba(255,255,255,.25);
-    border-radius: 8px;
-    background: rgba(255,255,255,.1);
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: .6px;
-}
-
-/* LAYOUT */
-.sm-layout {
-    display: grid;
-    grid-template-columns: 235px minmax(0,1fr);
-    gap: 20px;
-    align-items: start;
-}
-
-.sm-sidebar {
-    position: sticky;
-    top: 18px;
-    min-width: 0;
-    padding: 19px 14px;
-    border: 1px solid var(--sm-border);
-    border-radius: 13px;
-    background: white;
-    box-shadow: 0 3px 12px rgba(15,23,42,.04);
-}
-
-.sm-brand {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 5px 7px 19px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid var(--sm-border);
-}
-
-.sm-brand-mark {
-    display: grid;
-    place-items: center;
-    width: 37px;
-    height: 37px;
-    flex-shrink: 0;
-    border-radius: 10px;
-    color: white;
-    background: linear-gradient(135deg,var(--sm-navy),var(--sm-teal));
-    font-size: 22px;
-    font-weight: 800;
-}
-
-.sm-brand strong {
-    display: block;
-    color: var(--sm-navy);
-    font-size: 11px;
-    font-weight: 800;
-}
-
-.sm-brand span {
-    display: block;
-    margin-top: 4px;
-    color: var(--sm-muted);
-    font-size: 9px;
-}
-
-.sm-nav-label {
-    padding: 0 9px;
-    margin: 17px 0 9px;
-    color: #94a3b8;
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-}
-
-.sm-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.sm-nav a {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 11px 10px;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    color: #475569;
-    background: transparent;
-    text-decoration: none;
-    font-size: 11px;
-    font-weight: 700;
-    transition: .2s;
-}
-
-.sm-nav a:hover,
-.sm-nav a.active {
-    color: white;
-    background: var(--sm-navy);
-}
-
-.sm-nav a.active {
-    background: linear-gradient(110deg,var(--sm-navy),var(--sm-teal));
-    box-shadow: 0 3px 8px rgba(18,59,102,.15);
-}
-
-.sm-nav-icon {
-    display: grid;
-    place-items: center;
-    width: 23px;
-    height: 23px;
-    flex-shrink: 0;
-    border-radius: 6px;
-    color: var(--sm-navy);
-    background: #edf2f7;
-    font-size: 13px;
-}
-
-.sm-nav a.active .sm-nav-icon,
-.sm-nav a:hover .sm-nav-icon {
-    color: white;
-    background: rgba(255,255,255,.15);
-}
-
-.sm-sidebar-footer {
-    margin-top: 22px;
-    padding: 13px 9px 3px;
-    border-top: 1px solid var(--sm-border);
-    color: #94a3b8;
-    font-size: 9px;
-    line-height: 1.8;
-}
-
-/* MAIN CONTENT */
-.sm-main {
-    display: flex;
-    flex-direction: column;
-    gap: 17px;
-    min-width: 0;
-}
-
-.sm-section-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
-.sm-section-title {
-    margin: 0;
-    color: var(--sm-navy);
-    font-size: 15px;
-    font-weight: 800;
-}
-
-.sm-section-description {
-    margin: 5px 0 0;
-    color: var(--sm-muted);
-    font-size: 10px;
     line-height: 1.6;
 }
 
-.sm-count {
+.wh-count {
+    display: inline-flex;
     flex-shrink: 0;
-    padding: 6px 10px;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 11px;
+    border: 1px solid #cce9e2;
     border-radius: 20px;
-    color: var(--sm-navy);
-    background: var(--sm-teal-light);
-    font-size: 9px;
+    background: var(--wh-green-light);
+    color: var(--wh-green-dark);
+    font-size: 10px;
     font-weight: 800;
+    letter-spacing: 0.35px;
+    white-space: nowrap;
 }
 
-.sm-card,
-.sm-kpi {
-    min-width: 0;
-    border: 1px solid var(--sm-border);
-    border-radius: 12px;
-    background: white;
-    box-shadow: 0 3px 12px rgba(15,23,42,.035);
-}
+/* =========================================================
+   CONSOLIDATED WAREHOUSE INVENTORY SUMMARY
+========================================================= */
 
-.sm-card {
-    padding: 19px;
-}
-
-/* KPI CARDS */
-.sm-kpi-grid {
+.wh-summary-grid {
     display: grid;
-    grid-template-columns: repeat(5,minmax(0,1fr));
-    gap: 11px;
-}
-
-.sm-kpi {
-    position: relative;
-    overflow: hidden;
-    padding: 15px;
-}
-
-.sm-kpi::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 13px;
     width: 100%;
-    height: 3px;
-    background: var(--sm-teal);
 }
 
-.sm-kpi-label {
-    min-height: 28px;
-    color: var(--sm-muted);
-    font-size: 9px;
+.wh-summary-item {
+    position: relative;
+    min-width: 0;
+    min-height: 105px;
+    padding: 17px;
+    overflow: hidden;
+    border: 1px solid #d5e5e0;
+    border-left: 4px solid var(--wh-green);
+    border-radius: 9px;
+    background: #f8fbfa;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.wh-summary-item:hover {
+    background: var(--wh-green-light);
+    border-color: #9acfc1;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 13px rgba(15, 118, 110, 0.08);
+}
+
+.wh-summary-item:nth-child(2),
+.wh-summary-item:nth-child(6) {
+    border-left-color: var(--wh-blue);
+}
+
+.wh-summary-item:nth-child(3),
+.wh-summary-item:nth-child(7) {
+    border-left-color: var(--wh-warning);
+}
+
+.wh-summary-item:nth-child(4) {
+    border-left-color: var(--wh-danger);
+}
+
+.wh-summary-item:nth-child(5),
+.wh-summary-item:nth-child(8) {
+    border-left-color: var(--wh-teal);
+}
+
+.wh-summary-label {
+    color: var(--wh-muted);
+    font-size: 10px;
     font-weight: 800;
     line-height: 1.5;
     text-transform: uppercase;
-    letter-spacing: .35px;
+    letter-spacing: 0.45px;
 }
 
-.sm-kpi-value {
-    margin-top: 8px;
-    color: var(--sm-navy);
-    font-size: 25px;
+.wh-summary-value {
+    margin-top: 12px;
+    color: var(--wh-navy);
+    font-size: 26px;
     font-weight: 800;
     line-height: 1.2;
     overflow-wrap: anywhere;
 }
 
-.sm-kpi-note {
-    margin-top: 5px;
-    color: #94a3b8;
-    font-size: 9px;
-    line-height: 1.5;
-}
+/* =========================================================
+   LOW STOCK AND EXPIRY MONITORING
+========================================================= */
 
-/* MONITORING */
-.sm-risk-grid {
+.wh-risk-grid {
     display: grid;
-    grid-template-columns: repeat(2,minmax(0,1fr));
-    gap: 15px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    width: 100%;
+    margin-bottom: 20px;
 }
 
-.sm-risk-panel {
+.wh-risk-grid .wh-card {
     display: flex;
     flex-direction: column;
-    height: 370px;
     min-width: 0;
+    margin-bottom: 0;
 }
 
-.sm-scroll-list {
+.wh-risk-panel .wh-section-heading {
+    min-height: 58px;
+}
+
+.wh-risk-panel .wh-scroll-list {
     flex: 1;
-    min-height: 0;
+    min-height: 180px;
+    max-height: 310px;
     overflow-y: auto;
-    padding-right: 6px;
+    overflow-x: hidden;
+    padding-right: 5px;
+    scrollbar-width: thin;
+    scrollbar-color: #b9d6ce #f1f6f4;
 }
 
-.sm-item,
-.sm-fefo-item {
-    margin-bottom: 8px;
-    border: 1px solid #e8edf3;
+.wh-scroll-list::-webkit-scrollbar,
+.wh-fefo-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.wh-scroll-list::-webkit-scrollbar-track,
+.wh-fefo-list::-webkit-scrollbar-track {
+    background: #f1f6f4;
+    border-radius: 10px;
+}
+
+.wh-scroll-list::-webkit-scrollbar-thumb,
+.wh-fefo-list::-webkit-scrollbar-thumb {
+    background: #b9d6ce;
+    border-radius: 10px;
+}
+
+.wh-scroll-list::-webkit-scrollbar-thumb:hover,
+.wh-fefo-list::-webkit-scrollbar-thumb:hover {
+    background: var(--wh-green);
+}
+
+/* =========================================================
+   MONITORING LIST ITEMS
+========================================================= */
+
+.wh-item {
+    margin-bottom: 10px;
+    padding: 13px 14px;
+    border: 1px solid #e0e9e6;
+    border-left: 3px solid var(--wh-green);
     border-radius: 8px;
-    background: #f8fafc;
+    background: #fbfdfc;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
 }
 
-.sm-item {
-    padding: 11px 12px;
+.wh-item:hover {
+    background: #f0f8f5;
+    border-color: #b8d9ce;
 }
 
-.sm-item-title {
+.wh-item:last-child {
+    margin-bottom: 0;
+}
+
+.wh-item-title {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: flex-start;
-    gap: 8px;
+    gap: 12px;
+    margin-bottom: 9px;
 }
 
-.sm-item-title strong {
-    color: var(--sm-text);
-    font-size: 11px;
+.wh-item-title strong {
+    min-width: 0;
+    color: var(--wh-navy);
+    font-size: 12px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.wh-item-details {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 7px 15px;
+    margin-top: 6px;
+    color: var(--wh-muted);
+    font-size: 10px;
     line-height: 1.5;
 }
 
-.sm-item-details {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 7px;
-    margin-top: 8px;
-    color: var(--sm-muted);
-    font-size: 9px;
-}
-
-.sm-status {
-    display: inline-block;
-    flex-shrink: 0;
-    padding: 5px 8px;
-    border-radius: 20px;
-    font-size: 8px;
+.wh-item-details strong {
+    color: var(--wh-text);
     font-weight: 800;
-    text-transform: uppercase;
 }
 
-.sm-danger { color: #b91c1c; background: #fee2e2; }
-.sm-warning { color: #92400e; background: #fef3c7; }
-.sm-success { color: #166534; background: #dcfce7; }
-.sm-neutral { color: #475569; background: #e2e8f0; }
+/* =========================================================
+   STATUS LABELS
+========================================================= */
 
-.sm-empty {
-    display: grid;
-    place-items: center;
-    min-height: 130px;
-    padding: 20px;
-    color: #94a3b8;
-    text-align: center;
-    font-size: 10px;
-    line-height: 1.7;
-}
-
-/* FEFO QUEUE */
-.sm-fefo-list {
-    max-height: 290px;
-    overflow-y: auto;
-    padding-right: 6px;
-}
-
-.sm-fefo-item {
-    display: grid;
-    grid-template-columns: 29px minmax(0,1fr) auto;
+.wh-status {
+    display: inline-flex;
     align-items: center;
-    gap: 11px;
-    padding: 11px;
-}
-
-.sm-priority {
-    display: grid;
-    place-items: center;
-    width: 27px;
-    height: 27px;
-    border-radius: 7px;
-    color: white;
-    background: var(--sm-teal);
-    font-size: 11px;
-    font-weight: 800;
-}
-
-.sm-fefo-name {
-    color: var(--sm-navy);
-    font-size: 11px;
-    font-weight: 800;
-}
-
-.sm-fefo-meta {
-    margin-top: 4px;
-    color: var(--sm-muted);
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 5px 9px;
+    border-radius: 20px;
     font-size: 9px;
-    line-height: 1.6;
-}
-
-/* STOCK REGISTER */
-.sm-table-wrap {
-    max-height: 390px;
-    overflow: auto;
-    border: 1px solid var(--sm-border);
-    border-radius: 9px;
-}
-
-.sm-table {
-    width: 100%;
-    min-width: 690px;
-    border-collapse: collapse;
-    font-size: 10px;
-}
-
-.sm-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    color: white;
-    background: var(--sm-navy);
-}
-
-.sm-table th,
-.sm-table td {
-    padding: 12px;
-    text-align: left;
+    font-weight: 800;
+    line-height: 1.3;
     white-space: nowrap;
 }
 
-.sm-table th {
-    font-size: 9px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .3px;
+.wh-danger {
+    background: var(--wh-danger-bg);
+    color: var(--wh-danger);
 }
 
-.sm-table td {
-    border-bottom: 1px solid #edf1f5;
-    color: #475569;
+.wh-warning {
+    background: var(--wh-warning-bg);
+    color: var(--wh-warning);
 }
 
-.sm-table td strong {
-    color: var(--sm-text);
+.wh-success {
+    background: var(--wh-success-bg);
+    color: var(--wh-success);
 }
 
-.sm-table tbody tr:hover {
-    background: var(--sm-teal-light);
+.wh-neutral {
+    background: #f1f5f9;
+    color: #64748b;
 }
 
-.sm-search {
-    width: 100%;
-    max-width: 350px;
-    padding: 10px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 7px;
-    outline: none;
-    color: var(--sm-text);
-    background: white;
-    font-size: 10px;
-}
+/* =========================================================
+   EMPTY STATES
+========================================================= */
 
-.sm-search:focus {
-    border-color: var(--sm-teal);
-    box-shadow: 0 0 0 3px rgba(8,126,139,.1);
-}
-
-.sm-search-count {
-    margin: 9px 0 0;
-    color: var(--sm-muted);
-    font-size: 9px;
-}
-
-/* QUICK ACTIONS AND BUTTONS */
-.sm-action-grid {
-    display: grid;
-    grid-template-columns: repeat(3,minmax(0,1fr));
-    gap: 11px;
-}
-
-.sm-action {
+.wh-empty {
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-width: 0;
-    padding: 14px;
-    border: 1px solid var(--sm-border);
-    border-radius: 9px;
-    color: inherit;
-    background: white;
-    text-decoration: none;
-    transition: .2s;
-}
-
-.sm-action:hover {
-    border-color: var(--sm-teal);
-    background: var(--sm-teal-light);
-    transform: translateY(-2px);
-}
-
-.sm-action-icon {
-    display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    flex-shrink: 0;
-    border-radius: 9px;
-    color: white;
-    background: var(--sm-teal);
-    font-size: 16px;
-    font-weight: 800;
-}
-
-.sm-action strong {
-    display: block;
-    color: var(--sm-navy);
-    font-size: 10px;
-}
-
-.sm-action span {
-    display: block;
-    margin-top: 4px;
-    color: var(--sm-muted);
-    font-size: 9px;
-    line-height: 1.5;
-}
-
-.sm-button {
-    display: inline-flex;
     justify-content: center;
+    min-height: 115px;
+    padding: 20px;
+    border: 1px dashed #cbdad5;
+    border-radius: 8px;
+    background: #f8fbfa;
+    color: var(--wh-muted);
+    font-size: 11px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.wh-button {
+    display: inline-flex;
     align-items: center;
-    gap: 7px;
-    width: 100%;
-    margin-top: 12px;
-    padding: 10px 13px;
-    border: 0;
+    justify-content: center;
+    gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 38px;
+    margin-top: 16px;
+    padding: 9px 15px;
+    border: 1px solid var(--wh-green);
     border-radius: 7px;
-    color: white;
-    background: var(--sm-teal);
+    background: var(--wh-green);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
     text-align: center;
     text-decoration: none;
-    font-size: 10px;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.wh-button:hover {
+    border-color: var(--wh-green-dark);
+    background: var(--wh-green-dark);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.wh-button:focus-visible {
+    outline: 3px solid rgba(20, 184, 166, 0.3);
+    outline-offset: 3px;
+}
+
+/* =========================================================
+   FEFO PRIORITY LIST
+========================================================= */
+
+.wh-fefo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    max-height: 370px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+    scrollbar-width: thin;
+    scrollbar-color: #b9d6ce #f1f6f4;
+}
+
+.wh-fefo-item {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid #dce9e4;
+    border-radius: 8px;
+    background: #fbfdfc;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.wh-fefo-item:hover {
+    background: var(--wh-green-light);
+    border-color: #b6d9cd;
+}
+
+.wh-priority {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 29px;
+    height: 29px;
+    border-radius: 7px;
+    background: #dff3ed;
+    color: var(--wh-green-dark);
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.wh-fefo-name {
+    color: var(--wh-navy);
+    font-size: 12px;
     font-weight: 800;
-    transition: .2s;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
 }
 
-.sm-button:hover {
-    color: white;
-    background: var(--sm-navy);
+.wh-fefo-meta {
+    margin-top: 5px;
+    color: var(--wh-muted);
+    font-size: 10px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
 }
 
-/* SCROLLBARS */
-.sm-scroll-list::-webkit-scrollbar,
-.sm-fefo-list::-webkit-scrollbar,
-.sm-table-wrap::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+/* =========================================================
+   STOCK REGISTER SEARCH
+========================================================= */
+
+.wh-search {
+    display: block;
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 13px;
+    border: 1px solid #cbdad5;
+    border-radius: 8px;
+    outline: none;
+    background: #fbfdfc;
+    color: var(--wh-navy);
+    font-family: inherit;
+    font-size: 12px;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
 }
 
-.sm-scroll-list::-webkit-scrollbar-thumb,
-.sm-fefo-list::-webkit-scrollbar-thumb,
-.sm-table-wrap::-webkit-scrollbar-thumb {
+.wh-search::placeholder {
+    color: #94a3b8;
+}
+
+.wh-search:focus {
+    border-color: var(--wh-green);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.wh-search-count {
+    margin: 12px 0 0;
+    color: var(--wh-muted);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* =========================================================
+   STOCK REGISTER TABLE
+========================================================= */
+
+.wh-table-wrap {
+    width: 100%;
+    max-height: 470px;
+    overflow: auto;
+    border: 1px solid var(--wh-border);
+    border-radius: 9px;
+    scrollbar-width: thin;
+    scrollbar-color: #b9d6ce #f1f6f4;
+}
+
+.wh-table-wrap::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+.wh-table-wrap::-webkit-scrollbar-track {
+    background: #f1f6f4;
+}
+
+.wh-table-wrap::-webkit-scrollbar-thumb {
+    background: #b9d6ce;
     border-radius: 10px;
-    background: #cbd5e1;
 }
 
-/* RESPONSIVE */
-@media(max-width:1150px) {
-    .sm-layout { grid-template-columns: 205px minmax(0,1fr); }
-    .sm-kpi-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.wh-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #ffffff;
+    font-size: 11px;
+    text-align: left;
 }
 
-@media(max-width:850px) {
-    .sm-dashboard { padding: 16px; }
-    .sm-layout { grid-template-columns: 1fr; }
-    .sm-sidebar { position: static; }
-    .sm-nav { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
-    .sm-sidebar-footer { display: none; }
+.wh-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
-@media(max-width:650px) {
-    .sm-header { align-items: flex-start; padding: 22px; }
-    .sm-header-tag { display: none; }
-    .sm-header h1 { font-size: 22px; }
-    .sm-risk-grid,
-    .sm-action-grid { grid-template-columns: 1fr; }
-    .sm-risk-panel { height: 340px; }
-    .sm-nav { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.wh-table th {
+    padding: 13px 14px;
+    border-bottom: 1px solid #d6e4df;
+    background: #eaf5f1;
+    color: var(--wh-green-dark);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    white-space: nowrap;
 }
 
-@media(max-width:450px) {
-    .sm-dashboard { padding: 10px; }
-    .sm-kpi-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-    .sm-card { padding: 14px; }
-    .sm-kpi { padding: 12px; }
-    .sm-kpi-value { font-size: 21px; }
-    .sm-nav a { font-size: 10px; }
+.wh-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #edf1ef;
+    color: var(--wh-text);
+    font-size: 11px;
+    line-height: 1.5;
+    vertical-align: middle;
+}
+
+.wh-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.wh-table tbody tr:hover {
+    background: #f2f9f6;
+}
+
+.wh-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.wh-table td strong {
+    color: var(--wh-navy);
+    font-weight: 800;
+}
+
+/* =========================================================
+   TABLE ROW STATES
+========================================================= */
+
+.wh-stock-row[data-available="0"] {
+    background: #fffafa;
+}
+
+.wh-stock-row td:first-child {
+    min-width: 150px;
+}
+
+.wh-stock-row td:nth-child(2) {
+    white-space: nowrap;
+}
+
+/* =========================================================
+   ACCESSIBILITY AND INTERACTION
+========================================================= */
+
+.wh-button:focus-visible,
+.wh-search:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.2);
+    outline-offset: 2px;
+}
+
+.wh-card a {
+    text-decoration: none;
+}
+
+/* =========================================================
+   LARGE DESKTOP SCREENS
+========================================================= */
+
+@media (min-width: 1400px) {
+    .wh-card {
+        padding: 25px;
+    }
+
+    .wh-summary-grid {
+        gap: 15px;
+    }
+
+    .wh-summary-item {
+        min-height: 112px;
+        padding: 19px;
+    }
+
+    .wh-summary-value {
+        font-size: 28px;
+    }
+}
+
+/* =========================================================
+   TABLET SCREENS
+========================================================= */
+
+@media (max-width: 1000px) {
+    .wh-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .wh-risk-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .wh-risk-panel .wh-scroll-list {
+        max-height: 260px;
+    }
+}
+
+/* =========================================================
+   SMALL TABLETS AND LARGE PHONES
+========================================================= */
+
+@media (max-width: 700px) {
+    .wh-card {
+        padding: 17px;
+        margin-bottom: 15px;
+    }
+
+    .wh-section-heading {
+        gap: 10px;
+    }
+
+    .wh-section-title {
+        font-size: 15px;
+    }
+
+    .wh-description {
+        font-size: 11px;
+    }
+
+    .wh-count {
+        padding: 6px 8px;
+        font-size: 9px;
+    }
+
+    .wh-summary-item {
+        min-height: 95px;
+        padding: 14px;
+    }
+
+    .wh-summary-value {
+        font-size: 23px;
+    }
+
+    .wh-fefo-item {
+        gap: 9px;
+        padding: 11px;
+    }
+}
+
+/* =========================================================
+   MOBILE SCREENS
+========================================================= */
+
+@media (max-width: 480px) {
+    .wh-card {
+        padding: 14px;
+        border-radius: 9px;
+    }
+
+    .wh-section-heading {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+
+    .wh-count {
+        align-self: flex-start;
+    }
+
+    .wh-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+    }
+
+    .wh-summary-item {
+        min-height: 88px;
+        padding: 12px;
+    }
+
+    .wh-summary-label {
+        font-size: 9px;
+    }
+
+    .wh-summary-value {
+        margin-top: 9px;
+        font-size: 21px;
+    }
+
+    .wh-risk-grid {
+        gap: 14px;
+    }
+
+    .wh-item {
+        padding: 11px;
+    }
+
+    .wh-item-title {
+        align-items: flex-start;
+    }
+
+    .wh-item-details {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .wh-button {
+        width: 100%;
+    }
+
+    .wh-fefo-item {
+        grid-template-columns: 27px minmax(0, 1fr);
+    }
+
+    .wh-fefo-item > div:last-child {
+        grid-column: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        text-align: left !important;
+    }
+
+    .wh-priority {
+        width: 26px;
+        height: 26px;
+    }
+
+    .wh-fefo-meta {
+        font-size: 9px;
+    }
+
+    .wh-search {
+        font-size: 11px;
+    }
+
+    .wh-table {
+        min-width: 700px;
+    }
+}
+
+/* =========================================================
+   VERY SMALL MOBILE SCREENS
+========================================================= */
+
+@media (max-width: 320px) {
+    .wh-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .wh-summary-item {
+        min-height: 75px;
+    }
+
+    .wh-summary-value {
+        font-size: 22px;
+    }
+
+    .wh-item-title {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .wh-card *,
+    .wh-card *::before,
+    .wh-card *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
 }
 </style>
-
-    <!-- HEADER -->
-    <header class="sm-header">
+<!-- CONSOLIDATED WAREHOUSE INVENTORY SUMMARY -->
+<section class="wh-card">
+    <div class="wh-section-heading">
         <div>
-            <div class="sm-eyebrow">STORE MANAGER WORKSPACE</div>
-            <h1>Inventory Management Centre</h1>
-            <p>
-                Demand-driven medicine inventory control, expiry monitoring
-                and First Expiry First Out (FEFO) stock management.
+            <h2 class="wh-section-title">Warehouse Inventory Summary</h2>
+            <p class="wh-description">
+                Consolidated overview of stock levels, medicine batches,
+                expiry status and warehouse capacity.
             </p>
         </div>
+        <span class="wh-count">INVENTORY OVERVIEW</span>
+    </div>
 
-        <div class="sm-header-tag">
-            INVENTORY OPERATIONS
+    <div class="wh-summary-grid">
+
+        <div class="wh-summary-item">
+            <div class="wh-summary-label">Usable Stock Units</div>
+            <div class="wh-summary-value" id="totalStockUnits">0</div>
         </div>
-    </header>
 
-    <div class="sm-layout">
-
-        <!-- STORE MANAGER SIDEBAR -->
-
-        <aside class="sm-sidebar">
-
-            <div class="sm-brand">
-                <div class="sm-brand-mark">+</div>
-                <div>
-                    <strong>STORE MANAGER</strong>
-                    <span>Medicine Expiry Management</span>
-                </div>
-            </div>
-
-            <div class="sm-nav-label">Inventory Workspace</div>
-
-            <nav class="sm-nav" aria-label="Store Manager navigation">
-
-                <a href="{% url 'inventory' %}"
-                   class="{% if request.resolver_match.url_name == 'inventory' %}active{% endif %}">
-                    <span class="sm-nav-icon">▦</span>
-                    Inventory Overview
-                </a>
-
-                <a href="{% url 'inventory_recommendations' %}"
-                   class="{% if request.resolver_match.url_name == 'inventory_recommendations' or request.resolver_match.url_name == 'store_manager_recommendations' %}active{% endif %}">
-                    <span class="sm-nav-icon">⇄</span>
-                    Procurement Recommendations
-                </a>
-
-                <a href="{% url 'receiving_dashboard' %}"
-                   class="{% if request.resolver_match.url_name == 'receiving_dashboard' or request.resolver_match.url_name == 'goods_receipts' or request.resolver_match.url_name == 'goods_receipt_create' %}active{% endif %}">
-                    <span class="sm-nav-icon">↓</span>
-                    Goods Receiving
-                </a>
-
-                <a href="{% url 'inventory_reports' %}"
-                   class="{% if request.resolver_match.url_name == 'inventory_reports' %}active{% endif %}">
-                    <span class="sm-nav-icon">▤</span>
-                    Inventory Reports
-                </a>
-
-                <a href="{% url 'inventory_alerts' %}"
-                   class="{% if request.resolver_match.url_name == 'inventory_alerts' %}active{% endif %}">
-                    <span class="sm-nav-icon">!</span>
-                    Alerts Centre
-                </a>
-
-                <a href="{% url 'profile' %}"
-                   class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                    <span class="sm-nav-icon">◎</span>
-                    My Profile
-                </a>
-
-            </nav>
-
-            <div class="sm-nav-label">System</div>
-
-            <div class="sm-sidebar-footer">
-                Demand-driven inventory management<br>
-                FEFO-based stock operations
-            </div>
-
-        </aside>
-
-        <!-- MAIN DASHBOARD -->
-
-        <main class="sm-main">
-
-            <!-- KPI SUMMARY -->
-
-            <section class="sm-kpi-grid">
-
-                <div class="sm-kpi">
-                    <div class="sm-kpi-label">Usable Stock Units</div>
-                    <div class="sm-kpi-value" id="totalStockUnits">0</div>
-                    <div class="sm-kpi-note">Unexpired stock quantities</div>
-                </div>
-
-                <div class="sm-kpi">
-                    <div class="sm-kpi-label">Low Stock Medicines</div>
-                    <div class="sm-kpi-value" id="lowStockMedicines">0</div>
-                    <div class="sm-kpi-note">At or below reorder level</div>
-                </div>
-
-                <div class="sm-kpi">
-                    <div class="sm-kpi-label">Near-Expiry Batches</div>
-                    <div class="sm-kpi-value" id="nearExpiryBatches">0</div>
-                    <div class="sm-kpi-note">Expiring within 30 days</div>
-                </div>
-
-                <div class="sm-kpi">
-                    <div class="sm-kpi-label">Expired Batches</div>
-                    <div class="sm-kpi-value" id="expiredBatches">0</div>
-                    <div class="sm-kpi-note">Excluded from usable stock</div>
-                </div>
-
-                <div class="sm-kpi">
-                    <div class="sm-kpi-label">Recorded Batches</div>
-                    <div class="sm-kpi-value" id="batchCount">0</div>
-                    <div class="sm-kpi-note">Batches in this register</div>
-                </div>
-
-            </section>
-
-            <!-- STOCK AND EXPIRY MONITORING -->
-
-            <section class="sm-risk-grid">
-
-                <div class="sm-card sm-risk-panel">
-
-                    <div class="sm-section-top">
-                        <div>
-                            <h2 class="sm-section-title">Low Stock Monitoring</h2>
-                            <p class="sm-section-description">
-                                Medicines at or below their configured reorder levels.
-                            </p>
-                        </div>
-
-                        <span class="sm-count" id="lowStockCount">0 medicines</span>
-                    </div>
-
-                    <div class="sm-scroll-list" id="lowStockList">
-                        <div class="sm-empty">Preparing stock monitoring...</div>
-                    </div>
-
-                    <a href="{% url 'inventory_recommendations' %}" class="sm-button">
-                        Review Procurement Recommendations →
-                    </a>
-
-                </div>
-
-                <div class="sm-card sm-risk-panel">
-
-                    <div class="sm-section-top">
-                        <div>
-                            <h2 class="sm-section-title">Expiry Risk Monitoring</h2>
-                            <p class="sm-section-description">
-                                Expired batches and batches approaching expiry.
-                            </p>
-                        </div>
-
-                        <span class="sm-count" id="expiryRiskCount">0 batches</span>
-                    </div>
-
-                    <div class="sm-scroll-list" id="expiryRiskList">
-                        <div class="sm-empty">Preparing expiry monitoring...</div>
-                    </div>
-
-                    <a href="{% url 'inventory_alerts' %}" class="sm-button">
-                        View Inventory Alerts →
-                    </a>
-
-                </div>
-
-            </section>
-
-            <!-- FEFO PRIORITY QUEUE -->
-
-            <section class="sm-card">
-
-                <div class="sm-section-top">
-                    <div>
-                        <h2 class="sm-section-title">FEFO Priority Queue</h2>
-                        <p class="sm-section-description">
-                            Eligible batches ordered by earliest expiry date.
-                            This is a stock-priority overview; actual dispensing
-                            eligibility is determined by the FEFO engine.
-                        </p>
-                    </div>
-
-                    <span class="sm-count" id="fefoCount">0 eligible batches</span>
-                </div>
-
-                <div class="sm-fefo-list" id="fefoPriorityList">
-                    <div class="sm-empty">Preparing FEFO priority queue...</div>
-                </div>
-
-            </section>
-
-            <!-- STOCK REGISTER -->
-
-            <section class="sm-card">
-
-                <div class="sm-section-top">
-                    <div>
-                        <h2 class="sm-section-title">Current Stock Register</h2>
-                        <p class="sm-section-description">
-                            Search and review the medicine batches registered in the inventory.
-                        </p>
-                    </div>
-
-                    <span class="sm-count">{{ batches|length }} batches</span>
-                </div>
-
-                <div style="margin-bottom:13px;">
-                    <input
-                        type="search"
-                        id="stockSearch"
-                        class="sm-search"
-                        placeholder="Search medicine or batch number..."
-                        aria-label="Search stock register"
-                    >
-                </div>
-
-                <div class="sm-table-wrap">
-
-                    <table class="sm-table">
-
-                        <thead>
-                            <tr>
-                                <th>Medicine</th>
-                                <th>Batch Number</th>
-                                <th>Available</th>
-                                <th>Expiry Date</th>
-                                <th>Storage Location</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="currentStockBody">
-
-                            {% for batch in batches %}
-
-                            <tr
-                                class="sm-stock-row"
-                                data-medicine="{{ batch.medicine.medicine_name|escape }}"
-                                data-batch="{{ batch.batch_number|escape }}"
-                                data-available="{{ batch.quantity_available }}"
-                                data-reorder="{{ batch.medicine.reorder_level|default:30 }}"
-                                data-expiry="{{ batch.expiry_date|date:'Y-m-d' }}"
-                            >
-
-                                <td>
-                                    <strong>{{ batch.medicine.medicine_name }}</strong>
-                                </td>
-
-                                <td>{{ batch.batch_number }}</td>
-
-                                <td>{{ batch.quantity_available }} units</td>
-
-                                <td>{{ batch.expiry_date|date:"Y-m-d" }}</td>
-
-                                <td>{{ batch.storage_location|default:"Not specified" }}</td>
-
-                                <td class="sm-row-status">—</td>
-
-                            </tr>
-
-                            {% empty %}
-
-                            <tr>
-                                <td colspan="6" style="padding:30px;text-align:center;">
-                                    No stock batches have been registered.
-                                </td>
-                            </tr>
-
-                            {% endfor %}
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-                <p id="stockSearchCount" class="sm-search-count">
-                    Loading stock records...
-                </p>
-
-            </section>
-
-            <!-- QUICK ACTIONS -->
-
-            <section class="sm-card">
-
-                <div class="sm-section-top">
-                    <div>
-                        <h2 class="sm-section-title">Inventory Operations</h2>
-                        <p class="sm-section-description">
-                            Direct access to frequently used inventory functions.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="sm-action-grid">
-
-                    <a href="{% url 'receiving_dashboard' %}" class="sm-action">
-                        <div class="sm-action-icon">↓</div>
-                        <div>
-                            <strong>Goods Receiving</strong>
-                            <span>Record and inspect supplier deliveries</span>
-                        </div>
-                    </a>
-
-                    <a href="{% url 'inventory_recommendations' %}" class="sm-action">
-                        <div class="sm-action-icon">⇄</div>
-                        <div>
-                            <strong>Procurement Recommendations</strong>
-                            <span>Review stock requirements and recommendations</span>
-                        </div>
-                    </a>
-
-                    <a href="{% url 'inventory_reports' %}" class="sm-action">
-                        <div class="sm-action-icon">▤</div>
-                        <div>
-                            <strong>Inventory Reports</strong>
-                            <span>Review inventory and expiry performance</span>
-                        </div>
-                    </a>
-
-                </div>
-
-            </section>
-
-        </main>
+        <div class="wh-summary-item">
+            <div class="wh-summary-label">Low Stock Medicines</div>
+            <div class="wh-summary-value" id="lowStockMedicines">0</div>
+        </div>
+
+        <div class="wh-summary-item">
+            <div class="wh-summary-label">Near-Expiry Batches</div>
+            <div class="wh-summary-value" id="nearExpiryBatches">0</div>
+        </div>
+
+        <div class="wh-summary-item">
+            <div class="wh-summary-label">Expired Batches</div>
+            <div class="wh-summary-value" id="expiredBatches">0</div>
+        </div>
+
+        <div class="wh-summary-item">
+            <div class="wh-summary-label">Registered Batches</div>
+            <div class="wh-summary-value" id="batchCount">0</div>
+        </div>
+
+        <div class="wh-summary-item">
+            <div class="wh-summary-label">Distinct Medicines</div>
+            <div class="wh-summary-value" id="medicineCount">0</div>
+        </div>
+
+        <div class="wh-summary-item">
+            <div class="wh-summary-label">Storage Locations</div>
+            <div class="wh-summary-value" id="locationCount">0</div>
+        </div>
+
+        <div class="wh-summary-item">
+            <div class="wh-summary-label">Batches With Stock</div>
+            <div class="wh-summary-value" id="stockedBatchCount">0</div>
+        </div>
 
     </div>
 
+</section>
+
+    <!-- STOCK AND EXPIRY MONITORING -->
+    <section class="wh-risk-grid">
+        <div class="wh-card wh-risk-panel">
+            <div class="wh-section-heading">
+                <div>
+                    <h2 class="wh-section-title">Low Stock Monitoring</h2>
+                    <p class="wh-description">
+                        Medicines at or below their configured reorder levels.
+                    </p>
+                </div>
+                <span class="wh-count" id="lowStockCount">0 medicines</span>
+            </div>
+
+            <div class="wh-scroll-list" id="lowStockList">
+                <div class="wh-empty">Preparing stock monitoring...</div>
+            </div>
+
+            <a href="{% url 'inventory_recommendations' %}" class="wh-button">
+                Review Procurement Recommendations →
+            </a>
+
+        </div>
+
+        <div class="wh-card wh-risk-panel">
+
+            <div class="wh-section-heading">
+                <div>
+                    <h2 class="wh-section-title">Expiry Risk Monitoring</h2>
+                    <p class="wh-description">
+                        Expired and approaching-expiry medicine batches.
+                    </p>
+                </div>
+                <span class="wh-count" id="expiryRiskCount">0 batches</span>
+            </div>
+
+            <div class="wh-scroll-list" id="expiryRiskList">
+                <div class="wh-empty">Preparing expiry monitoring...</div>
+            </div>
+
+            <a href="{% url 'alerts' %}" class="wh-button">
+                View Alerts Centre →
+            </a>
+
+        </div>
+
+    </section>
+
+    <!-- FEFO PRIORITY -->
+
+    <section class="wh-card">
+
+        <div class="wh-section-heading">
+            <div>
+                <h2 class="wh-section-title">FEFO Stock Priority</h2>
+                <p class="wh-description">
+                    Unexpired batches with available quantities, arranged by
+                    earliest expiry date. This is an indicative warehouse
+                    priority view; dispensing eligibility is determined by
+                    the backend FEFO engine.
+                </p>
+            </div>
+            <span class="wh-count" id="fefoCount">0 batches</span>
+        </div>
+
+        <div class="wh-fefo-list" id="fefoPriorityList">
+            <div class="wh-empty">Preparing FEFO priority queue...</div>
+        </div>
+
+    </section>
+
+    <!-- STOCK REGISTER -->
+
+    <section class="wh-card">
+
+        <div class="wh-section-heading">
+            <div>
+                <h2 class="wh-section-title">Warehouse Stock Register</h2>
+                <p class="wh-description">
+                    Review medicine batches, quantities, expiry dates
+                    and their recorded storage locations.
+                </p>
+            </div>
+
+            <span class="wh-count">{{ batches|length }} batches</span>
+        </div>
+
+        <div style="margin-bottom:14px;">
+            <input
+                type="search"
+                id="stockSearch"
+                class="wh-search"
+                placeholder="Search medicine, batch or location..."
+                aria-label="Search warehouse stock"
+            >
+        </div>
+
+        <div class="wh-table-wrap">
+            <table class="wh-table">
+
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Batch Number</th>
+                        <th>Available Quantity</th>
+                        <th>Expiry Date</th>
+                        <th>Storage Location</th>
+                        <th>Expiry Status</th>
+                    </tr>
+                </thead>
+
+                <tbody id="currentStockBody">
+
+                    {% for batch in batches %}
+                    <tr
+                        class="wh-stock-row"
+                        data-medicine="{{ batch.medicine.medicine_name|escape }}"
+                        data-batch="{{ batch.batch_number|escape }}"
+                        data-available="{{ batch.quantity_available }}"
+                        data-reorder="{{ batch.medicine.reorder_level|default_if_none:30 }}"
+                        data-expiry="{{ batch.expiry_date|date:'Y-m-d' }}"
+                        data-location="{{ batch.storage_location|default:'Not specified'|escape }}"
+                    >
+                        <td>
+                            <strong>{{ batch.medicine.medicine_name }}</strong>
+                        </td>
+
+                        <td>{{ batch.batch_number }}</td>
+
+                        <td>{{ batch.quantity_available }} units</td>
+
+                        <td>{{ batch.expiry_date|date:"Y-m-d"|default:"Not recorded" }}</td>
+
+                        <td>{{ batch.storage_location|default:"Not specified" }}</td>
+
+                        <td class="wh-row-status">
+                            <span class="wh-status wh-neutral">Checking</span>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="padding:30px;text-align:center;">
+                            No medicine batches have been registered.
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+
+        <p id="stockSearchCount" class="wh-search-count">
+            Loading stock records...
+        </p>
+
+    </section>
+
+</main>
 </div>
 
-
-<!-- FRONTEND INVENTORY CALCULATIONS -->
+<!-- INVENTORY OVERVIEW CALCULATIONS -->
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
     const rows = Array.from(
-        document.querySelectorAll(".sm-stock-row")
+        document.querySelectorAll(".wh-stock-row")
     );
 
     const stockSearch = document.getElementById("stockSearch");
@@ -1041,12 +1111,11 @@ document.addEventListener("DOMContentLoaded", function () {
         return Number(value || 0).toLocaleString();
     }
 
-    // PREPARE BATCH DATA
+    // PREPARE BATCH RECORDS
 
     const batches = rows.map(function (row) {
 
         const d = row.dataset;
-
         const reorderValue = Number(d.reorder);
 
         const batch = {
@@ -1054,7 +1123,8 @@ document.addEventListener("DOMContentLoaded", function () {
             batch: d.batch,
             available: Math.max(0, Number(d.available) || 0),
             reorder: Number.isFinite(reorderValue) ? reorderValue : 30,
-            expiry: d.expiry
+            expiry: d.expiry,
+            location: d.location
         };
 
         batch.days = daysRemaining(batch.expiry);
@@ -1069,36 +1139,36 @@ document.addEventListener("DOMContentLoaded", function () {
             batch.status = "valid";
         }
 
-        const statusCell = row.querySelector(".sm-row-status");
+        const statusCell = row.querySelector(".wh-row-status");
 
         if (statusCell) {
-
             if (batch.status === "expired") {
                 statusCell.innerHTML =
-                    '<span class="sm-status sm-danger">Expired</span>';
+                    '<span class="wh-status wh-danger">Expired</span>';
             } else if (batch.status === "soon") {
                 statusCell.innerHTML =
-                    '<span class="sm-status sm-warning">Near Expiry</span>';
+                    '<span class="wh-status wh-warning">Near Expiry</span>';
             } else if (batch.status === "valid") {
                 statusCell.innerHTML =
-                    '<span class="sm-status sm-success">Valid</span>';
+                    '<span class="wh-status wh-success">Unexpired</span>';
             } else {
                 statusCell.innerHTML =
-                    '<span class="sm-status sm-neutral">Unknown</span>';
+                    '<span class="wh-status wh-neutral">Unknown Date</span>';
             }
         }
 
         return batch;
     });
 
-
-    // 1. MEDICINE-LEVEL STOCK AGGREGATION
+    // MEDICINE-LEVEL STOCK AGGREGATION
 
     const medicineMap = new Map();
+    const storageLocations = new Set();
 
     let totalUsableUnits = 0;
     let expiredCount = 0;
     let nearExpiryCount = 0;
+    let stockedBatchCount = 0;
 
     batches.forEach(function (batch) {
 
@@ -1112,14 +1182,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const medicine = medicineMap.get(batch.medicine);
 
-        // The reorder level is a medicine-level setting.
-        // Do not aggregate it across batches.
-
         if (batch.status !== "expired" && batch.status !== "unknown") {
-
             medicine.available += batch.available;
             totalUsableUnits += batch.available;
+        }
 
+        if (batch.available > 0) {
+            stockedBatchCount++;
         }
 
         if (batch.status === "expired") {
@@ -1130,12 +1199,17 @@ document.addEventListener("DOMContentLoaded", function () {
             nearExpiryCount++;
         }
 
+        const location = (batch.location || "").trim();
+
+        if (location && location !== "Not specified") {
+            storageLocations.add(location);
+        }
+
     });
 
-
-    // 2. LOW STOCK MEDICINES
-
     const medicines = Array.from(medicineMap.values());
+
+    // LOW STOCK MEDICINES
 
     const lowStock = medicines
         .filter(function (medicine) {
@@ -1145,8 +1219,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return a.available - b.available;
         });
 
-
-    // 3. UPDATE KPI CARDS
+    // KPI VALUES
 
     document.getElementById("totalStockUnits").textContent =
         formatNumber(totalUsableUnits);
@@ -1163,8 +1236,16 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("batchCount").textContent =
         formatNumber(batches.length);
 
+    document.getElementById("medicineCount").textContent =
+        formatNumber(medicines.length);
 
-    // 4. LOW STOCK MONITORING
+    document.getElementById("locationCount").textContent =
+        formatNumber(storageLocations.size);
+
+    document.getElementById("stockedBatchCount").textContent =
+        formatNumber(stockedBatchCount);
+
+    // LOW STOCK MONITORING
 
     document.getElementById("lowStockCount").textContent =
         lowStock.length + " medicines";
@@ -1174,25 +1255,22 @@ document.addEventListener("DOMContentLoaded", function () {
     if (lowStock.length === 0) {
 
         lowStockList.innerHTML =
-            '<div class="sm-empty">No medicines in the displayed records are at or below their reorder levels.</div>';
+            '<div class="wh-empty">No medicines in the displayed records are at or below their reorder levels.</div>';
 
     } else {
 
         lowStockList.innerHTML = lowStock.map(function (medicine) {
 
             return `
-                <div class="sm-item">
-
-                    <div class="sm-item-title">
+                <div class="wh-item">
+                    <div class="wh-item-title">
                         <strong>${escapeHTML(medicine.medicine)}</strong>
-                        <span class="sm-status sm-danger">Low Stock</span>
+                        <span class="wh-status wh-danger">Low Stock</span>
                     </div>
-
-                    <div class="sm-item-details">
+                    <div class="wh-item-details">
                         <span>Usable stock: <strong>${formatNumber(medicine.available)}</strong></span>
                         <span>Reorder level: <strong>${formatNumber(medicine.reorder)}</strong></span>
                     </div>
-
                 </div>
             `;
 
@@ -1200,8 +1278,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-
-    // 5. EXPIRY RISK MONITORING
+    // EXPIRY RISK MONITORING
 
     const expiryRisk = batches
         .filter(function (batch) {
@@ -1219,7 +1296,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (expiryRisk.length === 0) {
 
         expiryList.innerHTML =
-            '<div class="sm-empty">No expired or near-expiry batches were found in the displayed records.</div>';
+            '<div class="wh-empty">No expired or near-expiry batches were found in the displayed records.</div>';
 
     } else {
 
@@ -1228,31 +1305,27 @@ document.addEventListener("DOMContentLoaded", function () {
             const expired = batch.status === "expired";
 
             const status = expired
-                ? '<span class="sm-status sm-danger">Expired</span>'
-                : '<span class="sm-status sm-warning">Near Expiry</span>';
+                ? '<span class="wh-status wh-danger">Expired</span>'
+                : '<span class="wh-status wh-warning">Near Expiry</span>';
 
             const time = expired
-                ? Math.abs(batch.days) + " days overdue"
+                ? Math.abs(batch.days) + " days past expiry"
                 : batch.days + " days remaining";
 
             return `
-                <div class="sm-item">
-
-                    <div class="sm-item-title">
+                <div class="wh-item">
+                    <div class="wh-item-title">
                         <strong>${escapeHTML(batch.medicine)}</strong>
                         ${status}
                     </div>
-
-                    <div class="sm-item-details">
+                    <div class="wh-item-details">
                         <span>Batch: ${escapeHTML(batch.batch)}</span>
                         <span>Available: ${formatNumber(batch.available)} units</span>
                     </div>
-
-                    <div class="sm-item-details">
+                    <div class="wh-item-details">
                         <span>Expiry: ${escapeHTML(batch.expiry)}</span>
                         <strong>${time}</strong>
                     </div>
-
                 </div>
             `;
 
@@ -1260,11 +1333,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-
-    // 6. FEFO PRIORITY QUEUE
-
-    // This is a visual inventory priority list.
-    // Actual dispensing eligibility remains controlled by the backend FEFO engine.
+    // FEFO PRIORITY OVERVIEW
+    // This does not replace the backend FEFO engine.
 
     const fefoBatches = batches
         .filter(function (batch) {
@@ -1278,47 +1348,42 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
     document.getElementById("fefoCount").textContent =
-        fefoBatches.length + " eligible batches";
+        fefoBatches.length + " batches";
 
     const fefoList = document.getElementById("fefoPriorityList");
 
     if (fefoBatches.length === 0) {
 
         fefoList.innerHTML =
-            '<div class="sm-empty">No eligible unexpired batches with available quantities were found.</div>';
+            '<div class="wh-empty">No unexpired batches with available quantities were found in the displayed records.</div>';
 
     } else {
 
         fefoList.innerHTML = fefoBatches.slice(0, 15).map(function (batch, index) {
 
             const status = batch.days <= 30
-                ? '<span class="sm-status sm-warning">Near Expiry</span>'
-                : '<span class="sm-status sm-success">Eligible</span>';
+                ? '<span class="wh-status wh-warning">Near Expiry</span>'
+                : '<span class="wh-status wh-success">Unexpired</span>';
 
             return `
-                <div class="sm-fefo-item">
-
-                    <div class="sm-priority">${index + 1}</div>
-
+                <div class="wh-fefo-item">
+                    <div class="wh-priority">${index + 1}</div>
                     <div>
-                        <div class="sm-fefo-name">
+                        <div class="wh-fefo-name">
                             ${escapeHTML(batch.medicine)}
                         </div>
-
-                        <div class="sm-fefo-meta">
+                        <div class="wh-fefo-meta">
                             Batch: ${escapeHTML(batch.batch)}
                             · Expiry: ${escapeHTML(batch.expiry)}
                             · ${batch.days} days remaining
                         </div>
                     </div>
-
                     <div style="text-align:right;">
                         ${status}
-                        <div style="font-size:9px;color:#64748b;margin-top:6px;">
+                        <div style="font-size:10px;color:#526579;margin-top:6px;">
                             ${formatNumber(batch.available)} units
                         </div>
                     </div>
-
                 </div>
             `;
 
@@ -1326,39 +1391,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
+    // STOCK REGISTER SEARCH
 
-    // 7. SEARCH STOCK REGISTER
+    function updateSearch() {
 
-    if (stockSearch) {
+        const term = stockSearch.value.toLowerCase().trim();
+        let visible = 0;
 
-        stockSearch.addEventListener("input", function () {
+        rows.forEach(function (row) {
 
-            const term = this.value.toLowerCase().trim();
+            const medicine = (row.dataset.medicine || "").toLowerCase();
+            const batch = (row.dataset.batch || "").toLowerCase();
+            const location = (row.dataset.location || "").toLowerCase();
 
-            let visible = 0;
+            const matches =
+                medicine.includes(term) ||
+                batch.includes(term) ||
+                location.includes(term);
 
-            rows.forEach(function (row) {
+            row.style.display = matches ? "" : "none";
 
-                const medicine = (row.dataset.medicine || "").toLowerCase();
-                const batch = (row.dataset.batch || "").toLowerCase();
-
-                const matches =
-                    medicine.includes(term) ||
-                    batch.includes(term);
-
-                row.style.display = matches ? "" : "none";
-
-                if (matches) {
-                    visible++;
-                }
-
-            });
-
-            searchCount.textContent =
-                "Showing " + visible + " of " + rows.length + " stock records.";
+            if (matches) {
+                visible++;
+            }
 
         });
 
+        searchCount.textContent =
+            "Showing " + visible + " of " + rows.length + " stock records.";
+
+    }
+
+    if (stockSearch) {
+        stockSearch.addEventListener("input", updateSearch);
     }
 
     if (searchCount) {

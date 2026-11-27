@@ -1,0 +1,337 @@
+{% extends 'hospital_admin/hospital_admin_base.html' %}
+{% block title %}Alerts Centre | Medicine Expiry Management{% endblock %}
+{% block banner_title %}Alerts Centre{% endblock %}
+{% block banner_text %}Decisions waiting for you, expiry and stock risks, procurement delays and dispensing exceptions, all in one place.{% endblock %}
+
+{% block banner_actions %}
+<div class="sm-header-actions no-print">
+    <div class="sm-header-status">
+        <div class="sm-status-copy">
+            <strong>As at</strong>
+            <span>{{ now|date:"d M Y, H:i" }}</span>
+        </div>
+    </div>
+    <a class="ha-btn ha-btn--light" href="{% url 'alerts' %}">Refresh</a>
+    <button type="button" class="ha-btn ha-btn--light" onclick="window.print()">Print</button>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ha-sev {
+        display: inline-block;
+        padding: 4px 9px;
+        border-radius: 20px;
+        background: #edf1f5;
+        color: #526174;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .4px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .ha-sev--critical { background: #c83e3e; color: #fff; }
+    .ha-sev--high     { background: #fff6e5; color: #a66b00; }
+    .ha-sev--medium   { background: #edf3ff; color: #2f5fa8; }
+    .ha-sev--low      { background: #edf1f5; color: #526174; }
+
+    #alertTable tr[data-sev="critical"] td:first-child { box-shadow: inset 3px 0 0 #c83e3e; }
+    #alertTable tr[data-sev="high"] td:first-child     { box-shadow: inset 3px 0 0 #d99a2b; }
+
+    .ha-kind {
+        margin-right: 7px;
+        color: var(--admin-teal);
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    /* The register is the main list on this page, so keep its fixed parts slim
+       and leave as much of the 400px as possible for scrolling rows. */
+    #alertRegister .ha-card-head { padding: 11px 16px; }
+    #alertRegister .ha-tabs { padding: 7px 16px; }
+    #alertRegister .ha-card-tools { padding: 7px 16px; }
+    #alertTable td { padding-top: 9px; padding-bottom: 9px; }
+    .ha-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--admin-muted);
+        font-size: 10px;
+        font-weight: 700;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+    .ha-rule-title { color: var(--admin-ink); font-size: 11px; font-weight: 800; }
+    .ha-list-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 9px; }
+</style>
+{% endblock %}
+
+{% block page_content %}
+
+<!-- SUMMARY -->
+<section class="ha-section">
+    <div class="ha-kpis">
+        <a class="ha-kpi ha-kpi--danger" href="{% url 'alerts' %}#critical">
+            <span class="ha-kpi-icon">!</span>
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ critical_count }}</span>
+                <span class="ha-kpi-label">Critical alerts</span>
+                <span class="ha-kpi-note">Need action today</span>
+            </span>
+        </a>
+        <a class="ha-kpi ha-kpi--warn" href="{% url 'alerts' %}#decision">
+            <span class="ha-kpi-icon">◷</span>
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ decision_count }}</span>
+                <span class="ha-kpi-label">Decisions waiting</span>
+                <span class="ha-kpi-note">Purchase orders for you</span>
+            </span>
+        </a>
+        <a class="ha-kpi ha-kpi--purple" href="{% url 'alerts' %}#expiry">
+            <span class="ha-kpi-icon">▦</span>
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ expiry_count }}</span>
+                <span class="ha-kpi-label">Expiry exposure</span>
+                <span class="ha-kpi-note">Expired or within {{ expiry_watch_days }} days</span>
+            </span>
+        </a>
+        <a class="ha-kpi ha-kpi--teal" href="{% url 'alerts' %}#stock">
+            <span class="ha-kpi-icon">▤</span>
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ stock_count }}</span>
+                <span class="ha-kpi-label">Stock risks</span>
+                <span class="ha-kpi-note">Out of stock or low</span>
+            </span>
+        </a>
+        <a class="ha-kpi" href="{% url 'alerts' %}#notifications">
+            <span class="ha-kpi-icon">⚑</span>
+            <span class="ha-kpi-copy">
+                <span class="ha-kpi-value">{{ notifications_open }}</span>
+                <span class="ha-kpi-label">Your notifications</span>
+                <span class="ha-kpi-note">Not yet resolved</span>
+            </span>
+        </a>
+    </div>
+</section>
+
+<!-- ALERT REGISTER -->
+<section class="ha-section">
+    <div class="ha-card" id="alertRegister">
+        <div class="ha-card-head">
+            <div>
+                <h4>Alert Register</h4>
+                <p>Most serious first, then longest waiting.{% if override_total > override_listed %} FEFO overrides: latest {{ override_listed }} of {{ override_total }} shown.{% endif %}</p>
+            </div>
+            <span class="ha-count" id="alertShown">{{ alert_total }} of {{ alert_total }}</span>
+        </div>
+
+        <div class="ha-tabs" role="group" aria-label="Alert type">
+            <button type="button" class="ha-tab" data-cat-chip="all" aria-selected="true">All <small>{{ alert_total }}</small></button>
+            {% for c in categories %}
+            <button type="button" class="ha-tab" data-cat-chip="{{ c.key }}" aria-selected="false">{{ c.label }} <small>{{ c.count }}</small></button>
+            {% endfor %}
+        </div>
+
+        <div class="ha-card-tools">
+            <input type="text" id="alertSearch" class="ha-input ha-search"
+                   placeholder="Search medicine, batch or order...">
+            <select id="alertSeverity" class="ha-select" aria-label="Severity">
+                <option value="">All severities</option>
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+            <label class="ha-check"><input type="checkbox" id="alertHideAck"> Hide acknowledged</label>
+        </div>
+
+        <div class="ha-card-body">
+            <table class="ha-table" id="alertTable">
+                <thead>
+                    <tr>
+                        <th>Severity</th>
+                        <th>Alert</th>
+                        <th>Medicine</th>
+                        <th>When</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in alerts %}
+                    <tr data-row data-cat="{{ a.category }}" data-sev="{{ a.severity|lower }}" data-status="{{ a.status|lower }}">
+                        <td><span class="ha-sev ha-sev--{{ a.severity|lower }}">{{ a.severity }}</span></td>
+                        <td class="ha-wrap">
+                            <span class="ha-kind">{{ a.category_label }}</span><strong>{{ a.title }}</strong>
+                            <span class="ha-sub">{{ a.detail }}</span>
+                        </td>
+                        <td>
+                            {% if a.medicine %}<strong>{{ a.medicine }}</strong>{% else %}—{% endif %}
+                            {% if a.batch %}<span class="ha-sub">Batch {{ a.batch }}</span>{% endif %}
+                        </td>
+                        <td class="ha-nowrap">
+                            {{ a.when }}
+                            {% if a.when_date %}<span class="ha-sub">{{ a.when_date|date:"d M Y" }}</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if a.status == "Acknowledged" %}
+                                <span class="ha-pill ha-pill--info">Acknowledged</span>
+                            {% else %}
+                                <span class="ha-pill">Open</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if a.action_url %}<a class="ha-btn ha-btn--sm" href="{{ a.action_url }}">{{ a.action_label }}</a>{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="ha-empty"><strong>All clear.</strong> Nothing needs your attention right now.</td></tr>
+                    {% endfor %}
+                    <tr id="alertNoMatch" hidden><td colspan="6" class="ha-empty">No alerts match these filters.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</section>
+
+<!-- NOTIFICATIONS AND RULES -->
+<section class="ha-section">
+    <div class="ha-grid ha-grid-2">
+
+        <div class="ha-card" id="notifications">
+            <div class="ha-card-head">
+                <div>
+                    <h4>Notifications for You</h4>
+                    <p>Messages sent to your account. Acknowledge them or mark them resolved.</p>
+                </div>
+                <span class="ha-count">{{ notifications_open }} open</span>
+            </div>
+            <div class="ha-card-body">
+                <ul class="ha-list">
+                    {% for n in notifications %}
+                    <li class="ha-list-item">
+                        <div class="ha-list-top">
+                            <span class="ha-list-title">{{ n.title }}</span>
+                            <span class="ha-sev ha-sev--{{ n.severity|lower }}">{{ n.severity }}</span>
+                        </div>
+                        {% if n.message %}<p class="ha-list-text">{{ n.message }}</p>{% endif %}
+                        <div class="ha-list-meta">{{ n.created_at|date:"d M Y, H:i" }} · {{ n.status }}</div>
+                        {% if n.action_url or n.can_acknowledge or n.can_resolve %}
+                        <div class="ha-list-actions">
+                            {% if n.action_url %}<a class="ha-btn ha-btn--sm" href="{{ n.action_url }}">Open</a>{% endif %}
+                            {% if n.can_acknowledge %}
+                            <form method="post" action="{% url 'acknowledge_user_alert' n.id %}" class="ha-inline-form">
+                                {% csrf_token %}
+                                <button type="submit" class="ha-btn ha-btn--sm">Acknowledge</button>
+                            </form>
+                            {% endif %}
+                            {% if n.can_resolve %}
+                            <form method="post" action="{% url 'resolve_user_alert' n.id %}" class="ha-inline-form">
+                                {% csrf_token %}
+                                <button type="submit" class="ha-btn ha-btn--sm ha-btn--primary">Mark resolved</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </li>
+                    {% empty %}
+                    <li class="ha-list-item"><p class="ha-list-text">No notifications for you.</p></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="ha-card">
+            <div class="ha-card-head">
+                <div>
+                    <h4>How Alerts Are Raised</h4>
+                    <p>The rules behind the register above.</p>
+                </div>
+            </div>
+            <div class="ha-card-body">
+                <ul class="ha-list">
+                    {% for rule in rules %}
+                    <li class="ha-list-item">
+                        <div class="ha-list-top"><span class="ha-rule-title">{{ rule.title }}</span></div>
+                        <p class="ha-list-text">{{ rule.text }}</p>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<div class="ha-note">
+    <strong>Live view:</strong>
+    Alerts are worked out from batches, stock, purchase orders and dispensing records each time this page opens.
+    Nothing here changes stock; use the action button on a row to go to the page where it is handled.
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var rows = Array.prototype.slice.call(document.querySelectorAll("#alertTable tbody tr[data-row]"));
+    var chips = Array.prototype.slice.call(document.querySelectorAll("[data-cat-chip]"));
+    var sev = document.getElementById("alertSeverity");
+    var search = document.getElementById("alertSearch");
+    var hideAck = document.getElementById("alertHideAck");
+    var shown = document.getElementById("alertShown");
+    var none = document.getElementById("alertNoMatch");
+    var register = document.getElementById("alertRegister");
+    var cat = "all";
+
+    function apply() {
+        var term = search.value.trim().toLowerCase();
+        var count = 0;
+        rows.forEach(function (row) {
+            var ok = (cat === "all" || row.dataset.cat === cat)
+                && (!sev.value || row.dataset.sev === sev.value)
+                && (!hideAck.checked || row.dataset.status !== "acknowledged")
+                && (!term || row.innerText.toLowerCase().indexOf(term) !== -1);
+            row.style.display = ok ? "" : "none";
+            if (ok) count++;
+        });
+        shown.textContent = count + " of " + rows.length;
+        none.hidden = !(rows.length && count === 0);
+    }
+
+    function setCategory(name) {
+        cat = name;
+        chips.forEach(function (chip) {
+            chip.setAttribute("aria-selected", chip.dataset.catChip === name ? "true" : "false");
+        });
+        apply();
+    }
+
+    chips.forEach(function (chip) {
+        chip.addEventListener("click", function () {
+            setCategory(chip.dataset.catChip);
+            history.replaceState(null, "", chip.dataset.catChip === "all"
+                ? location.pathname + location.search : "#" + chip.dataset.catChip);
+        });
+    });
+    search.addEventListener("input", apply);
+    sev.addEventListener("change", apply);
+    hideAck.addEventListener("change", apply);
+
+    /* Deep links: #decision, #expiry, #stock, #procurement, #oversight, #critical */
+    function fromHash() {
+        var wanted = location.hash.replace("#", "");
+        var isType = chips.some(function (chip) { return chip.dataset.catChip === wanted; });
+        if (isType) { sev.value = ""; setCategory(wanted); }
+        else if (wanted === "critical") { sev.value = "critical"; setCategory("all"); }
+        else { return; }
+        register.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    window.addEventListener("hashchange", fromHash);
+    fromHash();
+    apply();
+})();
+</script>
+{% endblock %}

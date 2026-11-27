@@ -1,49 +1,780 @@
-{% extends 'base.html' %}
-{% block content %}
-<div style="max-width:1200px;margin:32px auto;padding:0 20px;color:#1e293b">
-  <p><a href="{% url 'goods_receipts' %}">← Goods Receipts</a></p>
-  <h1>Goods Receipt GR-{{ receipt.pk }}</h1>
-  <p><b>Purchase Order:</b> PO-{{ receipt.purchase_order_id }} | <b>Medicine:</b> {{ receipt.purchase_order.medicine.medicine_name }} | <b>Supplier:</b> {{ receipt.purchase_order.supplier.supplier_name }}</p>
-  <p>
-  <b>Delivery date:</b> {{ receipt.delivery_date }}
-  | <b>Reference:</b> {{ receipt.delivery_reference|default:'Not supplied' }}
-  | <b>Received by:</b> {{ receipt.received_by.username|default:'—' }}
-</p>
-  {% if messages %}{% for message in messages %}<p>{{ message }}</p>{% endfor %}{% endif %}
-  {% if can_manage %}
-    <a href="{% url 'goods_receipt_inspect' receipt.id %}" style="
-            display:inline-block;
-            padding:11px 17px;
-            background:#087e8b;
-            color:white;
-            text-decoration:none;
-            border-radius:7px;
-            font-weight:700;
-            font-size:13px;">Inspect Delivered Batches →</a>
-  <section style="padding:20px;border:1px solid #ddd;border-radius:10px;margin:20px 0">
-    <h2>Add Delivered Batch</h2>
-    <form method="post" action="{% url 'goods_receipt_add_item' receipt.pk %}">{% csrf_token %}
-      <label>Batch number</label><br><input name="batch_number" maxlength="100" required><br>
-      <label>Quantity received</label><br><input type="number" name="quantity_received" min="1" required><br>
-      <label>Expiry date</label><br><input type="date" name="expiry_date" min="{{ today|date:'Y-m-d' }}" required><br>
-      <label>Storage location</label><br><input name="storage_location" maxlength="100"><br><br>
-      <button type="submit">Add item for inspection</button>
-    </form>
-  </section>
-  {% endif %}
-  <h2>Receipt items and inspection</h2>
-  <table style="width:100%;border-collapse:collapse">
-    <thead><tr><th>Batch</th><th>Qty</th><th>Expiry</th><th>Location</th><th>Inspection</th><th>Inspector</th><th>Decision</th></tr></thead>
-    <tbody>{% for item in items %}<tr>
-      <td>{{ item.batch_number }}</td><td>{{ item.quantity_received }}</td><td>{{ item.expiry_date }}</td><td>{{ item.storage_location|default:'—' }}</td><td>{{ item.get_inspection_status_display }}</td><td>{{ item.inspected_by|default:'—' }}</td>
-      <td>{% if can_manage and item.inspection_status == 'Pending' %}
-        <form method="post" action="{% url 'goods_receipt_inspect_item' item.pk %}">{% csrf_token %}
-          <select name="decision" required><option value="">Choose</option><option value="Accepted">Accept</option><option value="Rejected">Reject</option><option value="Quarantined">Quarantine</option></select>
-          <input name="inspection_notes" placeholder="Inspection notes" maxlength="1000">
-          <button type="submit" onclick="return confirm('Confirm this inspection decision?');">Save decision</button>
-        </form>
-      {% elif item.medicine_batch_id %}Added to inventory as batch {{ item.medicine_batch.batch_number }}{% else %}No usable stock created{% endif %}</td>
-    </tr>{% empty %}<tr><td colspan="7">No batch items recorded yet.</td></tr>{% endfor %}</tbody>
-  </table>
+
+{% extends 'store_manager/store_manager_base.html' %}
+
+{% block store_manager_title %}Goods Receipt Details | Store Manager{% endblock %}
+
+{% block store_manager_heading %}Goods Receipt Details{% endblock %}
+
+{% block store_manager_description %}
+Review supplier deliveries, register delivered medicine batches and record inspection decisions.
+{% endblock %}
+
+{% block store_manager_content %}
+
+<div class="receipt-page">
+
+    <!-- PAGE ACTIONS -->
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">STORE MANAGER / GOODS RECEIVING</span>
+            <h2>Goods Receipt GR-{{ receipt.pk }}</h2>
+            <p>Review delivery information and manage batch inspection.</p>
+        </div>
+
+        <a href="{% url 'goods_receipts' %}" class="back-button">
+            ← Goods Receipts
+        </a>
+    </div>
+
+    <!-- MESSAGES -->
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- RECEIPT INFORMATION -->
+    <section class="receipt-panel">
+        <div class="section-heading">
+            <div>
+                <h3>Delivery Information</h3>
+                <p>Purchase order and supplier delivery details.</p>
+            </div>
+
+            <span class="receipt-reference">
+                GRN #{{ receipt.pk }}
+            </span>
+        </div>
+
+        <div class="receipt-information">
+            <div class="info-item">
+                <span>Purchase Order</span>
+                <strong>PO-{{ receipt.purchase_order_id }}</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Medicine</span>
+                <strong>{{ receipt.purchase_order.medicine.medicine_name }}</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Supplier</span>
+                <strong>{{ receipt.purchase_order.supplier.supplier_name }}</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Delivery Date</span>
+                <strong>{{ receipt.delivery_date|date:"d M Y" }}</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Delivery Reference</span>
+                <strong>{{ receipt.delivery_reference|default:"Not supplied" }}</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Received By</span>
+                <strong>{{ receipt.received_by.username|default:"—" }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- QUICK NAVIGATION -->
+    <div class="quick-links">
+        <a href="{% url 'receiving_dashboard' %}">Receiving Dashboard</a>
+        <a href="{% url 'goods_receipts' %}">All Goods Receipts</a>
+        <a href="{% url 'inventory' %}">Inventory</a>
+        <a href="{% url 'inventory_recommendations' %}">Procurement Recommendations</a>
+        <a href="{% url 'inventory_reports' %}">Inventory Reports</a>
+        <a href="{% url 'inventory_alerts' %}">Alerts Centre</a>
+    </div>
+
+    {% if can_manage %}
+
+        <!-- ADD DELIVERED BATCH -->
+        <section class="receipt-panel">
+            <div class="section-heading">
+                <div>
+                    <h3>Register Delivered Batch</h3>
+                    <p>
+                        Record the physical batch details before inspection.
+                        Newly registered batches must be inspected before admission into inventory.
+                    </p>
+                </div>
+
+                <span class="section-icon">+</span>
+            </div>
+
+            <form method="post"
+                  action="{% url 'goods_receipt_add_item' receipt.pk %}"
+                  class="batch-form">
+
+                {% csrf_token %}
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="batch_number">Batch Number</label>
+                        <input
+                            type="text"
+                            id="batch_number"
+                            name="batch_number"
+                            maxlength="100"
+                            placeholder="Enter physical batch number"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quantity_received">Quantity Received</label>
+                        <input
+                            type="number"
+                            id="quantity_received"
+                            name="quantity_received"
+                            min="1"
+                            placeholder="Enter delivered quantity"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expiry_date">Expiry Date</label>
+                        <input
+                            type="date"
+                            id="expiry_date"
+                            name="expiry_date"
+                            min="{{ today|date:'Y-m-d' }}"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="storage_location">Storage Location</label>
+                        <input
+                            type="text"
+                            id="storage_location"
+                            name="storage_location"
+                            maxlength="100"
+                            placeholder="e.g. Pharmacy Store A">
+                    </div>
+
+                </div>
+
+                <div class="form-notice">
+                    <strong>Important:</strong>
+                    Adding a delivered batch does not automatically make it available
+                    for dispensing. The batch must first pass inspection.
+                </div>
+
+                <button type="submit" class="primary-button">
+                    + Add Batch for Inspection
+                </button>
+
+            </form>
+        </section>
+
+    {% endif %}
+
+    <!-- RECEIPT ITEMS -->
+    <section class="receipt-panel">
+
+        <div class="section-heading">
+            <div>
+                <h3>Receipt Items and Inspection</h3>
+                <p>Review the inspection status and record decisions for pending batches.</p>
+            </div>
+
+            <span class="item-count">
+                {{ items|length }} recorded batch{{ items|length|pluralize }}
+            </span>
+        </div>
+
+        <div class="table-container">
+            <table class="receipt-table">
+                <thead>
+                    <tr>
+                        <th>Batch</th>
+                        <th>Quantity</th>
+                        <th>Expiry</th>
+                        <th>Location</th>
+                        <th>Inspection</th>
+                        <th>Inspector</th>
+                        <th>Decision / Inventory</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for item in items %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.batch_number }}</strong>
+                            </td>
+
+                            <td>{{ item.quantity_received }}</td>
+
+                            <td>{{ item.expiry_date|date:"d M Y" }}</td>
+
+                            <td>
+                                {{ item.storage_location|default:"—" }}
+                            </td>
+
+                            <td>
+                                {% if item.inspection_status == "Pending" %}
+                                    <span class="status pending">Pending</span>
+                                {% elif item.inspection_status == "Accepted" %}
+                                    <span class="status accepted">Accepted</span>
+                                {% elif item.inspection_status == "Rejected" %}
+                                    <span class="status rejected">Rejected</span>
+                                {% elif item.inspection_status == "Quarantined" %}
+                                    <span class="status quarantined">Quarantined</span>
+                                {% else %}
+                                    <span class="status">
+                                        {{ item.get_inspection_status_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {{ item.inspected_by|default:"—" }}
+                            </td>
+
+                            <td class="decision-cell">
+
+                                {% if can_manage and item.inspection_status == 'Pending' %}
+
+                                    <form method="post"
+                                          action="{% url 'goods_receipt_inspect_item' item.pk %}"
+                                          class="decision-form">
+
+                                        {% csrf_token %}
+
+                                        <select name="decision" required>
+                                            <option value="">Choose decision</option>
+                                            <option value="Accepted">Accept</option>
+                                            <option value="Rejected">Reject</option>
+                                            <option value="Quarantined">Quarantine</option>
+                                        </select>
+
+                                        <input
+                                            type="text"
+                                            name="inspection_notes"
+                                            placeholder="Inspection notes"
+                                            maxlength="1000">
+
+                                        <button type="submit"
+                                                class="decision-button"
+                                                onclick="return confirm('Confirm this inspection decision? This action may not be reversible.');">
+                                            Save Decision
+                                        </button>
+
+                                    </form>
+
+                                {% elif item.medicine_batch_id %}
+
+                                    <div class="inventory-result">
+                                        <strong>Added to Inventory</strong>
+                                        <span>
+                                            Batch {{ item.medicine_batch.batch_number }}
+                                        </span>
+                                    </div>
+
+                                {% elif item.inspection_status == "Rejected" %}
+
+                                    <span class="rejected-result">
+                                        Rejected — no usable stock created
+                                    </span>
+
+                                {% elif item.inspection_status == "Quarantined" %}
+
+                                    <span class="quarantined-result">
+                                        Quarantined — not available for dispensing
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="pending-result">
+                                        No usable stock created
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <strong>No Batch Items Recorded</strong>
+                                <p>
+                                    No medicine batches have been registered against this receipt.
+                                    Use the registration form above to record the delivery.
+                                </p>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <!-- FOOTER NAVIGATION -->
+    <div class="page-footer">
+        <a href="{% url 'goods_receipts' %}" class="back-button">
+            ← Return to Goods Receipts
+        </a>
+
+        <a href="{% url 'receiving_dashboard' %}" class="primary-link">
+            Goods Receiving Dashboard →
+        </a>
+    </div>
 </div>
+<style>
+.receipt-page {
+    width: 100%;
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 8px 0 35px;
+    color: #1e293b;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+
+.page-header h2 {
+    color: #123b66;
+    font-size: 22px;
+    margin: 7px 0;
+}
+
+.page-header p {
+    color: #64748b;
+    font-size: 13px;
+    margin: 0;
+}
+
+.eyebrow {
+    color: #087e8b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+.receipt-panel {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 23px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 12px rgba(15,23,42,.04);
+    min-width: 0;
+}
+
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.section-heading h3 {
+    color: #123b66;
+    font-size: 16px;
+    margin: 0 0 6px;
+}
+
+.section-heading p {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.receipt-reference {
+    background: #e0f2fe;
+    color: #075985;
+    border-radius: 7px;
+    padding: 9px 13px;
+    font-weight: 800;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.receipt-information {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.info-item span {
+    display: block;
+    color: #64748b;
+    font-size: 11px;
+    margin-bottom: 7px;
+}
+
+.info-item strong {
+    display: block;
+    font-size: 13px;
+    color: #1e293b;
+    overflow-wrap: anywhere;
+}
+
+.quick-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin: 0 0 20px;
+}
+
+.quick-links a {
+    text-decoration: none;
+    background: #eff6ff;
+    color: #123b66;
+    border: 1px solid #dbeafe;
+    border-radius: 7px;
+    padding: 9px 12px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.quick-links a:hover {
+    background: #dbeafe;
+}
+
+.section-icon {
+    background: #e0f2fe;
+    color: #087e8b;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.batch-form {
+    width: 100%;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 17px;
+}
+
+.form-group label {
+    display: block;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 800;
+    margin-bottom: 7px;
+}
+
+.form-group input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    font-size: 13px;
+    background: #fff;
+}
+
+.form-group input:focus,
+.decision-form input:focus,
+.decision-form select:focus {
+    outline: none;
+    border-color: #087e8b;
+    box-shadow: 0 0 0 2px rgba(8,126,139,.1);
+}
+
+.form-notice {
+    background: #eff6ff;
+    border-left: 4px solid #2563eb;
+    padding: 13px;
+    border-radius: 7px;
+    margin: 18px 0;
+    color: #334155;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.primary-button,
+.primary-link {
+    display: inline-block;
+    background: #087e8b;
+    color: #fff;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.primary-button:hover,
+.primary-link:hover {
+    background: #06636d;
+}
+
+.item-count {
+    color: #475569;
+    background: #f1f5f9;
+    border-radius: 7px;
+    padding: 8px 11px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.receipt-table {
+    width: 100%;
+    min-width: 950px;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.receipt-table th {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 13px 11px;
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    white-space: nowrap;
+}
+
+.receipt-table td {
+    padding: 13px 11px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+}
+
+.receipt-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.receipt-table td strong {
+    color: #123b66;
+}
+
+.status {
+    display: inline-block;
+    padding: 6px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.status.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status.accepted {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status.quarantined {
+    background: #ede9fe;
+    color: #5b21b6;
+}
+
+.decision-cell {
+    min-width: 190px;
+}
+
+.decision-form {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 175px;
+}
+
+.decision-form select,
+.decision-form input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: white;
+    font-size: 11px;
+}
+
+.decision-button {
+    padding: 9px 12px;
+    border: none;
+    border-radius: 6px;
+    background: #087e8b;
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.decision-button:hover {
+    background: #06636d;
+}
+
+.inventory-result {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #166534;
+    font-size: 11px;
+}
+
+.inventory-result strong {
+    color: #166534 !important;
+}
+
+.rejected-result {
+    color: #991b1b;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.quarantined-result {
+    color: #5b21b6;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.pending-result {
+    color: #92400e;
+    font-size: 11px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 35px !important;
+    color: #64748b;
+}
+
+.empty-state strong {
+    color: #123b66;
+}
+
+.empty-state p {
+    margin-bottom: 0;
+}
+
+.messages-container {
+    margin-bottom: 18px;
+}
+
+.message {
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 7px;
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: 12px;
+}
+
+.message.success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.message.error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.message.warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.page-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+}
+
+.back-button {
+    display: inline-block;
+    padding: 11px 16px;
+    border-radius: 7px;
+    background: #f1f5f9;
+    color: #123b66;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.back-button:hover {
+    background: #e2e8f0;
+}
+
+@media(max-width: 850px) {
+    .receipt-information {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media(max-width: 600px) {
+    .receipt-panel {
+        padding: 16px;
+    }
+
+    .receipt-information,
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-header {
+        align-items: flex-start;
+    }
+
+    .page-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .page-footer a {
+        text-align: center;
+    }
+
+    .section-heading {
+        align-items: flex-start;
+    }
+}
+</style>
 {% endblock %}

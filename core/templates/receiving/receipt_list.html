@@ -1,33 +1,25 @@
 
-{% extends 'base.html' %}
-{% block content %}
+{% extends 'store_manager/store_manager_base.html' %}
+
+{% block store_manager_title %}Goods Receipts | Store Manager{% endblock %}
+
+{% block store_manager_heading %}Goods Receipts{% endblock %}
+
+{% block store_manager_description %}
+Record supplier deliveries, manage receipt documentation and inspect delivered medicine batches before they enter FEFO inventory.
+{% endblock %}
+
+{% block store_manager_content %}
 
 <style>
     .gr-page {
+        width: 100%;
         max-width: 1400px;
-        margin: 32px auto;
-        padding: 0 20px;
+        margin: 0 auto;
+        padding: 8px 0 35px;
         color: #1e293b;
         font-family: Arial, sans-serif;
-    }
-
-    .gr-header {
-        background: linear-gradient(120deg, #134e4a, #0f766e);
-        color: white;
-        padding: 27px;
-        border-radius: 14px;
-        margin-bottom: 22px;
-    }
-
-    .gr-header h1 {
-        margin: 8px 0;
-        font-size: 27px;
-    }
-
-    .gr-header p {
-        margin: 0;
-        font-size: 13px;
-        opacity: .9;
+        box-sizing: border-box;
     }
 
     .gr-overview {
@@ -38,12 +30,14 @@
     }
 
     .gr-stat,
-    .gr-card {
+    .gr-card,
+    .gr-history-card {
         background: white;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
         padding: 22px;
         box-shadow: 0 3px 12px rgba(15, 23, 42, .05);
+        min-width: 0;
     }
 
     .gr-stat-label {
@@ -66,21 +60,78 @@
         margin-top: 5px;
     }
 
-    .gr-card {
-        margin-bottom: 22px;
-    }
-
-    .gr-card h2 {
-        font-size: 18px;
+    .gr-card h2,
+    .gr-history-card h2 {
+        font-size: 17px;
         color: #123b66;
         margin: 0 0 7px;
     }
 
     .gr-subtitle {
         color: #64748b;
-        font-size: 13px;
+        font-size: 12px;
         line-height: 1.6;
         margin: 0 0 20px;
+    }
+
+    .gr-receiving-workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 20px;
+        align-items: stretch;
+        margin-bottom: 22px;
+    }
+
+    .gr-workspace-card {
+        height: 520px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .gr-incoming-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding-right: 7px;
+    }
+
+    .gr-incoming-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 9px;
+        padding: 14px;
+        margin-bottom: 11px;
+        background: #f8fafc;
+    }
+
+    .gr-incoming-item:hover {
+        border-color: #0f766e;
+        background: #f0fdfa;
+    }
+
+    .gr-select-order {
+        border: 0;
+        border-radius: 7px;
+        padding: 9px 13px;
+        background: #087e8b;
+        color: white;
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .gr-select-order:hover {
+        background: #06636d;
+    }
+
+    .gr-incoming-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .gr-incoming-list::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
     }
 
     .gr-form-grid {
@@ -149,11 +200,7 @@
     }
 
     .gr-history-card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 22px;
-        box-shadow: 0 3px 12px rgba(15, 23, 42, .05);
+        margin-bottom: 20px;
     }
 
     .gr-history-toolbar {
@@ -241,6 +288,52 @@
         border-radius: 10px;
     }
 
+    .gr-message {
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        background: #f0fdf4;
+        color: #166534;
+        font-size: 13px;
+    }
+
+    .gr-message.error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .gr-message.warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .gr-message.info {
+        background: #eff6ff;
+        color: #1e40af;
+    }
+
+    .gr-empty {
+        text-align: center;
+        padding: 35px 15px;
+        color: #64748b;
+        background: #f8fafc;
+        border-radius: 9px;
+    }
+
+    .gr-empty strong {
+        color: #123b66;
+    }
+
+    @media(max-width: 900px) {
+        .gr-receiving-workspace {
+            grid-template-columns: 1fr;
+        }
+
+        .gr-workspace-card {
+            height: 520px;
+        }
+    }
+
     @media(max-width: 750px) {
         .gr-overview,
         .gr-form-grid {
@@ -251,103 +344,42 @@
             grid-column: auto;
         }
 
-        .gr-page {
-            padding: 0 12px;
-        }
-
         .gr-stat,
         .gr-card,
         .gr-history-card {
             padding: 16px;
         }
     }
-.gr-receiving-workspace {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 20px;
-    align-items: stretch;
-}
 
-.gr-workspace-card {
-    height: 520px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
+    @media(max-width: 500px) {
+        .gr-filter {
+            flex-direction: column;
+        }
 
-.gr-incoming-list {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding-right: 7px;
-}
+        .gr-filter input {
+            max-width: 100%;
+        }
 
-.gr-incoming-item {
-    border: 1px solid #e2e8f0;
-    border-radius: 9px;
-    padding: 14px;
-    margin-bottom: 11px;
-    background: #f8fafc;
-}
-
-.gr-incoming-item:hover {
-    border-color: #0f766e;
-    background: #f0fdfa;
-}
-
-.gr-select-order {
-    border: 0;
-    border-radius: 7px;
-    padding: 9px 13px;
-    background: #087e8b;
-    color: white;
-    font-size: 11px;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.gr-select-order:hover {
-    background: #06636d;
-}
-
-.gr-incoming-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.gr-incoming-list::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
-}
-
-@media(max-width: 900px) {
-    .gr-receiving-workspace {
-        grid-template-columns: 1fr;
+        .gr-history-toolbar .gr-button {
+            width: 100%;
+        }
     }
-
-    .gr-workspace-card {
-        height: 520px;
-    }
-}
 </style>
 
 <div class="gr-page">
-    <!-- PAGE HEADER -->
-    <div class="gr-header">
-        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.85;">
-            Store Management Workspace
-        </div>
-        <h1>Goods Receipts</h1>
-        <p>Record supplier deliveries, manage receipt documentation and inspect delivered medicine batches.</p>
-    </div>
-
     <!-- DJANGO MESSAGES -->
     {% if messages %}
-        {% for message in messages %}
-            <div style="padding:12px 15px;margin-bottom:10px;border-radius:8px;background:#f0fdf4;color:#166534;font-size:13px;">
-                {{ message }}
-            </div>
-        {% endfor %}
+        <div class="gr-messages">
+            {% for message in messages %}
+                <div class="gr-message
+                    {% if message.tags == 'error' %}error
+                    {% elif message.tags == 'warning' %}warning
+                    {% elif message.tags == 'info' %}info
+                    {% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
 
     <!-- OVERVIEW CARDS -->
@@ -379,151 +411,159 @@
 
     <!-- RECORD SUPPLIER DELIVERY -->
     {% if user.role.name == 'Store Manager' %}
-    <div class="gr-receiving-workspace">
+        <div class="gr-receiving-workspace">
 
-     <!-- LEFT: INCOMING DELIVERIES -->
-     <section class="gr-card gr-workspace-card">
-        <h2>Incoming Deliveries</h2>
+            <!-- LEFT: INCOMING DELIVERIES -->
+            <section class="gr-card gr-workspace-card">
+                <h2>Incoming Deliveries</h2>
 
-        <p class="gr-subtitle">
-            Purchase orders placed with suppliers and awaiting goods receipt.
-            Select an order when its delivery arrives.
-        </p>
+                <p class="gr-subtitle">
+                    Purchase orders placed with suppliers and awaiting goods receipt.
+                    Select an order when its delivery arrives.
+                </p>
 
-         <div class="gr-incoming-list">
-            {% for po in placed_orders %}
-            <div class="gr-incoming-item">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-                    <strong style="color:#123b66;font-size:14px;">
-                        PO-{{ po.pk }}
-                    </strong>
+                <div class="gr-incoming-list">
+                    {% for po in placed_orders %}
+                        <div class="gr-incoming-item">
+                            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                                <strong style="color:#123b66;font-size:14px;">
+                                    PO-{{ po.pk }}
+                                </strong>
 
-                    <span style="background:#dbeafe;color:#1e40af;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:800;">
-                        AWAITING DELIVERY
-                    </span>
+                                <span style="background:#dbeafe;color:#1e40af;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:800;">
+                                    AWAITING DELIVERY
+                                </span>
+                            </div>
+
+                            <div style="margin-top:12px;font-size:13px;line-height:1.9;color:#475569;">
+                                <div>
+                                    <strong>Medicine:</strong>
+                                    {{ po.medicine.medicine_name }}
+                                </div>
+
+                                <div>
+                                    <strong>Supplier:</strong>
+                                    {{ po.supplier.supplier_name }}
+                                </div>
+
+                                <div>
+                                    <strong>Ordered quantity:</strong>
+                                    {{ po.quantity_ordered }} units
+                                </div>
+
+                            </div>
+
+                            <button
+                                type="button"
+                                class="gr-select-order"
+                                data-po-id="{{ po.pk }}"
+                                style="margin-top:12px;width:100%;"
+                            >
+                                Select for Goods Receipt →
+                            </button>
+                        </div>
+                    {% empty %}
+
+                        <div class="gr-empty">
+                            <div style="font-size:25px;margin-bottom:10px;">📦</div>
+                            <strong>No Incoming Deliveries</strong>
+                            <p style="font-size:12px;">
+                                There are currently no placed purchase orders awaiting receipt.
+                            </p>
+                        </div>
+                    {% endfor %}
                 </div>
+            </section>
 
-                <div style="margin-top:12px;font-size:13px;line-height:1.9;color:#475569;">
-                    <div>
-                        <strong>Medicine:</strong>
-                        {{ po.medicine.medicine_name }}
-                    </div>
+            <!-- RIGHT: RECORD GOODS RECEIPT -->
+            <section class="gr-card gr-workspace-card">
+                <h2>Record Supplier Delivery</h2>
+                <p class="gr-subtitle">
+                    Select an incoming purchase order and record the physical
+                    delivery received from the supplier.
+                </p>
 
-                    <div>
-                        <strong>Supplier:</strong>
-                        {{ po.supplier.supplier_name }}
-                    </div>
-
-                    <div>
-                        <strong>Ordered quantity:</strong>
-                        {{ po.quantity_ordered }} units
-                    </div>
-                </div>
-
-                <button
-                    type="button"
-                    class="gr-select-order"
-                    data-po-id="{{ po.pk }}"
-                    style="margin-top:12px;width:100%;"
+                <form
+                    method="post"
+                    action="{% url 'goods_receipt_create' %}"
+                    style="display:flex;flex-direction:column;flex:1;min-height:0;"
                 >
-                    Select for Goods Receipt →
-                </button>
-            </div>
-            {% empty %}
 
-            <div style="text-align:center;padding:35px 15px;color:#64748b;background:#f8fafc;border-radius:9px;">
-                <div style="font-size:25px;margin-bottom:10px;">📦</div>
-                <strong>No Incoming Deliveries</strong>
-                <p style="font-size:12px;">There are currently no placed purchase orders awaiting receipt.</p>
-            </div>
-            {% endfor %}
+                    {% csrf_token %}
+                    <div style="flex:1;overflow-y:auto;padding-right:7px;">
+                        <div class="gr-field">
+                            <label for="purchase_order_id">
+                                Placed Purchase Order
+                            </label>
+
+                            <select
+                                name="purchase_order_id"
+                                id="purchase_order_id"
+                                class="gr-input"
+                                required
+                            >
+                                <option value="">Select purchase order</option>
+                                {% for po in placed_orders %}
+                                    <option value="{{ po.pk }}">
+                                        PO-{{ po.pk }} —
+                                        {{ po.medicine.medicine_name }} —
+                                        {{ po.supplier.supplier_name }} —
+                                        Ordered {{ po.quantity_ordered }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="gr-field">
+                            <label for="delivery_date">Delivery Date</label>
+                            <input
+                                type="date"
+                                name="delivery_date"
+                                id="delivery_date"
+                                class="gr-input"
+                                required
+                            >
+                        </div>
+
+                        <div class="gr-field">
+                            <label for="delivery_reference">
+                                Delivery Reference
+                            </label>
+
+                            <input
+                                type="text"
+                                name="delivery_reference"
+                                id="delivery_reference"
+                                maxlength="100"
+                                class="gr-input"
+                                placeholder="Supplier delivery note number"
+                            >
+                        </div>
+
+                        <div class="gr-field">
+                            <label for="notes">Delivery Notes</label>
+                            <textarea
+                                name="notes"
+                                id="notes"
+                                rows="4"
+                                class="gr-input"
+                                placeholder="Enter relevant delivery information..."
+                            ></textarea>
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="gr-button"
+                        style="margin-top:12px;"
+                    >
+                        Create Goods Receipt →
+                    </button>
+                </form>
+            </section>
         </div>
-    </section>
-
-    <!-- RIGHT: RECORD GOODS RECEIPT -->
-    <section class="gr-card gr-workspace-card">
-        <h2>Record Supplier Delivery</h2>
-        <p class="gr-subtitle">
-            Select an incoming purchase order and record the physical
-            delivery received from the supplier.
-        </p>
-
-        <form
-            method="post"
-            action="{% url 'goods_receipt_create' %}"
-            style="display:flex;flex-direction:column;flex:1;min-height:0;"
-        >
-
-            {% csrf_token %}
-            <div style="flex:1;overflow-y:auto;padding-right:7px;">
-                <div class="gr-field">
-                    <label for="purchase_order_id">Placed Purchase Order</label>
-
-                    <select
-                        name="purchase_order_id"
-                        id="purchase_order_id"
-                        class="gr-input"
-                        required
-                    >
-                        <option value="">Select purchase order</option>
-                        {% for po in placed_orders %}
-                        <option value="{{ po.pk }}">
-                            PO-{{ po.pk }} —
-                            {{ po.medicine.medicine_name }} —
-                            {{ po.supplier.supplier_name }} —
-                            Ordered {{ po.quantity_ordered }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="gr-field">
-                    <label for="delivery_date">Delivery Date</label>
-                    <input
-                        type="date"
-                        name="delivery_date"
-                        id="delivery_date"
-                        class="gr-input"
-                        required
-                    >
-                </div>
-
-                <div class="gr-field">
-                    <label for="delivery_reference">Delivery Reference</label>
-
-                    <input
-                        type="text"
-                        name="delivery_reference"
-                        id="delivery_reference"
-                        maxlength="100"
-                        class="gr-input"
-                        placeholder="Supplier delivery note number"
-                    >
-                </div>
-
-                <div class="gr-field">
-                    <label for="notes">Delivery Notes</label>
-                    <textarea
-                        name="notes"
-                        id="notes"
-                        rows="4"
-                        class="gr-input"
-                        placeholder="Enter relevant delivery information..."
-                    ></textarea>
-                </div>
-            </div>
-
-            <button
-                type="submit"
-                class="gr-button"
-                style="margin-top:12px;"
-            >
-                Create Goods Receipt →
-            </button>
-         </form>
-         </section>
-        </div>
-        {% endif %}
+    {% endif %}
 
     <!-- RECORDED DELIVERIES -->
     <section class="gr-history-card">
@@ -588,50 +628,50 @@
 
                 <tbody>
                     {% for receipt in receipts %}
-                    <tr
-                        class="gr-receipt-row"
-                        data-search="GR-{{ receipt.pk }} PO-{{ receipt.purchase_order_id }} {{ receipt.purchase_order.supplier.supplier_name }} {{ receipt.purchase_order.medicine.medicine_name }} {{ receipt.received_by.username|default:'—' }}"
-                        data-date="{{ receipt.delivery_date|date:'Y-m-d' }}"
-                    >
+                        <tr
+                            class="gr-receipt-row"
+                            data-search="GR-{{ receipt.pk }} PO-{{ receipt.purchase_order_id }} {{ receipt.purchase_order.supplier.supplier_name }} {{ receipt.purchase_order.medicine.medicine_name }} {{ receipt.received_by.username|default:'—' }}"
+                            data-date="{{ receipt.delivery_date|date:'Y-m-d' }}"
+                        >
 
-                        <td>GR-{{ receipt.pk }}</td>
-                        <td>PO-{{ receipt.purchase_order_id }}</td>
-                        <td>
-                            {{ receipt.purchase_order.supplier.supplier_name }}
-                        </td>
+                            <td>GR-{{ receipt.pk }}</td>
 
-                        <td>
-                            {{ receipt.purchase_order.medicine.medicine_name }}
-                        </td>
+                            <td>PO-{{ receipt.purchase_order_id }}</td>
 
-                        <td>
-                            {{ receipt.delivery_date|date:"d M Y" }}
-                        </td>
+                            <td>
+                                {{ receipt.purchase_order.supplier.supplier_name }}
+                            </td>
 
-                        <td>
-                            {{ receipt.received_by.username|default:'—' }}
-                        </td>
+                            <td>
+                                {{ receipt.purchase_order.medicine.medicine_name }}
+                            </td>
 
-                        <td>{{ receipt.items.count }}</td>
+                            <td>
+                                {{ receipt.delivery_date|date:"d M Y" }}
+                            </td>
 
-                        <td>
-                            <a
-                                href="{% url 'goods_receipt_detail' receipt.pk %}"
-                                class="gr-inspect-link"
-                            >
-                                View / Inspect →
-                            </a>
-                        </td>
-                    </tr>
+                            <td>
+                                {{ receipt.received_by.username|default:'—' }}
+                            </td>
+
+                            <td>{{ receipt.items.count }}</td>
+
+                            <td>
+                                <a
+                                    href="{% url 'goods_receipt_detail' receipt.pk %}"
+                                    class="gr-inspect-link"
+                                >
+                                    View / Inspect →
+                                </a>
+                            </td>
+                        </tr>
 
                     {% empty %}
-
-                    <tr>
-                        <td colspan="8" style="text-align:center;padding:30px;color:#64748b;">
-                            No goods receipts recorded yet.
-                        </td>
-                    </tr>
-
+                        <tr id="gr-empty-row">
+                            <td colspan="8" style="text-align:center;padding:30px;color:#64748b;">
+                                No goods receipts recorded yet.
+                            </td>
+                        </tr>
                     {% endfor %}
 
                     <tr id="gr-no-results" hidden>
@@ -647,12 +687,33 @@
             Scroll within the delivery history to view additional records.
         </p>
     </section>
-</div>
 
-<!-- CLIENT-SIDE HISTORY FILTERING -->
+    <!-- OTHER STORE MANAGER PAGES -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+        <a href="{% url 'receiving_dashboard' %}" class="gr-inspect-link">
+            Goods Receiving Dashboard →
+        </a>
+
+        <a href="{% url 'inventory' %}" class="gr-inspect-link">
+            Inventory →
+        </a>
+
+        <a href="{% url 'inventory_recommendations' %}" class="gr-inspect-link">
+            Procurement Recommendations →
+        </a>
+
+        <a href="{% url 'inventory_reports' %}" class="gr-inspect-link">
+            Inventory Reports →
+        </a>
+
+        <a href="{% url 'inventory_alerts' %}" class="gr-inspect-link">
+            Alerts Centre →
+        </a>
+    </div>
+</div>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-
+    // SELECT INCOMING PURCHASE ORDER
     const orderSelect = document.getElementById("purchase_order_id");
     const selectButtons = document.querySelectorAll(".gr-select-order");
 
@@ -682,11 +743,87 @@ document.addEventListener("DOMContentLoaded", function () {
 
             this.textContent = "Selected ✓";
             this.style.background = "#15803d";
+        });
+    });
+
+    // GOODS RECEIPT HISTORY SEARCH AND FILTER
+    const searchInput = document.getElementById("gr-search");
+    const dateFilter = document.getElementById("gr-date-filter");
+    const clearButton = document.getElementById("gr-clear-filters");
+    const visibleCount = document.getElementById("gr-visible-count");
+    const noResults = document.getElementById("gr-no-results");
+
+    const receiptRows = Array.from(
+        document.querySelectorAll(".gr-receipt-row")
+    );
+
+    function filterReceipts() {
+
+        const searchTerm = searchInput
+            ? searchInput.value.trim().toLowerCase()
+            : "";
+
+        const selectedDate = dateFilter
+            ? dateFilter.value
+            : "";
+
+        let visibleRows = 0;
+
+        receiptRows.forEach(function (row) {
+
+            const searchableText = (
+                row.dataset.search || row.textContent
+            ).toLowerCase();
+
+            const receiptDate = row.dataset.date || "";
+
+            const matchesSearch =
+                searchableText.includes(searchTerm);
+
+            const matchesDate =
+                !selectedDate || receiptDate === selectedDate;
+
+            const isVisible = matchesSearch && matchesDate;
+
+            row.hidden = !isVisible;
+
+            if (isVisible) {
+                visibleRows++;
+            }
 
         });
 
-    });
+        if (noResults) {
+            noResults.hidden = visibleRows !== 0;
+        }
 
+        if (visibleCount) {
+            visibleCount.textContent =
+                visibleRows + (visibleRows === 1 ? " receipt" : " receipts");
+        }
+
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", filterReceipts);
+    }
+
+    if (dateFilter) {
+        dateFilter.addEventListener("change", filterReceipts);
+    }
+
+    if (clearButton) {
+
+        clearButton.addEventListener("click", function () {
+
+            if (searchInput) searchInput.value = "";
+            if (dateFilter) dateFilter.value = "";
+
+            filterReceipts();
+
+        });
+    }
+    filterReceipts();
 });
 </script>
 {% endblock %}

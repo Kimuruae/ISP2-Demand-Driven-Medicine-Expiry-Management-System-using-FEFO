@@ -1,722 +1,906 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="sm-page">
-    <!-- PAGE HEADER -->
-    <header class="sm-header">
-        <div class="sm-header-label">STORE MANAGER WORKSPACE</div>
-        <h1>Inventory Overview</h1>
-        <p>Monitor stock availability, medicine expiry and inventory activity.</p>
-    </header>
-
-    <style>
-        .sm-page {
-            max-width: 1450px;
-            margin: 30px auto;
-            padding: 0 20px 35px;
-            font-family: Arial, sans-serif;
-            color: #1e293b;
-        }
-
-        .sm-header {
-            background: linear-gradient(120deg,#123b66,#087e8b);
-            color: white;
-            padding: 28px;
-            border-radius: 14px;
-            margin-bottom: 24px;
-        }
-
-        .sm-header-label {
-            font-size: 11px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            opacity: .85;
-        }
-
-        .sm-header h1 {
-            font-size: 28px;
-            margin: 9px 0;
-            font-weight: 800;
-        }
-
-        .sm-header p {
-            margin: 0;
-            font-size: 13px;
-            opacity: .9;
-        }
-
-        .sm-layout {
-            display: grid;
-            grid-template-columns: 230px minmax(0,1fr);
-            gap: 20px;
-            align-items: start;
-        }
-
-        .sm-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 21px;
-            box-shadow: 0 3px 12px rgba(15,23,42,.05);
-            min-width: 0;
-        }
-
-        .sm-sidebar {
-            position: sticky;
-            top: 20px;
-        }
-
-        .sm-sidebar h3 {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: #64748b;
-            margin: 0 0 17px;
-            letter-spacing: .5px;
-        }
-
-        .sm-link {
-            display: block;
-            padding: 13px 14px;
-            border-radius: 8px;
-            text-decoration: none;
-            color: #334155;
-            font-size: 12px;
-            font-weight: 700;
-            background: #f1f5f9;
-            margin-bottom: 9px;
-            transition: .2s;
-        }
-
-        .sm-link:hover,
-        .sm-link.active {
-            background: #123b66;
-            color: white;
-        }
-
-        .sm-main {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            min-width: 0;
-        }
-
-        /* SUMMARY CARDS */
-
-        .sm-stat-grid {
-            display: grid;
-            grid-template-columns: repeat(4,minmax(0,1fr));
-            gap: 13px;
-        }
-
-        .sm-stat {
-            padding: 18px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            box-shadow: 0 3px 12px rgba(15,23,42,.04);
-        }
-
-        .sm-stat-label {
-            font-size: 10px;
-            color: #64748b;
-            text-transform: uppercase;
-            font-weight: 800;
-            letter-spacing: .4px;
-        }
-
-        .sm-stat-value {
-            font-size: 25px;
-            font-weight: 800;
-            margin-top: 10px;
-            color: #123b66;
-        }
-
-        .sm-stat-note {
-            font-size: 10px;
-            color: #94a3b8;
-            margin-top: 5px;
-        }
-
-        /* SECTION HEADINGS */
-
-        .sm-section-title {
-            font-size: 16px;
-            font-weight: 800;
-            color: #123b66;
-            margin: 0 0 6px;
-        }
-
-        .sm-section-description {
-            font-size: 12px;
-            color: #64748b;
-            margin: 0 0 17px;
-            line-height: 1.6;
-        }
-
-        /* MONITORING PANELS */
-
-        .sm-monitor-grid {
-            display: grid;
-            grid-template-columns: repeat(2,minmax(0,1fr));
-            gap: 18px;
-            align-items: stretch;
-        }
-
-        .sm-monitor-card {
-            height: 390px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .sm-panel-heading {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
-        }
-
-        .sm-panel-count {
-            background: #f1f5f9;
-            color: #334155;
-            border-radius: 20px;
-            padding: 5px 10px;
-            font-size: 10px;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        .sm-monitor-list {
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-            padding-right: 7px;
-            margin-top: 5px;
-        }
-
-        .sm-monitor-item {
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
-            border-radius: 9px;
-            padding: 12px;
-            margin-bottom: 10px;
-        }
-
-        .sm-monitor-item strong {
-            font-size: 12px;
-            color: #1e293b;
-        }
-
-        .sm-monitor-details {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-            flex-wrap: wrap;
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 8px;
-        }
-
-        .sm-status {
-            display: inline-block;
-            padding: 5px 8px;
-            border-radius: 20px;
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-
-        .sm-status-danger {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
-        .sm-status-warning {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .sm-status-success {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .sm-empty {
-            padding: 30px 12px;
-            text-align: center;
-            color: #94a3b8;
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        .sm-monitor-list::-webkit-scrollbar,
-        .sm-history-scroll::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        .sm-monitor-list::-webkit-scrollbar-thumb,
-        .sm-history-scroll::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-
-        /* QUICK ACTIONS */
-
-        .sm-action-grid {
-            display: grid;
-            grid-template-columns: repeat(4,minmax(0,1fr));
-            gap: 12px;
-        }
-
-        .sm-action {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 105px;
-            padding: 15px;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            text-decoration: none;
-            background: #f8fafc;
-            transition: .2s;
-        }
-
-        .sm-action:hover {
-            border-color: #087e8b;
-            background: #f0fdfa;
-            transform: translateY(-2px);
-        }
-
-        .sm-action-title {
-            color: #123b66;
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .sm-action-description {
-            color: #64748b;
-            font-size: 10px;
-            line-height: 1.5;
-            margin-top: 7px;
-        }
-
-        .sm-action-arrow {
-            color: #087e8b;
-            font-size: 17px;
-            font-weight: 800;
-            align-self: flex-end;
-        }
-
-        /* HISTORICAL REGISTER */
-
-        .sm-history-card {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        .sm-filter-bar {
-            display: grid;
-            grid-template-columns: minmax(180px,2fr) repeat(2,minmax(130px,1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .sm-filter {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 10px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 7px;
-            background: white;
-            color: #334155;
-            font-size: 11px;
-            outline: none;
-        }
-
-        .sm-filter:focus {
-            border-color: #087e8b;
-        }
-
-        .sm-history-scroll {
-            max-height: 390px;
-            overflow: auto;
-            border: 1px solid #e2e8f0;
-            border-radius: 9px;
-        }
-
-        .sm-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-            min-width: 850px;
-        }
-
-        .sm-table th {
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            background: #123b66;
-            color: white;
-            text-align: left;
-            padding: 13px;
-            white-space: nowrap;
-        }
-
-        .sm-table td {
-            padding: 12px 13px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .sm-table tbody tr:nth-child(even) {
-            background: #f8fafc;
-        }
-
-        .sm-table tbody tr:hover {
-            background: #f0fdfa;
-        }
-
-        .sm-table-empty {
-            text-align: center;
-            padding: 30px !important;
-            color: #64748b;
-        }
-
-        .sm-results-count {
-            color: #64748b;
-            font-size: 11px;
-            margin-top: 12px;
-        }
-
-        @media(max-width:1100px) {
-            .sm-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .sm-sidebar {
-                position: static;
-            }
-
-            .sm-sidebar nav {
-                display: grid;
-                grid-template-columns: repeat(2,minmax(0,1fr));
-                gap: 8px;
-            }
-
-            .sm-link {
-                margin: 0;
-            }
-
-            .sm-action-grid {
-                grid-template-columns: repeat(2,minmax(0,1fr));
-            }
-        }
-
-        @media(max-width:750px) {
-            .sm-stat-grid {
-                grid-template-columns: repeat(2,minmax(0,1fr));
-            }
-
-            .sm-monitor-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .sm-monitor-card {
-                height: 350px;
-            }
-
-            .sm-filter-bar {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media(max-width:450px) {
-            .sm-page {
-                padding: 0 12px 25px;
-            }
-
-            .sm-header {
-                padding: 21px;
-            }
-
-            .sm-header h1 {
-                font-size: 23px;
-            }
-
-            .sm-stat-grid,
-            .sm-action-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            .sm-card {
-                padding: 15px;
-            }
-        }
-    </style>
-
-    <div class="sm-layout">
-        <!-- SIDEBAR -->
-        <aside class="sm-card sm-sidebar">
-            <h3>Navigation</h3>
-
-            <nav>
-                <a href="{% url 'inventory' %}" class="sm-link">
-                    Stock Intake
-                </a>
-
-                <a href="{% url 'inventory_reports' %}" class="sm-link active">
-                    Stock Reports
-                </a>
-
-                <a href="{% url 'inventory_alerts' %}" class="sm-link">
-                    Inventory Alerts
-                </a>
-
-                <a href="{% url 'inventory_recommendations' %}" class="sm-link">
-                    Procurement Recommendations
-                </a>
-            </nav>
-        </aside>
-        <!-- MAIN CONTENT -->
-        <main class="sm-main">
-            <!-- SUMMARY STATISTICS -->
-            <section class="sm-stat-grid">
-                <div class="sm-stat">
-                    <div class="sm-stat-label">Total Batches</div>
-                    <div class="sm-stat-value">{{ total_batches }}</div>
-                    <div class="sm-stat-note">Recorded batch entries</div>
-                </div>
-
-                <div class="sm-stat">
-                    <div class="sm-stat-label">Total Units</div>
-                    <div class="sm-stat-value">{{ total_units }}</div>
-                    <div class="sm-stat-note">Recorded available stock</div>
-                </div>
-
-                <div class="sm-stat">
-                    <div class="sm-stat-label">Expired Batches</div>
-                    <div class="sm-stat-value" style="color:#dc2626;">
-                        {{ expired_batches }}
-                    </div>
-                    <div class="sm-stat-note">Batches past expiry date</div>
-                </div>
-
-                <div class="sm-stat">
-                    <div class="sm-stat-label">Expiring Soon</div>
-                    <div class="sm-stat-value" style="color:#d97706;">
-                        {{ expiring_soon }}
-                    </div>
-                    <div class="sm-stat-note">Expiry monitoring summary</div>
-                </div>
-            </section>
-
-            <!-- STOCK AND EXPIRY MONITORING -->
-            <section class="sm-monitor-grid">
-                <!-- STOCK MONITORING -->
-                <div class="sm-card sm-monitor-card">
-                    <div class="sm-panel-heading">
-                        <h2 class="sm-section-title">Stock Monitoring</h2>
-                        <span class="sm-panel-count" id="lowStockCount">0 medicines</span>
-                    </div>
-
-                    <p class="sm-section-description">
-                        Medicines whose available stock has reached or fallen below their reorder level.
-                    </p>
-
-                    <div class="sm-monitor-list" id="stockMonitoringList">
-                        <div class="sm-empty">Preparing stock monitoring...</div>
-                    </div>
-                </div>
-
-                <!-- EXPIRY MONITORING -->
-                <div class="sm-card sm-monitor-card">
-
-                    <div class="sm-panel-heading">
-                        <h2 class="sm-section-title">Expiry Monitoring</h2>
-                        <span class="sm-panel-count" id="expiryCount">0 batches</span>
-                    </div>
-
-                    <p class="sm-section-description">
-                        Expired batches and batches approaching expiry within 30 days.
-                    </p>
-
-                    <div class="sm-monitor-list" id="expiryMonitoringList">
-                        <div class="sm-empty">Preparing expiry monitoring...</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- HISTORICAL STOCK REGISTER -->
-            <section class="sm-card sm-history-card">
-                <h2 class="sm-section-title">Historical Stock Register</h2>
-
-                <p class="sm-section-description">
-                    Review medicine batches received by the facility, including quantities,
-                    receipt dates, expiry dates and storage locations.
-                </p>
-
-                <!-- SEARCH AND FILTERS -->
-                <div class="sm-filter-bar">
-                    <input
-                        type="search"
-                        id="batchSearch"
-                        class="sm-filter"
-                        placeholder="Search medicine or batch number..."
-                    >
-
-                    <select id="expiryFilter" class="sm-filter">
-                        <option value="all">All expiry statuses</option>
-                        <option value="expired">Expired</option>
-                        <option value="soon">Expiring within 30 days</option>
-                        <option value="valid">Valid batches</option>
-                    </select>
-
-                    <select id="sortFilter" class="sm-filter">
-                        <option value="expiry-asc">Expiry: Earliest first</option>
-                        <option value="expiry-desc">Expiry: Latest first</option>
-                        <option value="received-desc">Recently received</option>
-                        <option value="received-asc">Oldest received</option>
-                    </select>
-                </div>
-
-                <!-- STOCK TABLE -->
-                <div class="sm-history-scroll">
-
-                    <table class="sm-table" id="stockRegisterTable">
-
-                        <thead>
-                            <tr>
-                                <th>Medicine</th>
-                                <th>Batch Number</th>
-                                <th>Quantity Received</th>
-                                <th>Available Units</th>
-                                <th>Date Received</th>
-                                <th>Expiry Date</th>
-                                <th>Storage Location</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="stockRegisterBody">
-                            {% for batch in all_batches %}
-
-                            <tr
-                                class="stock-register-row"
-                                data-medicine="{{ batch.medicine.medicine_name|escape }}"
-                                data-batch="{{ batch.batch_number|escape }}"
-                                data-received="{{ batch.received_date|date:'Y-m-d' }}"
-                                data-expiry="{{ batch.expiry_date|date:'Y-m-d' }}"
-                                data-available="{{ batch.quantity_available }}"
-                                data-reorder="{{ batch.medicine.reorder_level|default:30 }}"
-                                data-quantity="{{ batch.quantity_received }}"
-                                data-location="{{ batch.storage_location|default:'Not specified'|escape }}"
-                            >
-
-                                <td><strong>{{ batch.medicine.medicine_name }}</strong></td>
-                                <td>{{ batch.batch_number }}</td>
-                                <td>{{ batch.quantity_received }}</td>
-                                <td>{{ batch.quantity_available }}</td>
-                                <td>{{ batch.received_date|date:"Y-m-d" }}</td>
-                                <td>{{ batch.expiry_date|date:"Y-m-d" }}</td>
-                                <td>{{ batch.storage_location|default:"Not specified" }}</td>
-                                <td class="batch-status-cell">—</td>
-                            </tr>
-                            {% empty %}
-
-                            <tr>
-                                <td colspan="8" class="sm-table-empty">
-                                    No stock records are available.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="sm-results-count" id="registerResultsCount">
-                    Showing stock records.
-                </div>
-            </section>
-        </main>
-    </div>
+
+{% extends 'store_manager/store_manager_base.html' %}
+
+{% block store_manager_title %}Inventory Reports | Store Manager{% endblock %}
+{% block store_manager_heading %}Inventory Reports & Analytics{% endblock %}
+{% block store_manager_description %}
+Analyse stock availability, expiry exposure, reorder requirements and medicine batch records.
+{% endblock %}
+
+{% block store_manager_content %}
+
+<div class="report-page">
+
+<style>
+.report-page,
+.report-page * {
+    box-sizing: border-box;
+}
+
+.report-page {
+    --navy: #102b46;
+    --blue: #174f80;
+    --teal: #087e8b;
+    --text: #172b40;
+    --muted: #43566b;
+    --border: #aebdce;
+
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    font-family: Arial, sans-serif;
+}
+
+.report-main {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 0;
+}
+
+.report-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.report-btn {
+    border: 1px solid transparent;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.report-btn:hover {
+    transform: translateY(-2px);
+}
+
+.report-btn-light {
+    background: #fff;
+    color: var(--navy);
+    border-color: var(--border);
+}
+
+.report-btn-primary {
+    background: var(--navy);
+    color: #fff;
+}
+
+.report-card {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--blue);
+    border-radius: 9px;
+    padding: 16px;
+    min-width: 0;
+    box-shadow: 0 3px 10px rgba(15,23,42,.06);
+    transition: .2s ease;
+}
+
+.report-card:hover,
+.report-stat:hover,
+.report-insight:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 17px rgba(15,43,70,.13);
+}
+
+.report-section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 13px;
+}
+
+.report-section-heading h2 {
+    color: var(--navy);
+    font-size: 14px;
+    font-weight: 800;
+    margin: 0 0 5px;
+}
+
+.report-section-heading p {
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.report-muted {
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 700;
+}
+
+/* KPI CARDS */
+
+.report-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0,1fr));
+    gap: 10px;
+}
+
+.report-stat {
+    padding: 13px;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--blue);
+    border-radius: 8px;
+    background: #fff;
+    min-width: 0;
+    transition: .2s ease;
+}
+
+.report-stat-label {
+    color: #344b62;
+    font-size: 9px;
+    text-transform: uppercase;
+    font-weight: 800;
+    line-height: 1.5;
+}
+
+.report-stat-value {
+    color: var(--navy);
+    font-size: 23px;
+    font-weight: 800;
+    margin-top: 8px;
+    overflow-wrap: anywhere;
+}
+
+.report-stat-note {
+    color: var(--muted);
+    font-size: 9px;
+    margin-top: 5px;
+}
+
+.report-stat.danger {
+    border-top-color: #dc2626;
+}
+
+.report-stat.danger .report-stat-value {
+    color: #b42318;
+}
+
+.report-stat.warning {
+    border-top-color: #c2760b;
+}
+
+.report-stat.warning .report-stat-value {
+    color: #965000;
+}
+
+.report-stat.teal {
+    border-top-color: var(--teal);
+}
+
+.report-stat.teal .report-stat-value {
+    color: #075d68;
+}
+
+/* ANALYSIS */
+
+.report-analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 14px;
+}
+
+.report-analysis-card {
+    min-width: 0;
+}
+
+.report-analysis-card h3 {
+    font-size: 12px;
+    color: var(--navy);
+    margin: 0 0 5px;
+}
+
+.report-analysis-card > p {
+    font-size: 10px;
+    color: var(--muted);
+    margin: 0 0 15px;
+    line-height: 1.5;
+}
+
+.report-bar-row {
+    display: grid;
+    grid-template-columns: 100px minmax(0,1fr) 35px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 13px;
+}
+
+.report-bar-label {
+    font-size: 9px;
+    color: #344b62;
+    font-weight: 800;
+}
+
+.report-bar-track {
+    height: 10px;
+    background: #dce5ef;
+    border: 1px solid #c2cfdb;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.report-bar-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 20px;
+    transition: width .5s ease;
+}
+
+.bar-danger { background: #dc2626; }
+.bar-warning { background: #d97706; }
+.bar-teal { background: #087e8b; }
+.bar-blue { background: #2563eb; }
+.bar-green { background: #15803d; }
+
+.report-bar-value {
+    text-align: right;
+    font-size: 9px;
+    color: var(--navy);
+    font-weight: 800;
+}
+
+.report-analysis-total {
+    border-top: 1px solid #bfcbd8;
+    margin-top: 15px;
+    padding-top: 11px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--muted);
+}
+
+.report-analysis-total strong {
+    color: var(--navy);
+}
+
+/* INSIGHTS */
+
+.report-insight-grid {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 12px;
+}
+
+.report-insight {
+    padding: 14px;
+    border-radius: 7px;
+    border: 1px solid #b9c8d7;
+    border-left: 3px solid var(--teal);
+    background: #eaf0f6;
+    transition: .2s ease;
+}
+
+.report-insight h3 {
+    color: var(--navy);
+    font-size: 11px;
+    margin: 0 0 7px;
+}
+
+.report-insight p {
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* TABLES */
+
+.report-table-wrap {
+    width: 100%;
+    overflow: auto;
+    max-height: 350px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    scrollbar-width: thin;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+    font-size: 10px;
+}
+
+.report-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--navy);
+    color: #fff;
+    padding: 11px;
+    text-align: left;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.report-table td {
+    padding: 10px 11px;
+    border-bottom: 1px solid #d0dbe5;
+    color: #344b62;
+    background: #fff;
+    vertical-align: middle;
+}
+
+.report-table td strong {
+    color: var(--navy);
+}
+
+.report-table tbody tr:nth-child(even) td {
+    background: #eaf0f6;
+}
+
+.report-table tbody tr:hover td {
+    background: #d5e7ed;
+}
+
+.report-table-empty {
+    text-align: center;
+    padding: 22px !important;
+    color: var(--muted) !important;
+}
+
+.report-status {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 5px;
+    font-size: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.status-danger {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+.status-warning {
+    background: #fef3c7;
+    color: #854d0e;
+    border: 1px solid #f5d47b;
+}
+
+.status-success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.status-neutral {
+    background: #e2e8f0;
+    color: #334155;
+    border: 1px solid #c0ccd8;
+}
+
+/* FILTERS */
+
+.report-filter-grid {
+    display: grid;
+    grid-template-columns: minmax(180px,2fr) repeat(2,minmax(140px,1fr));
+    gap: 9px;
+    margin-bottom: 13px;
+}
+
+.report-filter {
+    width: 100%;
+    padding: 10px 11px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    color: #263e55;
+    font-size: 10px;
+    outline: none;
+}
+
+.report-filter:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(8,126,139,.14);
+}
+
+.report-filter-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 11px;
+}
+
+.report-clear {
+    background: #e3ebf3;
+    color: var(--navy);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.report-clear:hover {
+    background: var(--navy);
+    color: #fff;
+}
+
+.report-results,
+.report-footer-note {
+    color: var(--muted);
+    font-size: 9px;
+    line-height: 1.6;
+}
+
+.report-results {
+    font-size: 10px;
+    font-weight: 700;
+}
+
+@media(max-width: 1100px) {
+    .report-stat-grid {
+        grid-template-columns: repeat(3,minmax(0,1fr));
+    }
+}
+
+@media(max-width: 750px) {
+    .report-analysis-grid,
+    .report-insight-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width: 500px) {
+    .report-stat-grid {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+        gap: 8px;
+    }
+
+    .report-stat {
+        padding: 10px;
+    }
+
+    .report-stat-value {
+        font-size: 20px;
+    }
+
+    .report-card {
+        padding: 12px;
+    }
+
+    .report-bar-row {
+        grid-template-columns: 82px minmax(0,1fr) 30px;
+        gap: 6px;
+    }
+
+    .report-toolbar {
+        justify-content: stretch;
+    }
+
+    .report-toolbar .report-btn {
+        flex: 1;
+    }
+}
+
+@media print {
+    .report-toolbar,
+    .report-filter-grid,
+    .report-filter-actions {
+        display: none !important;
+    }
+
+    .report-table-wrap {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .report-table th {
+        position: static;
+    }
+
+    .report-card,
+    .report-stat,
+    .report-insight {
+        box-shadow: none;
+        break-inside: avoid;
+    }
+
+    .stock-report-row[hidden] {
+        display: table-row !important;
+    }
+}
+</style>
+
+<div class="report-toolbar">
+    <button type="button" class="report-btn report-btn-light"
+            onclick="window.print()">Print Report</button>
+    <button type="button" class="report-btn report-btn-primary"
+            id="exportReport">Export CSV</button>
 </div>
-<!-- FRONTEND-ONLY INVENTORY MONITORING -->
+
+<main class="report-main">
+    <!-- SUMMARY -->
+    <section class="report-stat-grid">
+        <div class="report-stat">
+            <div class="report-stat-label">Total Batches</div>
+            <div class="report-stat-value" id="totalBatchValue">{{ total_batches|default:0 }}</div>
+            <div class="report-stat-note">Recorded batch entries</div>
+        </div>
+
+        <div class="report-stat teal">
+            <div class="report-stat-label">Available Units</div>
+            <div class="report-stat-value" id="totalUnitValue">{{ total_units|default:0 }}</div>
+            <div class="report-stat-note">Recorded available quantities</div>
+        </div>
+
+        <div class="report-stat">
+            <div class="report-stat-label">Low-Stock Medicines</div>
+            <div class="report-stat-value" id="lowStockValue">0</div>
+            <div class="report-stat-note">At or below reorder level</div>
+        </div>
+
+        <div class="report-stat danger">
+            <div class="report-stat-label">Expired Batches</div>
+            <div class="report-stat-value" id="expiredValue">{{ expired_batches|default:0 }}</div>
+            <div class="report-stat-note">Past their expiry date</div>
+        </div>
+
+        <div class="report-stat warning">
+            <div class="report-stat-label">Expiring Within 30 Days</div>
+            <div class="report-stat-value" id="expiringValue">{{ expiring_soon|default:0 }}</div>
+            <div class="report-stat-note">Requires expiry monitoring</div>
+        </div>
+    </section>
+
+    <!-- ANALYSIS -->
+    <section class="report-analysis-grid">
+        <div class="report-card report-analysis-card">
+            <div class="report-section-heading">
+                <div>
+                    <h2>Expiry Exposure Analysis</h2>
+                    <p>Distribution of batches according to expiry dates.</p>
+                </div>
+            </div>
+
+            <div class="report-bar-row">
+                <span class="report-bar-label">Expired</span>
+                <div class="report-bar-track"><div class="report-bar-fill bar-danger" id="barExpired"></div></div>
+                <span class="report-bar-value" id="countExpired">0</span>
+            </div>
+            <div class="report-bar-row">
+                <span class="report-bar-label">0–30 Days</span>
+                <div class="report-bar-track"><div class="report-bar-fill bar-warning" id="bar30"></div></div>
+                <span class="report-bar-value" id="count30">0</span>
+            </div>
+            <div class="report-bar-row">
+                <span class="report-bar-label">31–60 Days</span>
+                <div class="report-bar-track"><div class="report-bar-fill bar-blue" id="bar60"></div></div>
+                <span class="report-bar-value" id="count60">0</span>
+            </div>
+            <div class="report-bar-row">
+                <span class="report-bar-label">61–90 Days</span>
+                <div class="report-bar-track"><div class="report-bar-fill bar-teal" id="bar90"></div></div>
+                <span class="report-bar-value" id="count90">0</span>
+            </div>
+            <div class="report-bar-row">
+                <span class="report-bar-label">Over 90 Days</span>
+                <div class="report-bar-track"><div class="report-bar-fill bar-green" id="barOver90"></div></div>
+                <span class="report-bar-value" id="countOver90">0</span>
+            </div>
+
+            <div class="report-analysis-total">
+                <span>Total batches analysed</span>
+                <strong id="expiryAnalysisTotal">0</strong>
+            </div>
+        </div>
+
+        <div class="report-card report-analysis-card">
+            <div class="report-section-heading">
+                <div>
+                    <h2>Stock Availability Analysis</h2>
+                    <p>Medicine-level stock compared with reorder levels.</p>
+                </div>
+            </div>
+
+            <div class="report-bar-row">
+                <span class="report-bar-label">Low Stock</span>
+                <div class="report-bar-track"><div class="report-bar-fill bar-danger" id="barLowStock"></div></div>
+                <span class="report-bar-value" id="countLowStock">0</span>
+            </div>
+            <div class="report-bar-row">
+                <span class="report-bar-label">Adequate Stock</span>
+                <div class="report-bar-track"><div class="report-bar-fill bar-green" id="barAdequate"></div></div>
+                <span class="report-bar-value" id="countAdequate">0</span>
+            </div>
+            <div class="report-bar-row">
+                <span class="report-bar-label">Zero Usable Stock</span>
+                <div class="report-bar-track"><div class="report-bar-fill bar-warning" id="barZero"></div></div>
+                <span class="report-bar-value" id="countZero">0</span>
+            </div>
+
+            <div class="report-analysis-total">
+                <span>Unique medicines analysed</span>
+                <strong id="medicineAnalysisTotal">0</strong>
+            </div>
+
+            <p class="report-footer-note">
+                Usable stock excludes expired and unknown-expiry batches.
+            </p>
+        </div>
+    </section>
+
+    <!-- MANAGEMENT INSIGHTS -->
+    <section class="report-card">
+        <div class="report-section-heading">
+            <div>
+                <h2>Inventory Management Insights</h2>
+                <p>Observations generated from the displayed batch records.</p>
+            </div>
+        </div>
+
+        <div class="report-insight-grid">
+            <div class="report-insight">
+                <h3>Stock Replenishment</h3>
+                <p id="lowStockInsight">Analysing medicine stock levels...</p>
+            </div>
+            <div class="report-insight">
+                <h3>Expiry Management</h3>
+                <p id="expiryInsight">Analysing batch expiry dates...</p>
+            </div>
+            <div class="report-insight">
+                <h3>Inventory Availability</h3>
+                <p id="availabilityInsight">Calculating available inventory...</p>
+            </div>
+            <div class="report-insight">
+                <h3>Data Coverage</h3>
+                <p id="coverageInsight">Checking batch records...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- MEDICINE STOCK -->
+    <section class="report-card">
+        <div class="report-section-heading">
+            <div>
+                <h2>Medicine-Level Stock Position</h2>
+                <p>Consolidated quantities across medicine batches.</p>
+            </div>
+        </div>
+
+        <div class="report-table-wrap">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Total Batches</th>
+                        <th>Usable Units</th>
+                        <th>Reorder Level</th>
+                        <th>Stock Position</th>
+                        <th>Expiry-Risk Batches</th>
+                    </tr>
+                </thead>
+                <tbody id="medicineStockBody">
+                    <tr><td colspan="6" class="report-table-empty">Calculating stock position...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- EXPIRY RISK -->
+    <section class="report-card">
+        <div class="report-section-heading">
+            <div>
+                <h2>Expiry Risk Register</h2>
+                <p>Expired batches and batches approaching expiry within 90 days.</p>
+            </div>
+            <span class="report-muted" id="riskRegisterCount">0 records</span>
+        </div>
+
+        <div class="report-table-wrap">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Batch Number</th>
+                        <th>Available Units</th>
+                        <th>Expiry Date</th>
+                        <th>Time to Expiry</th>
+                        <th>Risk Classification</th>
+                    </tr>
+                </thead>
+                <tbody id="expiryRiskBody">
+                    <tr><td colspan="6" class="report-table-empty">Analysing expiry exposure...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- DETAILED STOCK REGISTER -->
+    <section class="report-card">
+        <div class="report-section-heading">
+            <div>
+                <h2>Detailed Stock Register</h2>
+                <p>Search, filter and inspect individual medicine batch records.</p>
+            </div>
+        </div>
+
+        <div class="report-filter-grid">
+            <input type="search" id="reportSearch" class="report-filter"
+                   placeholder="Search medicine, batch or storage location...">
+
+            <select id="reportExpiryFilter" class="report-filter">
+                <option value="all">All expiry categories</option>
+                <option value="expired">Expired</option>
+                <option value="0-30">Expiring within 30 days</option>
+                <option value="31-60">Expiring in 31–60 days</option>
+                <option value="61-90">Expiring in 61–90 days</option>
+                <option value="over90">More than 90 days</option>
+                <option value="unknown">Unknown expiry</option>
+            </select>
+
+            <select id="reportSortFilter" class="report-filter">
+                <option value="expiry-asc">Expiry: Earliest first</option>
+                <option value="expiry-desc">Expiry: Latest first</option>
+                <option value="received-desc">Recently received</option>
+                <option value="received-asc">Oldest received</option>
+                <option value="quantity-desc">Highest available quantity</option>
+                <option value="quantity-asc">Lowest available quantity</option>
+            </select>
+        </div>
+
+        <div class="report-filter-actions">
+            <span class="report-results" id="registerResults">Preparing stock register...</span>
+            <button type="button" class="report-clear" id="clearReportFilters">Clear Filters</button>
+        </div>
+
+        <div class="report-table-wrap">
+            <table class="report-table" id="detailedStockTable">
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Batch Number</th>
+                        <th>Quantity Received</th>
+                        <th>Available Units</th>
+                        <th>Date Received</th>
+                        <th>Expiry Date</th>
+                        <th>Storage Location</th>
+                        <th>Expiry Status</th>
+                    </tr>
+                </thead>
+                <tbody id="detailedStockBody">
+                    {% for batch in all_batches %}
+                    <tr class="stock-report-row"
+                        data-medicine="{{ batch.medicine.medicine_name|escape }}"
+                        data-batch="{{ batch.batch_number|escape }}"
+                        data-received="{{ batch.received_date|date:'Y-m-d' }}"
+                        data-expiry="{{ batch.expiry_date|date:'Y-m-d' }}"
+                        data-available="{{ batch.quantity_available|default:0 }}"
+                        data-reorder="{{ batch.medicine.reorder_level|default_if_none:30 }}"
+                        data-quantity="{{ batch.quantity_received|default:0 }}"
+                        data-location="{{ batch.storage_location|default:'Not specified'|escape }}">
+                        <td><strong>{{ batch.medicine.medicine_name }}</strong></td>
+                        <td>{{ batch.batch_number }}</td>
+                        <td>{{ batch.quantity_received }}</td>
+                        <td>{{ batch.quantity_available }}</td>
+                        <td>{{ batch.received_date|date:"Y-m-d" }}</td>
+                        <td>{{ batch.expiry_date|date:"Y-m-d" }}</td>
+                        <td>{{ batch.storage_location|default:"Not specified" }}</td>
+                        <td class="report-expiry-status">Pending analysis</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="report-table-empty">
+                            No batch records are currently available.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="report-footer-note">
+            Report scope: batch records supplied by the inventory reporting view.
+            Expiry classifications use the current browser date.
+        </p>
+    </section>
+
+</main>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-    const rows = Array.from(
-        document.querySelectorAll(".stock-register-row")
-    );
+    const rows = Array.from(document.querySelectorAll(".stock-report-row"));
+    const medicineBody = document.getElementById("medicineStockBody");
+    const expiryRiskBody = document.getElementById("expiryRiskBody");
+    const searchInput = document.getElementById("reportSearch");
+    const expiryFilter = document.getElementById("reportExpiryFilter");
+    const sortFilter = document.getElementById("reportSortFilter");
+    const resultsLabel = document.getElementById("registerResults");
 
-    const stockList = document.getElementById("stockMonitoringList");
-    const expiryList = document.getElementById("expiryMonitoringList");
-
-    const lowStockCount = document.getElementById("lowStockCount");
-    const expiryCount = document.getElementById("expiryCount");
-
-    const searchInput = document.getElementById("batchSearch");
-    const expiryFilter = document.getElementById("expiryFilter");
-    const sortFilter = document.getElementById("sortFilter");
-
-    const resultsCount = document.getElementById("registerResultsCount");
-
-    // Use local calendar dates to avoid UTC date conversion issues.
     function parseLocalDate(value) {
         if (!value) return null;
 
         const parts = value.split("-").map(Number);
+        if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
 
-        if (parts.length !== 3 || parts.some(Number.isNaN)) {
-            return null;
-        }
-
-        return new Date(parts[0], parts[1] - 1, parts[2]);
+        const date = new Date(parts[0], parts[1] - 1, parts[2]);
+        return Number.isNaN(date.getTime()) ? null : date;
     }
 
     function daysUntilExpiry(value) {
-        const expiryDate = parseLocalDate(value);
-
-        if (!expiryDate) return null;
+        const expiry = parseLocalDate(value);
+        if (!expiry) return null;
 
         const today = new Date();
+        const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-        const todayOnly = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate()
-        );
-
-        return Math.round(
-            (expiryDate - todayOnly) / (1000 * 60 * 60 * 24)
-        );
-    }
-
-    function getExpiryStatus(value) {
-        const days = daysUntilExpiry(value);
-
-        if (days === null) return "unknown";
-        if (days < 0) return "expired";
-        if (days <= 30) return "soon";
-
-        return "valid";
+        return Math.round((expiry - todayOnly) / 86400000);
     }
 
     function escapeHTML(value) {
-        return String(value ?? "").replace(/[&<>"']/g, function (char) {
-            return {
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#039;"
-            }[char];
-        });
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;",
+            '"': "&quot;", "'": "&#039;"
+        }[char]));
     }
 
-    // Prepare stock register data.
-    const batches = rows.map(function (row) {
+    function formatNumber(value) {
+        return Number(value || 0).toLocaleString();
+    }
 
+    function getExpiryCategory(days) {
+        if (days === null) return "unknown";
+        if (days < 0) return "expired";
+        if (days <= 30) return "0-30";
+        if (days <= 60) return "31-60";
+        if (days <= 90) return "61-90";
+        return "over90";
+    }
+
+    function getExpiryLabel(category) {
+        return {
+            expired: "Expired",
+            "0-30": "0–30 days",
+            "31-60": "31–60 days",
+            "61-90": "61–90 days",
+            over90: "Over 90 days",
+            unknown: "Unknown"
+        }[category] || "Unknown";
+    }
+
+    function getExpiryBadge(category) {
+        const badges = {
+            expired: '<span class="report-status status-danger">Expired</span>',
+            "0-30": '<span class="report-status status-warning">Critical</span>',
+            "31-60": '<span class="report-status status-warning">Monitor</span>',
+            "61-90": '<span class="report-status status-warning">Monitor</span>',
+            over90: '<span class="report-status status-success">Valid</span>',
+            unknown: '<span class="report-status status-neutral">Unknown</span>'
+        };
+
+        return badges[category] || badges.unknown;
+    }
+
+    const batches = rows.map(function (row) {
         const data = row.dataset;
+        const days = daysUntilExpiry(data.expiry);
+        const category = getExpiryCategory(days);
 
         const batch = {
             medicine: data.medicine,
@@ -726,246 +910,275 @@ document.addEventListener("DOMContentLoaded", function () {
             available: Number(data.available) || 0,
             reorder: Number(data.reorder) || 30,
             quantity: Number(data.quantity) || 0,
-            location: data.location
+            location: data.location,
+            days,
+            category,
+            row
         };
 
-        batch.daysRemaining = daysUntilExpiry(batch.expiry);
-        batch.expiryStatus = getExpiryStatus(batch.expiry);
-
-        const statusCell = row.querySelector(".batch-status-cell");
-
-        if (statusCell) {
-
-            if (batch.expiryStatus === "expired") {
-                statusCell.innerHTML =
-                    '<span class="sm-status sm-status-danger">Expired</span>';
-            } else if (batch.expiryStatus === "soon") {
-                statusCell.innerHTML =
-                    '<span class="sm-status sm-status-warning">Expiring Soon</span>';
-            } else if (batch.expiryStatus === "valid") {
-                statusCell.innerHTML =
-                    '<span class="sm-status sm-status-success">Valid</span>';
-            } else {
-                statusCell.textContent = "Unknown";
-            }
-        }
+        const statusCell = row.querySelector(".report-expiry-status");
+        if (statusCell) statusCell.innerHTML = getExpiryBadge(category);
 
         return batch;
     });
 
-    // STOCK MONITORING
-    // Aggregate available quantities across batches for each medicine.
-    // Expired batches are excluded from usable stock.
-    const medicineStock = new Map();
+    /* EXPIRY ANALYSIS */
+    const expiryCounts = {
+        expired: 0, "0-30": 0, "31-60": 0,
+        "61-90": 0, over90: 0, unknown: 0
+    };
 
-    batches.forEach(function (batch) {
+    batches.forEach(batch => expiryCounts[batch.category]++);
 
-        const key = batch.medicine;
+    const totalBatches = batches.length;
 
-        if (!medicineStock.has(key)) {
-            medicineStock.set(key, {
-                medicine: key,
-                available: 0,
-                reorder: batch.reorder
+    function setBar(id, count, total) {
+        const element = document.getElementById(id);
+        element.style.width = (total ? count / total * 100 : 0) + "%";
+    }
+
+    const expiryIds = {
+        expired: ["countExpired", "barExpired"],
+        "0-30": ["count30", "bar30"],
+        "31-60": ["count60", "bar60"],
+        "61-90": ["count90", "bar90"],
+        over90: ["countOver90", "barOver90"]
+    };
+
+    Object.entries(expiryIds).forEach(([category, ids]) => {
+        document.getElementById(ids[0]).textContent = formatNumber(expiryCounts[category]);
+        setBar(ids[1], expiryCounts[category], totalBatches);
+    });
+
+    document.getElementById("expiryAnalysisTotal").textContent = formatNumber(totalBatches);
+
+    /* MEDICINE STOCK AGGREGATION */
+    const medicineMap = new Map();
+
+    batches.forEach(batch => {
+        if (!medicineMap.has(batch.medicine)) {
+            medicineMap.set(batch.medicine, {
+                medicine: batch.medicine,
+                batches: 0,
+                usable: 0,
+                reorder: batch.reorder,
+                expiryRisk: 0
             });
         }
 
-        const item = medicineStock.get(key);
+        const medicine = medicineMap.get(batch.medicine);
+        medicine.batches++;
 
-        if (batch.expiryStatus !== "expired") {
-            item.available += batch.available;
+        if (batch.category !== "expired" && batch.category !== "unknown") {
+            medicine.usable += batch.available;
         }
 
-        item.reorder = Math.max(item.reorder, batch.reorder);
+        if (["expired", "0-30", "31-60", "61-90"].includes(batch.category)) {
+            medicine.expiryRisk++;
+        }
+
+        medicine.reorder = Math.max(medicine.reorder, batch.reorder);
     });
 
-    const lowStockMedicines = Array.from(medicineStock.values())
-        .filter(function (item) {
-            return item.available <= item.reorder;
-        })
-        .sort(function (a, b) {
-            return a.available - b.available;
-        });
+    const medicines = Array.from(medicineMap.values());
 
-    lowStockCount.textContent =
-        lowStockMedicines.length + " medicines";
+    const lowStockMedicines = medicines.filter(m => m.usable <= m.reorder);
+    const zeroStockMedicines = medicines.filter(m => m.usable <= 0);
+    const adequateMedicines = medicines.filter(m => m.usable > m.reorder);
 
-    if (lowStockMedicines.length === 0) {
+    document.getElementById("lowStockValue").textContent = formatNumber(lowStockMedicines.length);
+    document.getElementById("countLowStock").textContent = formatNumber(lowStockMedicines.length);
+    document.getElementById("countAdequate").textContent = formatNumber(adequateMedicines.length);
+    document.getElementById("countZero").textContent = formatNumber(zeroStockMedicines.length);
+    document.getElementById("medicineAnalysisTotal").textContent = formatNumber(medicines.length);
 
-        stockList.innerHTML =
-            '<div class="sm-empty">No medicines are currently at or below their reorder levels.</div>';
+    setBar("barLowStock", lowStockMedicines.length, medicines.length);
+    setBar("barAdequate", adequateMedicines.length, medicines.length);
+    setBar("barZero", zeroStockMedicines.length, medicines.length);
 
+    const totalUsableUnits = batches.reduce((total, batch) => {
+        if (batch.category === "expired" || batch.category === "unknown") return total;
+        return total + batch.available;
+    }, 0);
+
+    document.getElementById("totalBatchValue").textContent = formatNumber(totalBatches);
+    document.getElementById("totalUnitValue").textContent = formatNumber(totalUsableUnits);
+    document.getElementById("expiredValue").textContent = formatNumber(expiryCounts.expired);
+    document.getElementById("expiringValue").textContent = formatNumber(expiryCounts["0-30"]);
+
+    /* MEDICINE STOCK TABLE */
+    if (!medicines.length) {
+        medicineBody.innerHTML = '<tr><td colspan="6" class="report-table-empty">No medicine stock records are available.</td></tr>';
     } else {
+        medicines.sort((a, b) => a.usable - b.usable);
 
-        stockList.innerHTML = lowStockMedicines.map(function (item) {
+        medicineBody.innerHTML = medicines.map(medicine => {
+            const badge = medicine.usable <= medicine.reorder
+                ? '<span class="report-status status-danger">Low Stock</span>'
+                : '<span class="report-status status-success">Adequate</span>';
 
             return `
-                <div class="sm-monitor-item">
-                    <div>
-                        <strong>${escapeHTML(item.medicine)}</strong>
-                        <span class="sm-status sm-status-danger" style="float:right;">
-                            Low Stock
-                        </span>
-                    </div>
-
-                    <div class="sm-monitor-details">
-                        <span>Available: <strong>${item.available}</strong></span>
-                        <span>Reorder level: <strong>${item.reorder}</strong></span>
-                    </div>
-                </div>
-            `;
-
+                <tr>
+                    <td><strong>${escapeHTML(medicine.medicine)}</strong></td>
+                    <td>${formatNumber(medicine.batches)}</td>
+                    <td>${formatNumber(medicine.usable)}</td>
+                    <td>${formatNumber(medicine.reorder)}</td>
+                    <td>${badge}</td>
+                    <td>${formatNumber(medicine.expiryRisk)}</td>
+                </tr>`;
         }).join("");
     }
 
-    // EXPIRY MONITORING
-    const expiryBatches = batches
-        .filter(function (batch) {
-            return batch.expiryStatus === "expired" ||
-                   batch.expiryStatus === "soon";
-        })
-        .sort(function (a, b) {
-            return a.daysRemaining - b.daysRemaining;
-        });
+    /* EXPIRY RISK TABLE */
+    const expiryRiskBatches = batches
+        .filter(batch => ["expired", "0-30", "31-60", "61-90"].includes(batch.category))
+        .sort((a, b) => (a.days ?? Infinity) - (b.days ?? Infinity));
 
-    expiryCount.textContent = expiryBatches.length + " batches";
+    document.getElementById("riskRegisterCount").textContent =
+        formatNumber(expiryRiskBatches.length) + " records";
 
-    if (expiryBatches.length === 0) {
-
-        expiryList.innerHTML =
-            '<div class="sm-empty">No expired or soon-to-expire batches were found in the displayed stock records.</div>';
-
+    if (!expiryRiskBatches.length) {
+        expiryRiskBody.innerHTML = '<tr><td colspan="6" class="report-table-empty">No expired or near-expiry batches were identified.</td></tr>';
     } else {
-
-        expiryList.innerHTML = expiryBatches.map(function (batch) {
-
-            const expired = batch.expiryStatus === "expired";
-
-            const status = expired
-                ? '<span class="sm-status sm-status-danger">Expired</span>'
-                : '<span class="sm-status sm-status-warning">Expiring Soon</span>';
-
-            const timeText = expired
-                ? Math.abs(batch.daysRemaining) + " days overdue"
-                : batch.daysRemaining + " days remaining";
+        expiryRiskBody.innerHTML = expiryRiskBatches.map(batch => {
+            const timeText = batch.days === null
+                ? "Unknown"
+                : batch.days < 0
+                    ? Math.abs(batch.days) + " days overdue"
+                    : batch.days + " days remaining";
 
             return `
-                <div class="sm-monitor-item">
-                    <div>
-                        <strong>${escapeHTML(batch.medicine)}</strong>
-                        ${status}
-                    </div>
-
-                    <div class="sm-monitor-details">
-                        <span>Batch: ${escapeHTML(batch.batch)}</span>
-                        <span>Available: ${batch.available} units</span>
-                    </div>
-
-                    <div class="sm-monitor-details">
-                        <span>Expiry: ${escapeHTML(batch.expiry)}</span>
-                        <strong>${timeText}</strong>
-                    </div>
-                </div>
-            `;
-
+                <tr>
+                    <td><strong>${escapeHTML(batch.medicine)}</strong></td>
+                    <td>${escapeHTML(batch.batch)}</td>
+                    <td>${formatNumber(batch.available)}</td>
+                    <td>${escapeHTML(batch.expiry || "Not recorded")}</td>
+                    <td>${timeText}</td>
+                    <td>${getExpiryBadge(batch.category)}</td>
+                </tr>`;
         }).join("");
     }
 
-    // HISTORICAL STOCK REGISTER: SEARCH, FILTER AND SORT
+    /* MANAGEMENT INSIGHTS */
+    document.getElementById("lowStockInsight").innerHTML =
+        `<strong>${formatNumber(lowStockMedicines.length)}</strong> of
+        <strong>${formatNumber(medicines.length)}</strong> recorded medicines
+        are at or below their reorder levels.`;
+
+    document.getElementById("expiryInsight").innerHTML =
+        `<strong>${formatNumber(expiryCounts.expired)}</strong> batches are expired,
+        while <strong>${formatNumber(expiryCounts["0-30"])}</strong> batches
+        are due to expire within 30 days.`;
+
+    document.getElementById("availabilityInsight").innerHTML =
+        `<strong>${formatNumber(totalUsableUnits)}</strong> usable units are recorded,
+        excluding expired and unknown-expiry batches. There are
+        <strong>${formatNumber(zeroStockMedicines.length)}</strong> medicines
+        with no usable stock recorded.`;
+
+    document.getElementById("coverageInsight").innerHTML =
+        `<strong>${formatNumber(totalBatches)}</strong> batch records were analysed.
+        <strong>${formatNumber(expiryCounts.unknown)}</strong> records have no
+        usable expiry date and should be checked.`;
+
+    /* REGISTER FILTERS AND SORTING */
     function updateRegister() {
-
         const searchTerm = searchInput.value.toLowerCase().trim();
         const selectedExpiry = expiryFilter.value;
         const selectedSort = sortFilter.value;
 
-        let visibleBatches = batches.filter(function (batch) {
-
-            const searchableText = (
-                batch.medicine + " " +
-                batch.batch + " " +
-                batch.location
+        const visibleBatches = batches.filter(batch => {
+            const searchable = (
+                batch.medicine + " " + batch.batch + " " + batch.location
             ).toLowerCase();
 
-            const matchesSearch = searchableText.includes(searchTerm);
-
-            let matchesExpiry = true;
-
-            if (selectedExpiry !== "all") {
-                matchesExpiry = batch.expiryStatus === selectedExpiry;
-            }
-
-            return matchesSearch && matchesExpiry;
+            return searchable.includes(searchTerm) &&
+                (selectedExpiry === "all" || batch.category === selectedExpiry);
         });
 
-        visibleBatches.sort(function (a, b) {
-
-            if (selectedSort === "expiry-asc") {
-                return (a.daysRemaining ?? Infinity) -
-                       (b.daysRemaining ?? Infinity);
-            }
-
-            if (selectedSort === "expiry-desc") {
-                return (b.daysRemaining ?? -Infinity) -
-                       (a.daysRemaining ?? -Infinity);
-            }
-
-            if (selectedSort === "received-desc") {
-                return (b.received || "").localeCompare(a.received || "");
-            }
-
-            if (selectedSort === "received-asc") {
-                return (a.received || "").localeCompare(b.received || "");
-            }
-
+        visibleBatches.sort((a, b) => {
+            if (selectedSort === "expiry-asc") return (a.days ?? Infinity) - (b.days ?? Infinity);
+            if (selectedSort === "expiry-desc") return (b.days ?? -Infinity) - (a.days ?? -Infinity);
+            if (selectedSort === "received-desc") return (b.received || "").localeCompare(a.received || "");
+            if (selectedSort === "received-asc") return (a.received || "").localeCompare(b.received || "");
+            if (selectedSort === "quantity-desc") return b.available - a.available;
+            if (selectedSort === "quantity-asc") return a.available - b.available;
             return 0;
         });
 
-        // Reorder the original table rows without changing their contents.
-        const tbody = document.getElementById("stockRegisterBody");
+        const visibleSet = new Set(visibleBatches);
+        const body = document.getElementById("detailedStockBody");
 
-        visibleBatches.forEach(function (batch) {
+        visibleBatches.forEach(batch => body.appendChild(batch.row));
 
-            const row = rows.find(function (item) {
-                return item.dataset.batch === batch.batch &&
-                       item.dataset.medicine === batch.medicine &&
-                       item.dataset.received === batch.received &&
-                       item.dataset.expiry === batch.expiry;
-            });
-
-            if (row) {
-                tbody.appendChild(row);
-            }
+        batches.forEach(batch => {
+            batch.row.hidden = !visibleSet.has(batch);
         });
 
-        rows.forEach(function (row) {
-            row.style.display = "none";
-        });
-
-        visibleBatches.forEach(function (batch) {
-
-            const row = rows.find(function (item) {
-                return item.dataset.batch === batch.batch &&
-                       item.dataset.medicine === batch.medicine &&
-                       item.dataset.received === batch.received &&
-                       item.dataset.expiry === batch.expiry;
-            });
-
-            if (row) {
-                row.style.display = "";
-            }
-        });
-
-        resultsCount.textContent =
-            "Showing " + visibleBatches.length +
-            " of " + batches.length + " stock records.";
+        resultsLabel.textContent =
+            "Showing " + formatNumber(visibleBatches.length) +
+            " of " + formatNumber(batches.length) + " batch records.";
     }
 
     searchInput.addEventListener("input", updateRegister);
     expiryFilter.addEventListener("change", updateRegister);
     sortFilter.addEventListener("change", updateRegister);
 
-    updateRegister();
+    document.getElementById("clearReportFilters").addEventListener("click", function () {
+        searchInput.value = "";
+        expiryFilter.value = "all";
+        sortFilter.value = "expiry-asc";
+        updateRegister();
+    });
 
+    /* CSV EXPORT */
+    document.getElementById("exportReport").addEventListener("click", function () {
+        const csvRows = [[
+            "Medicine", "Batch Number", "Quantity Received",
+            "Available Units", "Date Received", "Expiry Date",
+            "Storage Location", "Expiry Status"
+        ]];
+
+        batches.forEach(batch => {
+            csvRows.push([
+                batch.medicine,
+                batch.batch,
+                batch.quantity,
+                batch.available,
+                batch.received,
+                batch.expiry,
+                batch.location,
+                getExpiryLabel(batch.category)
+            ]);
+        });
+
+        function csvEscape(value) {
+            return '"' + String(value ?? "").replace(/"/g, '""') + '"';
+        }
+
+        const csvContent = csvRows
+            .map(row => row.map(csvEscape).join(","))
+            .join("\r\n");
+
+        const blob = new Blob(["\uFEFF" + csvContent], {
+            type: "text/csv;charset=utf-8;"
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "inventory_stock_report.csv";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        URL.revokeObjectURL(url);
+    });
+
+    updateRegister();
 });
 </script>
+
 {% endblock %}

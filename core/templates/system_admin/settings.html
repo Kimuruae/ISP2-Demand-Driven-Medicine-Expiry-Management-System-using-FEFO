@@ -1,48 +1,120 @@
 {% extends "system_admin/base.html" %}
+{% block banner_eyebrow %}Application Configuration{% endblock %}
+{% block banner_title %}System Settings{% endblock %}
+{% block banner_text %}Maintain application configuration values and review saved settings.{% endblock %}
+
 {% block admin_content %}
-<header class="sa-header">
-    <span class="eyebrow">Application Configuration</span>
-    <h1>System Settings</h1>
-    <p>Maintain application configuration values and review saved settings.</p>
-</header>
-<section class="sa-panel"><h2>Create or Update a Setting</h2>
-    <p class="sa-muted">
-        Use unique setting keys and document what each value controls.
-        Do not store passwords or secret credentials in ordinary settings.
-    </p>
-    <form method="post" action="{% url 'system_admin_dashboard' %}" class="sa-form">
+
+<section class="sa-panel" id="settingFormCard">
+    <div class="sa-panel-head">
+        <div>
+            <h2>Create or Update a Setting</h2>
+            <p>Saving a key that already exists updates it. Use unique keys, say what each value controls, and never store passwords or secret credentials here.</p>
+        </div>
+    </div>
+    <form method="post" action="{% url 'system_admin_settings' %}" class="sa-form sa-pad" id="settingForm">
         {% csrf_token %}
         <input type="hidden" name="action" value="save_setting">
-        <input name="key" placeholder="Setting key" required>
-        <input name="value" placeholder="Setting value" required>
-        <input name="description" placeholder="Description (optional)">
-        <button type="submit">Save Setting</button>
+
+        <div class="sa-field">
+            <label for="setting_key">Setting key</label>
+            <input id="setting_key" name="key" maxlength="100" required>
+        </div>
+        <div class="sa-field">
+            <label for="setting_value">Setting value</label>
+            <input id="setting_value" name="value" maxlength="255" required>
+        </div>
+        <div class="sa-field">
+            <label for="setting_description">Description (optional)</label>
+            <input id="setting_description" name="description">
+        </div>
+        <div class="sa-field">
+            <button type="submit">Save setting</button>
+        </div>
     </form>
 </section>
-<section class="sa-panel"><h2>Configured Settings</h2>
-    <div class="sa-table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Key</th>
-                    <th>Value</th>
-                    <th>Description</th>
-                    <th>Last Updated</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for setting in settings %}
-                <tr>
-                    <td><strong>{{ setting.key }}</strong></td>
-                    <td>{{ setting.value }}</td>
-                    <td>{{ setting.description|default:"—" }}</td>
-                    <td>{{ setting.updated_at|date:"Y-m-d H:i"|default:"—" }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="4" class="sa-empty">No settings have been configured.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+<section class="sa-panel sa-scroll">
+    <div class="sa-panel-head">
+        <div>
+            <h2>Configured Settings</h2>
+            <p>Use Edit to load a setting into the form above.</p>
+        </div>
+        <span class="sa-count">{{ settings_count|default:0 }} settings</span>
+    </div>
+
+    <div class="sa-panel-tools">
+        <input class="sa-search" id="settingSearch" type="search"
+               placeholder="Search key, value or description..." aria-label="Search settings">
+    </div>
+
+    <div class="sa-panel-body">
+        <div class="sa-table-wrap">
+            <table id="settingsTable">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Value</th>
+                        <th>Description</th>
+                        <th>Last Updated</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for setting in settings %}
+                    <tr data-search="{{ setting.key }} {{ setting.value }} {{ setting.description }}">
+                        <td><strong>{{ setting.key }}</strong></td>
+                        <td class="sa-wrap">{{ setting.value }}</td>
+                        <td class="sa-wrap">{{ setting.description|default:"—" }}</td>
+                        <td class="sa-nowrap">{{ setting.updated_at|date:"Y-m-d H:i"|default:"—" }}</td>
+                        <td>
+                            <button type="button" class="secondary sa-sm"
+                                    data-edit
+                                    data-key="{{ setting.key }}"
+                                    data-value="{{ setting.value }}"
+                                    data-description="{{ setting.description }}">Edit</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="sa-empty">No settings have been configured.</td></tr>
+                    {% endfor %}
+                    <tr id="settingsNoMatch" hidden><td colspan="5" class="sa-empty">No settings match your search.</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </section>
+
 {% endblock admin_content %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var search = document.getElementById("settingSearch");
+    var rows = Array.prototype.slice.call(document.querySelectorAll("#settingsTable tbody tr[data-search]"));
+    var none = document.getElementById("settingsNoMatch");
+
+    search.addEventListener("input", function () {
+        var term = search.value.trim().toLowerCase();
+        var count = 0;
+        rows.forEach(function (row) {
+            var ok = !term || row.dataset.search.toLowerCase().indexOf(term) !== -1;
+            row.hidden = !ok;
+            if (ok) count++;
+        });
+        none.hidden = !(rows.length && count === 0);
+    });
+
+    /* Edit: copy a saved setting into the form and move the cursor to its value. */
+    document.querySelectorAll("[data-edit]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            document.getElementById("setting_key").value = button.dataset.key;
+            document.getElementById("setting_value").value = button.dataset.value;
+            document.getElementById("setting_description").value = button.dataset.description;
+            document.getElementById("settingFormCard").scrollIntoView({ behavior: "smooth", block: "start" });
+            document.getElementById("setting_value").focus();
+        });
+    });
+})();
+</script>
+{% endblock extra_js %}

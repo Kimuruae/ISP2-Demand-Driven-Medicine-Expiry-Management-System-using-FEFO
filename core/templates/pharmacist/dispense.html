@@ -1,31 +1,32 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'pharmacist/pharmacist_base.html' %}
 {% block title %}Medicine Dispensing | Pharmacist Workspace{% endblock %}
-{% block content %}
+{% block pharmacist_title %}Medicine Dispensing{% endblock %}
+{% block pharmacist_heading %}Medicine Dispensing Portal{% endblock %}
+{% block pharmacist_description %}
+Record prescriptions, review eligible batches and dispense medicines using FEFO.
+{% endblock %}
+{% block pharmacist_content %}
 
 <style>
     .dispense-page {
         --navy: #123b5d;
         --navy-dark: #082f46;
-        --teal: #087f80;
-        --teal-dark: #06666a;
-        --teal-light: #e9f7f5;
-        --background: #f2f6fa;
+        --teal: #087f70;
+        --teal-dark: #06665b;
+        --teal-light: #e3f4ef;
+        --background: #f3f7f8;
         --surface: #ffffff;
-        --border: #dce6ed;
-        --muted: #64788b;
-        --text: #243e55;
-        --success: #16805d;
-        --warning: #b7791f;
-        --danger: #c83c4d;
+        --border: #cbd9e2;
+        --muted: #526779;
+        --text: #19384e;
+        --success: #176b43;
+        --warning: #89540b;
+        --danger: #a92e3c;
 
-         min-height: 100vh;
-    width: 100%;
-    margin: 0;
-    padding: 0 22px 0 0;
-    background: #f2f6fa;
-    color: #15324f;
-    font-family: Arial, Helvetica, sans-serif;
+        width: 100%;
+        min-width: 0;
+        color: var(--text);
+        font-family: Arial, Helvetica, sans-serif;
     }
 
     .dispense-page *,
@@ -34,230 +35,89 @@
         box-sizing: border-box;
     }
 
-    /* PAGE HEADER */
-    .dispense-hero {
-        max-width:none;
-        width: calc(100% + 44px);
-        margin: 0 -22px 0;
-        padding: 29px 27px;
-        background: linear-gradient(115deg, #123b66, #087e8b);
-        color: #fff;
-        border-radius: 0;
+    .dispense-intro {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 16px;
-        box-shadow: 0 5px 16px rgba(18, 59, 102, .12);
+        gap: 15px;
+        margin-bottom: 18px;
+        padding: 17px 19px;
+        background: var(--surface);
+        border: 1px solid #d7e3e8;
+        border-left: 5px solid var(--teal);
+        border-radius: 10px;
     }
 
-    .dispense-eyebrow {
+    .dispense-intro h2 {
+        margin: 0 0 5px;
+        color: var(--navy-dark);
+        font-size: 17px;
+        font-weight: 800;
+    }
+
+    .dispense-intro p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .dispense-intro-tag {
+        padding: 8px 12px;
+        border-radius: 6px;
+        background: var(--teal-light);
+        color: #075d50;
         font-size: 10px;
         font-weight: 800;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        color: #c8e8eb;
-    }
-
-    .dispense-hero h1 {
-        margin: 7px 0;
-        font-size: 25px;
-        font-weight: 800;
-    }
-
-    .dispense-hero p {
-        margin: 0;
-        font-size: 12px;
-        line-height: 1.7;
-        color: #e0f0f4;
-        max-width: 700px;
-    }
-
-    .dispense-hero-tag {
-        padding: 10px 14px;
-        border: 1px solid rgba(255,255,255,.25);
-        background: rgba(255,255,255,.12);
-        border-radius: 8px;
-        font-size: 11px;
-        font-weight: 700;
         white-space: nowrap;
     }
 
-    /* MESSAGES */
     .dispense-messages {
-        max-width: 1550px;
-        margin: 0 auto 18px;
+        margin-bottom: 16px;
     }
 
     .dispense-message {
-        padding: 13px 15px;
         margin-bottom: 8px;
+        padding: 12px 14px;
+        border: 1px solid #a9d9bd;
         border-radius: 8px;
+        background: #e8f6ed;
+        color: #145b36;
         font-size: 12px;
+        font-weight: 600;
         line-height: 1.6;
-        border: 1px solid #c9e6d8;
-        background: #effaf4;
-        color: #17613f;
     }
 
-    /* THREE-COLUMN LAYOUT */
+    .dispense-message.error {
+        background: #fff0ef;
+        border-color: #eab8b8;
+        color: #982d35;
+    }
+
+    .dispense-message.warning {
+        background: #fff6e5;
+        border-color: #e9d19b;
+        color: #80520b;
+    }
+
     .dispense-workspace {
-        max-width: 0;
-        width: 100%;
-        margin: 0;
         display: grid;
-        grid-template-columns: 215px minmax(380px, 1.45fr) minmax(300px, 1fr);
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, .9fr);
         gap: 17px;
-        align-items: stretch;
+        align-items: start;
+        width: 100%;
+        max-width: 1600px;
+        margin: 0 auto;
     }
 
-    /* SIDEBAR */
-    .dispense-sidebar {
-    background: #082f46;
-    border-radius: 0;
-    padding: 18px 13px;
-    color: #fff;
-    box-shadow: none;
-    height: 100%;
-    min-height: 100%;
-    align-self: stretch;
-    margin: 0;
-    }
-
-    .dispense-sidebar-heading {
-    padding: 12px;
-    border-radius: 8px;
-    background: #123f57;
-    border: 1px solid #28566d;
-    margin-bottom: 17px;
-    }
-
-    .dispense-sidebar-heading strong {
-        display: block;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    color: #fff;
-    }
-
-    .dispense-sidebar-heading span {
-     display: block;
-    font-size: 10px;
-    color: #b9d4df;
-    margin-top: 5px;
-    line-height: 1.5;
-    }
-
-    .dispense-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    }
-
-    .dispense-nav a {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 11px 10px;
-    color: #d9eaf0;
-    text-decoration: none;
-    border-radius: 7px;
-    border: 1px solid transparent;
-    font-size: 11px;
-    font-weight: 700;
-    transition: .2s ease;
-    }
-
-    .dispense-nav a:hover {
-        background: #164f63;
-        color: #fff;
-    }
-
-    .dispense-nav a.active {
-        background: #087f80;
-    color: #fff;
-    border-color: #22a5a1;
-    border-left: 3px solid #22a5a1;
-    }
-
-    .dispense-nav-icon {
-        width: 20px;
-    min-width: 20px;
-    text-align: center;
-    font-size: 16px;
-    flex-shrink: 0;
-    }
-
-    .dispense-sidebar-note {
-      margin: 25px 3px 0;
-    padding: 12px;
-    border: 1px solid #28566d;
-    border-radius: 8px;
-    background: transparent;
-    color: #c3dce5;
-    font-size: 10px;
-    line-height: 1.7;
-    }
-
-    .dispense-sidebar-note strong {
-        display: block;
-        color: #fff;
-        margin-bottom: 5px;
-    }
-
-    .dispense-sidebar-warning {
-   margin: 11px 3px 0;
-    padding: 12px;
-    border-radius: 8px;
-    background: #fff5e6;
-    border: 1px solid #f0d7ad;
-    color: #805b16;
-    font-size: 10px;
-    line-height: 1.7;    }
-
-    .dispense-sidebar-warning strong {
-    display: block;
-    margin-bottom: 5px;
-    color: #805b16;
-}
-/* SIDEBAR RESPONSIVENESS */
-@media (max-width: 760px) {
-    .dispense-sidebar {
-        height: auto;
-        min-height: auto;
-        padding: 12px;
-    }
-
-    .dispense-nav {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .dispense-sidebar-note,
-    .dispense-sidebar-warning {
-        margin-top: 10px;
-    }
-}
-
-@media (max-width: 450px) {
-    .dispense-nav {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .dispense-nav a {
-        font-size: 11px;
-        padding: 10px;
-    }
-}
-
-    /* PANELS */
     .dispense-panel {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 19px;
         min-width: 0;
-        box-shadow: 0 4px 14px rgba(22,50,79,.04);
+        padding: 19px;
+        background: var(--surface);
+        border: 1px solid #d5e0e7;
+        border-radius: 11px;
+        box-shadow: 0 4px 14px rgba(16, 43, 67, .055);
     }
 
     .dispense-panel-header {
@@ -267,31 +127,30 @@
     }
 
     .dispense-panel-eyebrow {
-        color: var(--teal);
-        font-size: 9px;
+        color: #087064;
+        font-size: 10px;
         font-weight: 800;
         letter-spacing: 1px;
     }
 
     .dispense-panel-title {
-        color: var(--navy);
-        font-size: 17px;
-        font-weight: 800;
         margin: 6px 0;
+        color: var(--navy-dark);
+        font-size: 18px;
+        font-weight: 800;
     }
 
     .dispense-panel-description {
-        color: var(--muted);
-        font-size: 11px;
-        line-height: 1.7;
         margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
     }
 
-    /* FORM */
     .dispense-form {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 15px;
     }
 
     .dispense-field {
@@ -301,42 +160,43 @@
     }
 
     .dispense-label {
-        color: var(--navy);
-        font-size: 11px;
+        color: #173b56;
+        font-size: 12px;
         font-weight: 800;
     }
 
     .dispense-required {
-        color: var(--danger);
         margin-left: 3px;
+        color: #b42332;
     }
 
     .dispense-input {
         width: 100%;
-        min-height: 43px;
-        padding: 10px 12px;
-        border: 1px solid #cbd9e3;
+        min-height: 44px;
+        padding: 11px 12px;
+        border: 1px solid #aebfcb;
         border-radius: 7px;
-        background: #f9fbfd;
-        color: var(--text);
+        background: #fff;
+        color: #18384e;
         font-family: Arial, Helvetica, sans-serif;
         font-size: 12px;
+        font-weight: 500;
         transition: .2s ease;
     }
 
     .dispense-input:hover {
-        border-color: #8dbeb8;
+        border-color: #378d83;
     }
 
     .dispense-input:focus {
         outline: none;
         border-color: var(--teal);
-        background: #fff;
-        box-shadow: 0 0 0 3px rgba(8,127,128,.12);
+        box-shadow: 0 0 0 3px rgba(8, 127, 112, .15);
     }
 
     .dispense-input:disabled {
-        background: #edf1f4;
+        background: #e9eef1;
+        color: #536675;
         cursor: not-allowed;
     }
 
@@ -346,88 +206,100 @@
     }
 
     .dispense-help {
-        color: var(--muted);
-        font-size: 10px;
-        line-height: 1.6;
         margin: 0;
+        color: #536a7b;
+        font-size: 11px;
+        line-height: 1.6;
     }
 
     .dispense-field-divider {
-        border: 0;
-        border-top: 1px solid #e8eef3;
+        width: 100%;
         margin: 0;
+        border: 0;
+        border-top: 1px solid #dce5ea;
     }
 
-    /* ALLOCATION MODE */
     .allocation-mode {
-        padding: 12px;
-        background: var(--teal-light);
-        border: 1px solid #b9e2da;
+        padding: 13px;
+        background: #e4f4ef;
+        border: 1px solid #acd9cb;
+        border-left: 4px solid var(--teal);
         border-radius: 8px;
     }
 
     .allocation-mode-title {
-        color: #086b66;
+        margin-bottom: 5px;
+        color: #075b4d;
         font-size: 11px;
         font-weight: 800;
-        margin-bottom: 5px;
     }
 
     .allocation-mode-description {
-        color: #466e69;
-        font-size: 10px;
+        color: #315f55;
+        font-size: 11px;
         line-height: 1.6;
     }
 
-    /* SAFETY ACKNOWLEDGEMENT */
     .dispense-safety-box {
-        padding: 12px;
-        background: #f3f7fb;
-        border: 1px solid #dce6ed;
+        padding: 13px;
+        background: #fff5e5;
+        border: 1px solid #e9d3a5;
+        border-left: 4px solid #c58a27;
         border-radius: 8px;
-        color: #526b7e;
-        font-size: 10px;
+        color: #704b13;
+        font-size: 11px;
         line-height: 1.7;
     }
 
-    /* SUBMIT */
+    .dispense-safety-box strong {
+        color: #70450a;
+    }
+
     .dispense-submit {
         width: 100%;
         min-height: 47px;
+        padding: 12px;
         border: 0;
         border-radius: 8px;
         background: var(--teal);
         color: #fff;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 800;
-        letter-spacing: .4px;
-        text-transform: uppercase;
+        letter-spacing: .3px;
         cursor: pointer;
         transition: .2s ease;
-        box-shadow: 0 4px 10px rgba(8,127,128,.15);
     }
 
     .dispense-submit:hover {
         background: var(--teal-dark);
-        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(8, 127, 112, .2);
     }
 
-    /* BATCH LEDGER */
+    .dispense-submit:focus-visible {
+        outline: 3px solid #9bd8c8;
+        outline-offset: 3px;
+    }
+
+    .dispense-submit:disabled {
+        opacity: .65;
+        cursor: wait;
+    }
+
     .ledger-summary {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 8px;
-        padding: 10px 11px;
-        background: #f0f6fa;
-        border: 1px solid #e0eaf0;
+        gap: 10px;
+        padding: 12px;
+        margin-bottom: 13px;
+        background: #edf4f7;
+        border: 1px solid #d2e0e7;
         border-radius: 7px;
-        margin-bottom: 12px;
     }
 
     .ledger-summary span {
-        font-size: 10px;
-        color: var(--muted);
+        color: #435c6e;
+        font-size: 11px;
     }
 
     .ledger-summary strong {
@@ -436,7 +308,7 @@
     }
 
     .ledger-scroll {
-        max-height: 490px;
+        max-height: 560px;
         overflow-y: auto;
         overflow-x: hidden;
         padding-right: 4px;
@@ -447,77 +319,80 @@
     }
 
     .ledger-scroll::-webkit-scrollbar-thumb {
-        background: #bdcdd8;
+        background: #aebfcb;
         border-radius: 10px;
     }
 
     .ledger-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
         display: flex;
         flex-direction: column;
         gap: 9px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
     }
 
     .ledger-card {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
-        padding: 12px;
-        background: #f9fbfd;
-        border: 1px solid var(--border);
+        gap: 12px;
+        padding: 13px;
+        background: #fff;
+        border: 1px solid #d3dfe6;
         border-left: 4px solid var(--teal);
         border-radius: 8px;
         transition: .2s ease;
     }
 
     .ledger-card:hover {
-        background: #edf8f6;
-        border-color: #a8d6ce;
+        background: #f0f8f6;
+        border-color: #91cabc;
     }
 
     .ledger-medicine {
         color: var(--navy);
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 800;
         line-height: 1.5;
         overflow-wrap: anywhere;
     }
 
     .ledger-meta {
-        margin-top: 5px;
-        color: var(--muted);
-        font-size: 9px;
-        line-height: 1.7;
+        margin-top: 6px;
+        color: #536a7b;
+        font-size: 10px;
+        line-height: 1.8;
     }
 
     .ledger-meta code {
-        background: #e9f0f5;
-        color: #31536c;
-        padding: 2px 4px;
-        border-radius: 3px;
-    }
-
-    .ledger-expiry {
-        color: #a23c43;
+        padding: 3px 5px;
+        border-radius: 4px;
+        background: #eaf0f4;
+        color: #244d68;
+        font-size: 10px;
         font-weight: 700;
     }
 
+    .ledger-expiry {
+        color: #a52e3c;
+        font-weight: 800;
+    }
+
     .ledger-quantity {
-        min-width: 67px;
+        min-width: 75px;
         flex-shrink: 0;
-        padding: 8px 6px;
+        padding: 9px 7px;
         text-align: center;
-        background: #e6f5ee;
+        background: #e5f4eb;
+        border: 1px solid #c1e2ce;
         border-radius: 7px;
     }
 
     .ledger-quantity span {
         display: block;
-        color: #607b70;
-        font-size: 8px;
+        color: #315c43;
+        font-size: 9px;
         font-weight: 800;
         text-transform: uppercase;
     }
@@ -526,59 +401,66 @@
         display: block;
         margin-top: 4px;
         color: var(--success);
-        font-size: 17px;
+        font-size: 19px;
+        font-weight: 800;
     }
 
     .ledger-quantity small {
-        color: #607b70;
+        color: #315c43;
         font-size: 9px;
     }
 
     .ledger-empty {
-        padding: 25px 12px;
-        border: 1px dashed #b6c6d2;
+        padding: 25px 13px;
+        border: 1px dashed #9eafbb;
         border-radius: 8px;
-        text-align: center;
+        background: #f7fafb;
         color: var(--muted);
-        font-size: 11px;
+        font-size: 12px;
         line-height: 1.7;
+        text-align: center;
     }
 
-    /* FEFO INFORMATION */
+    .ledger-empty strong {
+        display: block;
+        margin-bottom: 5px;
+        color: #173b56;
+    }
+
     .ledger-rule {
-        margin-top: 14px;
-        padding: 12px;
-        background: #eef7f5;
-        border: 1px solid #c7e5dd;
+        margin-top: 15px;
+        padding: 13px;
+        background: #e8f4f2;
+        border: 1px solid #b9dcd4;
         border-radius: 8px;
     }
 
     .ledger-rule strong {
         display: block;
-        margin-bottom: 5px;
-        color: #08746e;
-        font-size: 10px;
-        text-transform: uppercase;
+        margin-bottom: 6px;
+        color: #075d50;
+        font-size: 11px;
+        font-weight: 800;
     }
 
     .ledger-rule p {
         margin: 0;
-        color: #4e706c;
-        font-size: 10px;
+        color: #315f55;
+        font-size: 11px;
         line-height: 1.7;
     }
 
-    /* QUICK NAVIGATION */
     .dispense-bottom-link {
         display: block;
         margin-top: 13px;
         padding: 11px;
-        text-align: center;
         border: 1px solid var(--navy);
         border-radius: 7px;
         color: var(--navy);
+        background: #fff;
+        text-align: center;
         text-decoration: none;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 800;
         transition: .2s ease;
     }
@@ -588,166 +470,71 @@
         color: #fff;
     }
 
-    .dispense-footer {
-        max-width: 1550px;
-        margin: 18px auto 0;
-        padding: 15px 5px 5px;
-        text-align: center;
-        border-top: 1px solid var(--border);
-        color: #8293a3;
-        font-size: 10px;
+    .ledger-card.is-hidden {
+        display: none;
     }
 
-    /* RESPONSIVE */
-    @media (max-width: 1150px) {
-        .dispense-workspace {
-            grid-template-columns: 195px minmax(0, 1.4fr);
-        }
-
-        .dispense-workspace > section:last-child {
-            grid-column: 2;
-        }
-
-        .ledger-scroll {
-            max-height: 350px;
-        }
-    }
-
-    @media (max-width: 760px) {
-        .dispense-page {
-            padding: 0 13px 0 0;
-        }
-
-        .dispense-hero {
-        width: calc(100% + 26px);
-        margin: 0 -13px 0;
-    }
-
+    @media (max-width: 1050px) {
         .dispense-workspace {
             grid-template-columns: minmax(0, 1fr);
         }
 
-        .dispense-workspace > section:last-child {
-            grid-column: auto;
-        }
-
-        .dispense-sidebar {
-       height: auto;
-        min-height: auto;
-        }
-
-        .dispense-nav {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .dispense-sidebar-note,
-        .dispense-sidebar-warning {
-            margin-top: 10px;
-        }
-
-        .dispense-hero {
-            padding: 19px;
-        }
-
-        .dispense-hero h1 {
-            font-size: 21px;
+        .ledger-scroll {
+            max-height: 420px;
         }
     }
 
-    @media (max-width: 450px) {
-        .dispense-nav {
-            grid-template-columns: 1fr 1fr;
+    @media (max-width: 550px) {
+        .dispense-intro {
+            align-items: flex-start;
+            flex-direction: column;
         }
 
         .dispense-panel {
             padding: 14px;
         }
 
-        .dispense-hero-tag {
-            white-space: normal;
-        }
-
         .ledger-card {
             align-items: flex-start;
+        }
+
+        .ledger-quantity {
+            min-width: 65px;
         }
     }
 </style>
 
 <div class="dispense-page">
-    <!-- PAGE HEADER -->
-    <header class="dispense-hero">
-        <div>
-            <div class="dispense-eyebrow">
-                Pharmacist Workspace
+    {% if messages %}
+    <div class="dispense-messages">
+        {% for message in messages %}
+            <div role="alert"
+                 class="dispense-message
+                 {% if message.tags == 'error' %}error
+                 {% elif message.tags == 'warning' %}warning
+                 {% endif %}">
+                {{ message }}
             </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-            <h1>Medicine Dispensing Portal</h1>
+    <div class="dispense-intro">
+        <div>
+            <h2>Prescription Processing</h2>
             <p>
-                Verify the prescription, review eligible batches, apply
-                First Expiry First Out (FEFO), and record each dispensing
-                transaction accurately.
+                Select a medicine, enter prescription details and review
+                available batches before dispensing.
             </p>
         </div>
 
-        <div class="dispense-hero-tag">
-            FEFO CONTROL · DISPENSING OPERATIONS
+        <div class="dispense-intro-tag">
+            FEFO DISPENSING CONTROL
         </div>
-    </header>
+    </div>
 
-    <!-- DJANGO SUCCESS AND ERROR MESSAGES -->
-    {% if messages %}
-        <div class="dispense-messages">
-            {% for message in messages %}
-                <div role="alert" class="dispense-message">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <!-- THREE-COLUMN WORKSPACE -->
     <div class="dispense-workspace">
-        <!-- COLUMN 1: NAVIGATION -->
-        <aside class="dispense-sidebar">
-            <nav class="dispense-nav" aria-label="Pharmacist navigation">
-                <a href="{% url 'pharmacist_dashboard' %}">
-                    Dashboard
-                </a>
-
-                <a href="{% url 'dispense' %}"
-                   class="active"
-                   aria-current="page">
-                    Dispense Medicine
-                </a>
-
-                <a href="{% url 'dispense_reports' %}">
-                    Pharmacist Reports
-                </a>
-
-                <a href="{% url 'alerts' %}">
-                    Alerts Centre
-                </a>
-
-                <a href="{% url 'profile' %}">
-                    My Profile
-                </a>
-            </nav>
-
-            <div class="dispense-sidebar-note">
-                <strong>Dispensing Responsibility</strong>
-                Confirm the medicine, prescribed quantity and treatment
-                duration before recording a transaction.
-            </div>
-
-            <div class="dispense-sidebar-warning">
-                <strong>Important Safety Rule</strong>
-                Expired, depleted or inactive batches must not be dispensed.
-                Prescription-period expiry eligibility must be respected.
-            </div>
-        </aside>
-
-        <!-- COLUMN 2: DISPENSING FORM -->
+        <!-- DISPENSING FORM -->
         <section class="dispense-panel">
             <div class="dispense-panel-header">
                 <div class="dispense-panel-eyebrow">
@@ -759,20 +546,20 @@
                 </h2>
 
                 <p class="dispense-panel-description">
-                    Enter the prescription details and allow the FEFO
-                    allocation process to identify the appropriate stock.
+                    Complete the required fields to submit a dispensing
+                    transaction.
                 </p>
             </div>
 
             <form method="POST"
                   action="{% url 'dispense' %}"
-                  class="dispense-form">
+                  class="dispense-form"
+                  id="dispenseForm">
 
                 {% csrf_token %}
 
                 <!-- MEDICINE -->
                 <div class="dispense-field">
-
                     <label for="medicine_select" class="dispense-label">
                         Select Medicine
                         <span class="dispense-required">*</span>
@@ -784,32 +571,28 @@
                             required>
 
                         <option value="" selected disabled>
-                            -- Select Active Medicine --
+                            -- Select Medicine --
                         </option>
 
                         {% for med in medicines %}
                             <option value="{{ med.id }}">
-                                {{ med.name }}
+                                {{ med.medicine_name }}
                             </option>
                         {% empty %}
                             <option value="" disabled>
                                 No active medicines available
                             </option>
                         {% endfor %}
-
                     </select>
 
                     <p class="dispense-help">
-                        Select the medicine prescribed to the patient.
+                        Choose the medicine prescribed to the patient.
                     </p>
-
                 </div>
 
                 <hr class="dispense-field-divider">
-
                 <!-- QUANTITY -->
                 <div class="dispense-field">
-
                     <label for="qty_input" class="dispense-label">
                         Quantity to Dispense
                         <span class="dispense-required">*</span>
@@ -821,20 +604,12 @@
                            class="dispense-input"
                            min="1"
                            step="1"
-                           inputmode="numeric"
                            required
                            placeholder="Enter prescribed quantity">
-
-                    <p class="dispense-help">
-                        Enter the quantity prescribed. Available stock
-                        is displayed in the batch ledger.
-                    </p>
-
                 </div>
 
                 <!-- PRESCRIPTION DURATION -->
                 <div class="dispense-field">
-
                     <label for="prescription_duration" class="dispense-label">
                         Prescription Duration (Days)
                         <span class="dispense-required">*</span>
@@ -846,24 +621,19 @@
                            class="dispense-input"
                            min="1"
                            step="1"
-                           inputmode="numeric"
                            required
                            placeholder="Enter treatment duration">
 
                     <p class="dispense-help">
-                        Used to assess whether the selected batch remains
-                        within its expiry period throughout the prescribed
-                        treatment duration. Confirm applicable medicine-specific
-                        stability requirements.
+                        Used by the FEFO process to assess batch eligibility
+                        against the prescription period.
                     </p>
-
                 </div>
 
                 <hr class="dispense-field-divider">
 
-                <!-- PATIENT REFERENCE -->
+                <!-- PATIENT IDENTIFIER -->
                 <div class="dispense-field">
-
                     <label for="patient_id" class="dispense-label">
                         Patient Identifier / File Reference
                         <span class="dispense-required">*</span>
@@ -876,20 +646,17 @@
                            maxlength="100"
                            autocomplete="off"
                            required
-                           placeholder="Enter authorised patient file reference">
+                           placeholder="Enter authorised patient reference">
 
                     <p class="dispense-help">
-                        Use the authorised facility patient reference.
-                        Avoid entering unnecessary personal information.
+                        Use the facility-approved patient reference.
                     </p>
-
                 </div>
 
                 <!-- BATCH SELECTION -->
                 <div class="dispense-field">
-
                     <label for="batch_select" class="dispense-label">
-                        Batch Selection
+                        Select Medicine Batch
                     </label>
 
                     <select id="batch_select"
@@ -902,46 +669,35 @@
 
                         {% for batch in batches %}
                             <option value="{{ batch.id }}"
-                                    data-medicine-id="{{ batch.medicine_id }}"
-                                    data-expiry="{{ batch.expiry_date|date:'Y-m-d' }}">
+                                    data-medicine-id="{{ batch.medicine_id }}">
                                 {{ batch.medicine.medicine_name }} |
                                 {{ batch.batch_number }} |
                                 Expires: {{ batch.expiry_date|date:"d M Y" }} |
                                 Available: {{ batch.quantity_available }}
                             </option>
-                        {% empty %}
-                            <option value="" disabled>
-                                No eligible batches currently available
-                            </option>
                         {% endfor %}
-
                     </select>
 
                     <p class="dispense-help">
-                        Automatic FEFO allocation is the default. If manual
-                        batch selection is necessary, select an eligible batch
-                        belonging to the chosen medicine.
+                        Select a batch belonging to the chosen medicine,
+                        or leave automatic FEFO allocation selected.
                     </p>
-
                 </div>
 
                 <div class="allocation-mode">
-
                     <div class="allocation-mode-title">
                         AUTOMATIC FEFO ALLOCATION
                     </div>
 
                     <div class="allocation-mode-description">
-                        Leaving batch selection on automatic allows the
-                        backend FEFO engine to determine eligible stock
-                        according to its allocation rules.
+                        When no specific batch is selected, the backend
+                        determines the eligible batch using the First
+                        Expiry First Out allocation rules.
                     </div>
-
                 </div>
 
                 <!-- OVERRIDE REASON -->
                 <div class="dispense-field">
-
                     <label for="override_reason" class="dispense-label">
                         Reason for FEFO Override
                     </label>
@@ -951,117 +707,95 @@
                               class="dispense-input"
                               rows="3"
                               maxlength="1000"
-                              placeholder="Enter the reason when a non-recommended batch must be selected."></textarea>
+                              placeholder="Document the reason for a necessary manual override."></textarea>
 
                     <p class="dispense-help">
-                        Where a genuine FEFO override is necessary, document
-                        the reason in accordance with facility procedures.
-                        Backend validation determines whether an override
-                        is permitted and records the event.
+                        Provide a reason when a non-priority eligible batch
+                        is selected. Backend validation determines whether
+                        the override is permitted.
                     </p>
-
                 </div>
 
-                <!-- SAFETY INFORMATION -->
                 <div class="dispense-safety-box">
-                    <strong>Before submitting:</strong>
-                    Verify the medicine, prescribed quantity, treatment
-                    duration and patient reference. Confirm that the selected
-                    batch is appropriate for the entire treatment period.
+                    <strong>Before submission:</strong>
+                    Verify the medicine, quantity, prescription duration
+                    and patient reference. Confirm that the selected batch
+                    is eligible for dispensing.
                 </div>
 
-                <!-- SUBMIT -->
-                <button type="submit" class="dispense-submit">
-                    Execute Dispensing Transaction →
+                <button type="submit"
+                        class="dispense-submit"
+                        id="dispenseSubmit">
+                    Execute Dispensing Transaction
                 </button>
-
             </form>
-
         </section>
 
-        <!-- COLUMN 3: LIVE BATCH LEDGER -->
+        <!-- AVAILABLE BATCH LEDGER -->
         <section class="dispense-panel">
-
             <div class="dispense-panel-header">
-
                 <div class="dispense-panel-eyebrow">
                     INVENTORY MONITOR
                 </div>
 
                 <h2 class="dispense-panel-title">
-                    Eligible Batch Ledger
+                    Available Batch Ledger
                 </h2>
 
                 <p class="dispense-panel-description">
-                    Review available stock and expiry dates before dispensing.
-                    The ledger displays the batches supplied by the backend.
+                    Review medicine batches, available quantities and expiry
+                    dates before dispensing.
                 </p>
-
             </div>
 
             <div class="ledger-summary">
-                <span>Allocation priority</span>
-                <strong>Earliest expiry first</strong>
+                <span>Dispensing priority</span>
+                <strong>Earliest eligible expiry first</strong>
             </div>
 
             <div class="ledger-scroll">
-
                 <ul class="ledger-list">
 
                     {% for batch in batches %}
+                    <li class="ledger-card"
+                        data-medicine-id="{{ batch.medicine_id }}">
 
-                        <li class="ledger-card">
-
-                            <div style="min-width:0;">
-
-                                <div class="ledger-medicine">
-                                    {{ batch.medicine.medicine_name }}
-                                </div>
-
-                                <div class="ledger-meta">
-                                    Batch:
-                                    <code>{{ batch.batch_number }}</code>
-                                    <br>
-
-                                    Expiry:
-                                    <span class="ledger-expiry">
-                                        {{ batch.expiry_date|date:"d M Y" }}
-                                    </span>
-                                </div>
-
+                        <div style="min-width:0;">
+                            <div class="ledger-medicine">
+                                {{ batch.medicine.medicine_name }}
                             </div>
 
-                            <div class="ledger-quantity">
-
-                                <span>Available</span>
-
-                                <strong>
-                                    {{ batch.quantity_available }}
-                                </strong>
-
-                                <small>units</small>
-
+                            <div class="ledger-meta">
+                                Batch:
+                                <code>{{ batch.batch_number }}</code>
+                                <br>
+                                Expiry:
+                                <span class="ledger-expiry">
+                                    {{ batch.expiry_date|date:"d M Y" }}
+                                </span>
                             </div>
+                        </div>
 
-                        </li>
+                        <div class="ledger-quantity">
+                            <span>Available</span>
+                            <strong>{{ batch.quantity_available }}</strong>
+                            <small>units</small>
+                        </div>
 
+                    </li>
                     {% empty %}
-
-                        <li class="ledger-empty">
-                            <strong>No eligible batches available.</strong>
-                            <br>
-                            Review medicine availability and coordinate
-                            with the Store Manager where stock is unavailable.
-                        </li>
-
+                    <li class="ledger-empty">
+                        <strong>No eligible batches available.</strong>
+                        Review medicine availability with the Store Manager.
+                    </li>
                     {% endfor %}
                 </ul>
             </div>
 
             <div class="ledger-rule">
-                <strong>FEFO Safety Rule</strong>
+                <strong>FEFO Allocation Rule</strong>
                 <p>
-                    The earliest-expiring eligible batch should be prioritised.
+                    Prioritise the earliest-expiring eligible batch.
                     Expired, depleted and inactive stock must not be dispensed.
                     Backend FEFO validation remains authoritative.
                 </p>
@@ -1069,54 +803,74 @@
 
             <a href="{% url 'pharmacist_dashboard' %}"
                class="dispense-bottom-link">
-                ← Return to Pharmacist Dashboard
+                Return to Pharmacist Dashboard
             </a>
         </section>
     </div>
 </div>
-
-<!-- FRONTEND MEDICINE-TO-BATCH FILTER -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+     /*
+     * Ask the pharmacist to confirm before the transaction is submitted,
+     * and prevent accidental double submission.
+     * Django remains responsible for validating and saving the transaction.
+     */
+    if (dispenseForm && submitButton) {
 
-    const medicineSelect = document.getElementById("medicine_select");
-    const batchSelect = document.getElementById("batch_select");
+        dispenseForm.addEventListener("submit", function (event) {
 
-    if (!medicineSelect || !batchSelect) {
-        return;
-    }
-
-    const batchOptions = Array.from(batchSelect.options);
-
-    function filterBatches() {
-
-        const selectedMedicineId = medicineSelect.value;
-
-        // Always restore automatic FEFO as the default selection
-        batchSelect.value = "";
-
-        batchOptions.forEach(function (option, index) {
-
-            // Keep the automatic FEFO option visible
-            if (index === 0 || !option.dataset.medicineId) {
-                option.hidden = false;
+            if (!medicineSelect.value) {
+                event.preventDefault();
+                alert("Please select a medicine before dispensing.");
+                medicineSelect.focus();
                 return;
             }
 
-            const matchesMedicine =
-                !selectedMedicineId ||
-                option.dataset.medicineId === selectedMedicineId;
+            if (!dispenseForm.checkValidity()) {
+                event.preventDefault();
+                dispenseForm.reportValidity();
+                return;
+            }
 
-            option.hidden = !matchesMedicine;
+            // Gather the details to show in the confirmation.
+            const medicineName =
+                medicineSelect.options[medicineSelect.selectedIndex].text.trim();
+            const quantity = document.getElementById("qty_input").value;
+            const duration =
+                document.getElementById("prescription_duration").value;
+            const patient =
+                document.getElementById("patient_id").value.trim();
+            const overrideReason =
+                document.getElementById("override_reason").value.trim();
+
+            const batchText = batchSelect.value
+                ? batchSelect.options[batchSelect.selectedIndex].text
+                      .replace(/\s+/g, " ").trim()
+                : "Automatic FEFO allocation";
+
+            let message =
+                "Please confirm this dispensing transaction:\n\n" +
+                "Medicine: " + medicineName + "\n" +
+                "Quantity: " + quantity + " units\n" +
+                "Prescription duration: " + duration + " day(s)\n" +
+                "Patient reference: " + patient + "\n" +
+                "Batch: " + batchText;
+
+            if (batchSelect.value && overrideReason) {
+                message += "\nOverride reason: " + overrideReason;
+            }
+
+            message += "\n\nThis will deduct stock and cannot be undone.";
+
+            // Cancel: stop here. The form is not submitted and the button stays enabled.
+            if (!window.confirm(message)) {
+                event.preventDefault();
+                return;
+            }
+
+            // OK: lock the button so the form cannot be submitted twice.
+            submitButton.disabled = true;
+            submitButton.textContent = "Processing Transaction...";
         });
     }
-
-    medicineSelect.addEventListener("change", filterBatches);
-
-    // Apply the filter if a medicine is already selected
-    filterBatches();
-
-});
 </script>
-
 {% endblock %}

@@ -1,74 +1,85 @@
 {% extends "system_admin/base.html" %}
+{% block banner_eyebrow %}Monitoring &amp; Diagnostics{% endblock %}
+{% block banner_title %}System Health{% endblock %}
+{% block banner_text %}Live checks of the database, accounts, inventory, expiry monitoring and forecasting, so you can see what needs attention.{% endblock %}
+
+{% block banner_actions %}
+<div class="sa-header-actions">
+    <a class="sa-button secondary" href="{% url 'system_admin_health' %}">Run checks again</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sa-grid--four { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+</style>
+{% endblock %}
+
 {% block admin_content %}
-<header class="sa-header">
-    <span class="eyebrow">Monitoring &amp; Diagnostics</span>
-    <h1>System Health</h1>
-    <p>Review application status and identify areas that need operational attention.</p>
-</header>
-<section class="sa-grid">
-    <article class="sa-card">
-        <small>Application</small>
-        <div class="sa-number" style="font-size:22px;">Django</div>
-        <p class="sa-muted">Application framework</p>
-    </article>
 
-    <article class="sa-card">
-        <small>Database</small>
-        <div class="sa-number" style="font-size:22px;">PostgreSQL</div>
-        <p class="sa-muted">Configured database technology</p>
+<section class="sa-grid sa-grid--four">
+    <article class="sa-card sa-card--green">
+        <small>Checks passing</small>
+        <div class="sa-number">{{ ok_count }} <span style="font-size:16px;color:var(--muted);">of {{ check_count }}</span></div>
+        <p class="sa-muted">No action needed</p>
     </article>
-
-    <article class="sa-card">
-        <small>Monitoring</small>
-        <div class="sa-number" style="font-size:22px;">Overview</div>
-        <p class="sa-muted">Operational indicators</p>
+    <article class="sa-card {% if attention_count %}sa-card--amber{% else %}sa-card--green{% endif %}">
+        <small>Need attention</small>
+        <div class="sa-number">{{ attention_count }}</div>
+        <p class="sa-muted">{% if attention_count %}See the amber rows below{% else %}Nothing to fix{% endif %}</p>
+    </article>
+    <article class="sa-card sa-card--sky">
+        <small>Database response</small>
+        <div class="sa-number">{% if db_ms is not None %}{{ db_ms }} <span style="font-size:16px;color:var(--muted);">ms</span>{% else %}—{% endif %}</div>
+        <p class="sa-muted">One round trip to the database</p>
+    </article>
+    <article class="sa-card sa-card--slate">
+        <small>Checked at</small>
+        <div class="sa-number" style="font-size:22px;">{{ checked_at|date:"H:i:s" }}</div>
+        <p class="sa-muted">{{ checked_at|date:"d M Y" }}</p>
     </article>
 </section>
 
-<section class="sa-panel">
-    <h2>Operational Monitoring</h2>
-    <div class="sa-table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Component</th>
-                    <th>What to monitor</th>
-                    <th>Current verification</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Application</td>
-                    <td>HTTP errors, exceptions and request handling</td>
-                    <td>Requires application health checks and logs</td>
-                </tr>
-                <tr>
-                    <td>Database</td>
-                    <td>Database connectivity and query failures</td>
-                    <td>Requires a live database health check</td>
-                </tr>
-                <tr>
-                    <td>Medicine inventory</td>
-                    <td>Stock inconsistencies and batch records</td>
-                    <td>Requires inventory validation checks</td>
-                </tr>
-                <tr>
-                    <td>Expiry monitoring</td>
-                    <td>Unresolved expiry alerts and approaching expiry dates</td>
-                    <td>Requires expiry-alert data</td>
-                </tr>
-                <tr>
-                    <td>Forecasting</td>
-                    <td>Forecast generation and procurement recommendations</td>
-                    <td>Requires forecasting status and error tracking</td>
-                </tr>
-                <tr>
-                    <td>Backups</td>
-                    <td>Last successful backup and recovery readiness</td>
-                    <td>Requires a configured backup process</td>
-                </tr>
-            </tbody>
-        </table>
+<section class="sa-panel sa-scroll">
+    <div class="sa-panel-head">
+        <div>
+            <h2>Operational Monitoring</h2>
+            <p>Each row is checked when this page opens. Scroll inside the card for more.</p>
+        </div>
+        <span class="sa-count">{{ check_count }} checks</span>
+    </div>
+    <div class="sa-panel-body">
+        <div class="sa-table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>What is checked</th>
+                        <th>Result</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for check in checks %}
+                    <tr>
+                        <td><strong>{{ check.component }}</strong></td>
+                        <td>{{ check.what }}</td>
+                        <td class="sa-wrap">{{ check.result }}</td>
+                        <td>
+                            {% if check.status == "ok" %}
+                                <span class="status">OK</span>
+                            {% elif check.status == "attention" %}
+                                <span class="status attention">Needs attention</span>
+                            {% else %}
+                                <span class="status info">For information</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </section>
+
 {% endblock admin_content %}

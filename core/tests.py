@@ -47,11 +47,9 @@ class FEFOEngineTests(TestCase):
     def test_dispensing_splits_quantity_across_batches_in_fefo_order(self):
         first_batch = self.create_batch("BATCH-003", 10, 60)
         second_batch = self.create_batch("BATCH-004", 20, 90)
-
         transactions = FEFOEngine.dispense_medicine(
             medicine_id=self.medicine.id,
-            total_qty_to_dispense=15,
-            user=None,
+            total_qty_to_dispense=15,user=None,
             prescription_duration_days=30,
         )
 
@@ -383,27 +381,20 @@ class InventoryTests(TestCase):
 
     def test_non_store_manager_cannot_access_inventory(self):
         Role.objects.create(name="Pharmacist")
-
         user = get_user_model()
-
         pharmacist = user.objects.create_user(
             username="inventory_pharmacist",
             password="TestPassword123!",
             role=Role.objects.get(name="Pharmacist"),
         )
-
         self.client.force_login(pharmacist)
 
         response = self.client.get(
             reverse("inventory")
         )
-
         self.assertEqual(response.status_code, 403)
 
-# ============================================================
 # PROCUREMENT, RECEIVING AND INTEGRATION TESTS
-# ============================================================
-
 from core.models import (
     Supplier,
     PurchaseOrder,
@@ -414,7 +405,6 @@ from core.models import (
 
 
 class ProcurementTests(TestCase):
-
     def setUp(self):
         user = get_user_model()
 
@@ -476,12 +466,8 @@ class ProcurementTests(TestCase):
                 "justification": "Stock is below the reorder threshold.",
             },
         )
-
         self.assertEqual(response.status_code, 302)
-
-        recommendation = ProcurementRecommendation.objects.get(
-            medicine=self.medicine
-        )
+        recommendation = ProcurementRecommendation.objects.get(medicine=self.medicine)
 
         self.assertEqual(recommendation.recommended_quantity, 100)
         self.assertEqual(recommendation.raised_by, self.store_manager)
@@ -498,7 +484,6 @@ class ProcurementTests(TestCase):
 
     def test_store_manager_cannot_raise_recommendation_with_invalid_quantity(self):
         self.client.force_login(self.store_manager)
-
         response = self.client.post(
             reverse("store_manager_recommendations"),
             {

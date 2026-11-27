@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+{% block title %}
+{% block store_manager_title %}Store Manager Workspace{% endblock %}
+{% endblock %}
+{% block content %}
+<div class="sm-dashboard">
+    <style>
+        :root {
+            --sm-navy: #123b66;
+            --sm-navy-dark: #0b2948;
+            --sm-teal: #087e8b;
+            --sm-teal-light: #e6f7f7;
+            --sm-text: #1e293b;
+            --sm-muted: #64748b;
+            --sm-border: #e2e8f0;
+            --sm-bg: #f4f7fb;
+        }
+
+        .sm-dashboard,
+        .sm-dashboard * {
+            box-sizing: border-box;
+        }
+
+        .sm-dashboard {
+            width: 100%;
+            min-height: 100vh;
+            padding: 25px;
+            background: var(--sm-bg);
+            color: var(--sm-text);
+            font-family: Arial, sans-serif;
+        }
+
+        .sm-header {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            padding: 27px 30px;
+            margin-bottom: 22px;
+            border-radius: 15px;
+            color: white;
+            background: linear-gradient(
+                115deg,
+                var(--sm-navy-dark),
+                var(--sm-navy) 60%,
+                var(--sm-teal)
+            );
+            box-shadow: 0 7px 20px rgba(18,59,102,.13);
+        }
+
+        .sm-header::after {
+            content: "";
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            right: -75px;
+            top: -130px;
+            border: 35px solid rgba(255,255,255,.07);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .sm-eyebrow {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: .8;
+        }
+
+        .sm-header h1 {
+            margin: 9px 0 7px;
+            font-size: 26px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .sm-header p {
+            max-width: 650px;
+            margin: 0;
+            color: rgba(255,255,255,.85);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .sm-header-tag {
+            position: relative;
+            z-index: 1;
+            flex-shrink: 0;
+            padding: 10px 14px;
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 8px;
+            background: rgba(255,255,255,.1);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .6px;
+        }
+
+        .sm-layout {
+            display: grid;
+            grid-template-columns: 235px minmax(0,1fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .sm-sidebar {
+            position: sticky;
+            top: 18px;
+            min-width: 0;
+            padding: 19px 14px;
+            border: 1px solid var(--sm-border);
+            border-radius: 13px;
+            background: white;
+            box-shadow: 0 3px 12px rgba(15,23,42,.04);
+        }
+
+        .sm-brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 5px 7px 19px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--sm-border);
+        }
+
+        .sm-brand-mark {
+            display: grid;
+            place-items: center;
+            width: 37px;
+            height: 37px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            color: white;
+            background: linear-gradient(135deg,var(--sm-navy),var(--sm-teal));
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .sm-brand strong {
+            display: block;
+            color: var(--sm-navy);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .sm-brand span {
+            display: block;
+            margin-top: 4px;
+            color: var(--sm-muted);
+            font-size: 9px;
+        }
+
+        .sm-nav-label {
+            padding: 0 9px;
+            margin: 17px 0 9px;
+            color: #94a3b8;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .sm-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .sm-nav a {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 11px 10px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: #475569;
+            background: transparent;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 700;
+            transition: .2s;
+        }
+
+        .sm-nav a:hover,
+        .sm-nav a.active {
+            color: white;
+            background: var(--sm-navy);
+        }
+
+        .sm-nav a.active {
+            background: linear-gradient(110deg,var(--sm-navy),var(--sm-teal));
+            box-shadow: 0 3px 8px rgba(18,59,102,.15);
+        }
+
+        .sm-nav-icon {
+            display: grid;
+            place-items: center;
+            width: 23px;
+            height: 23px;
+            flex-shrink: 0;
+            border-radius: 6px;
+            color: var(--sm-navy);
+            background: #edf2f7;
+            font-size: 13px;
+        }
+
+        .sm-nav a.active .sm-nav-icon,
+        .sm-nav a:hover .sm-nav-icon {
+            color: white;
+            background: rgba(255,255,255,.15);
+        }
+
+        .sm-sidebar-footer {
+            margin-top: 22px;
+            padding: 13px 9px 3px;
+            border-top: 1px solid var(--sm-border);
+            color: #94a3b8;
+            font-size: 9px;
+            line-height: 1.8;
+        }
+
+        .sm-main {
+            display: flex;
+            flex-direction: column;
+            gap: 17px;
+            min-width: 0;
+        }
+
+        /* Shared page-level responsiveness */
+        @media(max-width:1150px) {
+            .sm-layout {
+                grid-template-columns: 205px minmax(0,1fr);
+            }
+        }
+
+        @media(max-width:850px) {
+            .sm-dashboard {
+                padding: 16px;
+            }
+
+            .sm-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sm-sidebar {
+                position: static;
+            }
+
+            .sm-nav {
+                display: grid;
+                grid-template-columns: repeat(3,minmax(0,1fr));
+            }
+
+            .sm-sidebar-footer {
+                display: none;
+            }
+        }
+
+        @media(max-width:650px) {
+            .sm-header {
+                align-items: flex-start;
+                padding: 22px;
+            }
+
+            .sm-header-tag {
+                display: none;
+            }
+
+            .sm-header h1 {
+                font-size: 22px;
+            }
+
+            .sm-nav {
+                grid-template-columns: repeat(2,minmax(0,1fr));
+            }
+        }
+
+        @media(max-width:450px) {
+            .sm-dashboard {
+                padding: 10px;
+            }
+
+            .sm-header {
+                padding: 19px;
+            }
+
+            .sm-sidebar {
+                padding: 14px 10px;
+            }
+
+            .sm-nav a {
+                padding: 9px 7px;
+                font-size: 10px;
+            }
+        }
+    </style>
+    <header class="sm-header">
+        <div>
+            <div class="sm-eyebrow">STORE MANAGER WORKSPACE</div>
+            <h1>{% block store_manager_heading %}Store Manager Workspace{% endblock %}</h1>
+            <p>{% block store_manager_description %}Demand-driven medicine inventory control, expiry monitoring and FEFO stock management.{% endblock %}</p>
+        </div>
+        <div class="sm-header-tag">INVENTORY OPERATIONS</div>
+    </header>
+
+    <div class="sm-layout">
+        <aside class="sm-sidebar">
+            <div class="sm-nav-label">Inventory Workspace</div>
+            <nav class="sm-nav" aria-label="Store Manager navigation">
+                <a href="{% url 'inventory' %}"
+                   class="{% if request.resolver_match.url_name == 'inventory' %}active{% endif %}">
+                    Inventory Overview
+                </a>
+
+                <a href="{% url 'inventory_recommendations' %}"
+                   class="{% if request.resolver_match.url_name == 'inventory_recommendations' or request.resolver_match.url_name == 'store_manager_recommendations' %}active{% endif %}">
+                    Procurement Recommendations
+                </a>
+
+                <a href="{% url 'receiving_dashboard' %}"
+                   class="{% if request.resolver_match.url_name == 'receiving_dashboard' or request.resolver_match.url_name == 'goods_receipts' or request.resolver_match.url_name == 'goods_receipt_create' or request.resolver_match.url_name == 'goods_receipt_detail' or request.resolver_match.url_name == 'goods_receipt_add_item' or request.resolver_match.url_name == 'goods_receipt_inspect_item' %}active{% endif %}">
+                    Goods Receiving
+                </a>
+
+                <a href="{% url 'inventory_reports' %}"
+                   class="{% if request.resolver_match.url_name == 'inventory_reports' %}active{% endif %}">
+                    Inventory Reports
+                </a>
+
+                <a href="{% url 'inventory_alerts' %}"
+                   class="{% if request.resolver_match.url_name == 'inventory_alerts' %}active{% endif %}">
+                    Alerts Centre
+                </a>
+                <a href="{% url 'profile' %}"
+                   class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                    My Profile
+                </a>
+            </nav>
+
+            <div class="sm-nav-label">System</div>
+            <div class="sm-sidebar-footer">
+                Demand-driven inventory management<br>
+                FEFO-based stock operations
+            </div>
+        </aside>
+        <main class="sm-main">
+            {% block store_manager_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
